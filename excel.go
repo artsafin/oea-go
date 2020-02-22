@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"strings"
 
@@ -11,8 +12,8 @@ import (
 
 const sheetName = "Sheet1"
 
-func RenderTemplate(outdir string, file string, invoice *dto.Invoice) {
-	f, err := excelize.OpenFile(file)
+func RenderTemplate(outdir string, templateSource []byte, invoice *dto.Invoice) {
+	f, err := excelize.OpenReader(bytes.NewReader(templateSource))
 	if err != nil {
 		panic(err)
 	}

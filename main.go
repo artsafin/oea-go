@@ -1,6 +1,7 @@
 package main
 
 //go:generate tpl/jade -basedir tpl -d tpl -pkg tpl -writer post.jade
+//go:generate go-bindata resources/
 
 import (
 	"fmt"
@@ -73,7 +74,7 @@ func main() {
 
 	wg.Add(1)
 	go func() {
-		RenderTemplate(outDir, "templates/invoice_template.xlsx", invoice)
+		RenderTemplate(outDir, MustAsset("resources/invoice_template.xlsx"), invoice)
 		wg.Done()
 	}()
 
