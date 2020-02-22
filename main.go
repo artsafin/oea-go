@@ -27,14 +27,13 @@ func main() {
 
 	ccl := NewCodaClient(viper.GetString("base_uri"), viper.GetString("api_token"))
 
-	invoiceID := ccl.getLastInvoice()
-	fmt.Println("Found planned invoice: ", invoiceID)
-
 	var invoice *dto.Invoice
 	var expensesByCategory dto.ExpenseGroupMap
 	var history *dto.History
 
 	wg := sync.WaitGroup{}
+
+	invoiceID := ccl.WaitForInvoice()
 
 	wg.Add(1)
 	go func() {

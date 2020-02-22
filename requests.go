@@ -1,21 +1,50 @@
 package main
 
 import (
+	"errors"
 	"fmt"
+	"os"
 	"sort"
+	"time"
 
 	"github.com/artsafin/ofa-go/dto"
 	"github.com/phouse512/go-coda"
 )
 
-func (ccl *CodaClient) getLastInvoice() string {
+func (ccl *CodaClient) WaitForInvoice() string {
+	var invoiceID string
+	fmt.Printf("Waiting for invoice...")
+	timerChan := time.After(2 * time.Minute)
+	for {
+		var err error
+		invoiceID, err = ccl.getLastInvoice()
+		if err == nil {
+			fmt.Println("Found planned invoice:", invoiceID)
+			break
+		}
+
+		select {
+		case t := <-timerChan:
+			fmt.Printf("Stopped waiting at %v\n", t)
+			os.Exit(1)
+		default:
+		}
+
+		time.Sleep(500 * time.Millisecond)
+		fmt.Print(".")
+	}
+
+	return invoiceID
+}
+
+func (ccl *CodaClient) getLastInvoice() (string, error) {
 	lastInvoice, err := ccl.GetFormula(dto.Ids.OfficeAccounting.Id, dto.Ids.CodaFormulas.LastInvoice)
 
 	if err != nil {
 		panic(err)
 	}
 	if lastInvoice.Formula.Value == "" {
-		panic("Last invoice is empty")
+		return "", errors.New("Last invoice not found")
 	}
 
 	str, ok := lastInvoice.Formula.Value.(string)
@@ -24,7 +53,7 @@ func (ccl *CodaClient) getLastInvoice() string {
 		panic("Last invoice is not a string")
 	}
 
-	return str
+	return str, nil
 }
 
 func (ccl *CodaClient) getInvoice(invoiceID string) *dto.Invoice {
