@@ -1,4 +1,4 @@
-module github.com/artsafin/ofa-go
+module ofa-go
 
 go 1.13
 

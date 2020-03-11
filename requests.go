@@ -7,13 +7,13 @@ import (
 	"sort"
 	"time"
 
-	"github.com/artsafin/ofa-go/dto"
 	"github.com/phouse512/go-coda"
+	"ofa-go/dto"
 )
 
 func (ccl *CodaClient) WaitForInvoice() string {
 	var invoiceID string
-	fmt.Printf("Waiting for invoice...")
+	fmt.Printf("Waiting for invoice in doc %s...", ccl.docId)
 	timerChan := time.After(2 * time.Minute)
 	for {
 		var err error
@@ -38,7 +38,7 @@ func (ccl *CodaClient) WaitForInvoice() string {
 }
 
 func (ccl *CodaClient) getLastInvoice() (string, error) {
-	lastInvoice, err := ccl.GetFormula(dto.Ids.OfficeAccounting.Id, dto.Ids.CodaFormulas.LastInvoice)
+	lastInvoice, err := ccl.GetFormula(ccl.docId, dto.Ids.CodaFormulas.LastInvoice)
 
 	if err != nil {
 		panic(err)
@@ -60,7 +60,7 @@ func (ccl *CodaClient) getInvoice(invoiceID string) *dto.Invoice {
 	params := coda.ListRowsParameters{
 		Query: fmt.Sprintf("\"%s\":\"%s\"", dto.Ids.Invoices.Cols.No, invoiceID),
 	}
-	resp, err := ccl.ListTableRows(dto.Ids.OfficeAccounting.Id, dto.Ids.Invoices.Id, params)
+	resp, err := ccl.ListTableRows(ccl.docId, dto.Ids.Invoices.Id, params)
 	if err != nil {
 		panic(err)
 	}
@@ -78,7 +78,7 @@ func (ccl *CodaClient) getAllInvoices() dto.Invoices {
 	params := coda.ListRowsParameters{
 		SortBy: "natural",
 	}
-	resp, err := ccl.ListTableRows(dto.Ids.OfficeAccounting.Id, dto.Ids.Invoices.Id, params)
+	resp, err := ccl.ListTableRows(ccl.docId, dto.Ids.Invoices.Id, params)
 	if err != nil {
 		panic(err)
 	}
@@ -95,7 +95,7 @@ func (ccl *CodaClient) getAllInvoices() dto.Invoices {
 
 func (ccl *CodaClient) getExpenses(invoiceID string) []*dto.Expense {
 	params := coda.ListRowsParameters{}
-	resp, err := ccl.ListTableRows(dto.Ids.OfficeAccounting.Id, dto.Ids.Expenses.Id, params)
+	resp, err := ccl.ListTableRows(ccl.docId, dto.Ids.Expenses.Id, params)
 	if err != nil {
 		panic(err)
 	}

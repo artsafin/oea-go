@@ -19,9 +19,10 @@ func (adt *AuthTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 
 type CodaClient struct {
 	coda.Client
+	docId string
 }
 
-func NewCodaClient(baseUri, apiToken string) *CodaClient {
+func NewCodaClient(baseUri, apiToken, docId string) *CodaClient {
 	transport := &AuthTransport{Transport: http.DefaultTransport, apiToken: apiToken}
 	http := &http.Client{
 		Transport: transport,
@@ -38,5 +39,6 @@ func NewCodaClient(baseUri, apiToken string) *CodaClient {
 			UserAgent:  "ofa-go",
 			HttpClient: http,
 		},
+		docId: docId,
 	}
 }

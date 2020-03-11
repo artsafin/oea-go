@@ -6,13 +6,13 @@ import (
 	"strings"
 
 	"github.com/360EntSecGroup-Skylar/excelize"
-	"github.com/artsafin/ofa-go/dto"
 	"github.com/divan/num2words"
+	"ofa-go/dto"
 )
 
 const sheetName = "Sheet1"
 
-func RenderTemplate(outdir string, templateSource []byte, invoice *dto.Invoice) {
+func RenderExcelTemplate(outdir string, templateSource []byte, invoice *dto.Invoice) {
 	f, err := excelize.OpenReader(bytes.NewReader(templateSource))
 	if err != nil {
 		panic(err)

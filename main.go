@@ -1,6 +1,5 @@
 package main
 
-//go:generate tpl/jade -basedir tpl -d tpl -pkg tpl -writer post.jade
 //go:generate go-bindata resources/
 
 import (
@@ -8,9 +7,9 @@ import (
 	"os"
 	"sync"
 
-	"github.com/artsafin/ofa-go/dto"
-	"github.com/artsafin/ofa-go/tpl"
 	"github.com/spf13/viper"
+	"ofa-go/dto"
+	"text/template"
 )
 
 func main() {
@@ -22,11 +21,11 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	if !viper.IsSet("api_token") || !viper.IsSet("base_uri") {
+	if !viper.IsSet("api_token") || !viper.IsSet("base_uri") || !viper.IsSet("doc_id") {
 		panic("Config parameters are not set")
 	}
 
-	ccl := NewCodaClient(viper.GetString("base_uri"), viper.GetString("api_token"))
+	ccl := NewCodaClient(viper.GetString("base_uri"), viper.GetString("api_token"), viper.GetString("doc_id"))
 
 	var invoice *dto.Invoice
 	var expensesByCategory dto.ExpenseGroupMap
@@ -58,23 +57,42 @@ func main() {
 	wg.Wait()
 
 	outDir := viper.GetString("out_dir")
-	os.Mkdir(outDir, os.FileMode(0777))
+	if err := os.MkdirAll(outDir, os.FileMode(0777)); err != nil {
+		panic(fmt.Sprintf("Unable to create target dir: %s", err))
+	}
 
 	file, err := os.Create(fmt.Sprintf("%s/%s.html", outDir, invoice.Filename))
-	defer file.Close()
 	if err != nil {
 		panic(err)
 	}
+	defer func() {
+		if err := file.Close(); err != nil {
+			fmt.Println("Error closing file")
+		}
+	}()
 
 	wg.Add(1)
 	go func() {
-		tpl.Post(invoice, expensesByCategory, history, file)
+		tpl, err := template.New("post").Parse(string(MustAsset("resources/post.go.html")))
+		if err != nil {
+			panic(err)
+		}
+		err = tpl.Execute(file, struct {
+			Invoice       dto.Invoice
+			ExpenseGroups dto.ExpenseGroupMap
+			History       dto.History
+		}{*invoice, expensesByCategory, *history})
+
+		if err != nil {
+			panic(err)
+		}
+
 		wg.Done()
 	}()
 
 	wg.Add(1)
 	go func() {
-		RenderTemplate(outDir, MustAsset("resources/invoice_template.xlsx"), invoice)
+		RenderExcelTemplate(outDir, MustAsset("resources/invoice_template.xlsx"), invoice)
 		wg.Done()
 	}()
 

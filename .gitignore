@@ -1,6 +1,5 @@
 config.yaml
 generated
-tpl/jade
 ofa-go
-resources
+resources/invoice_template.xlsx
 bindata.go

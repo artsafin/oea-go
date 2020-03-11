@@ -64,18 +64,16 @@ type CodaFormulasDecl struct {
 }
 
 type IdStruct struct {
-	OfficeAccounting IdOnly
-	Invoices         InvoicesDecl
-	Expenses         ExpensesDecl
-	CodaViews        CodaViewsDecl
-	CodaFormulas     CodaFormulasDecl
+	Invoices     InvoicesDecl
+	Expenses     ExpensesDecl
+	CodaViews    CodaViewsDecl
+	CodaFormulas CodaFormulasDecl
 }
 
 var Ids IdStruct
 
 func init() {
 	Ids = IdStruct{
-		OfficeAccounting: IdOnly{"TAC1aAH5mf"},
 		Invoices: InvoicesDecl{
 			IdOnly{"grid-H_lQoXT4Hn"},
 			InvoicesColumns{

@@ -45,11 +45,11 @@ type Invoice struct {
 	Expenses         []*Expense
 }
 
-func (i *Invoice) InvoiceDateYm() string {
+func (i Invoice) InvoiceDateYm() string {
 	return i.Date.Format("January 2006")
 }
 
-func (i *Invoice) InvoiceDateFull() string {
+func (i Invoice) InvoiceDateFull() string {
 	// Mon Jan 2 15:04:05 -0700 MST 2006
 	return i.Date.Format("02.01.2006")
 }
