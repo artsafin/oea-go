@@ -1,6 +1,7 @@
+<!-- Generated at {{ .Timestamp.Format "2006-01-02T15:04:05Z07:00" }} by {{ .Author.Username }} -->
 <p>Please approve the following items to be included in:</p>
 
-<h3>{{ .Invoice.InvoiceDateYm }} Invoice</h3>
+<h3>{{ .Office.Invoice.InvoiceDateYm }} Invoice</h3>
 
 <table border="0" cellpadding="2" cellspacing="0" width="80%" class="standart">
     <thead>
@@ -13,7 +14,7 @@
         </tr>
     </thead>
     <tbody>
-        {{ range $group := .ExpenseGroups}}
+        {{ range $group := .Office.ExpenseGroups}}
             {{ range $expense := $group.Items}}
                 <tr>
                     <td>{{ $expense.Subject }}</td>
@@ -36,34 +37,34 @@
             <td><b>Expenses Total</b></td>
             <td></td>
             <td></td>
-            <td align="right">{{ .Invoice.Subtotal }}</td>
+            <td align="right">{{ .Office.Invoice.Subtotal }}</td>
         </tr>
         <tr>
             <td></td>
             <td></td>
             <td></td>
             <td><b>Return of rounding</b></td>
-            <td align="right" style="color: red">-{{ .Invoice.ReturnOfRounding }}</td>
+            <td align="right" style="color: red">-{{ .Office.Invoice.ReturnOfRounding }}</td>
         </tr>
         <tr>
             <td></td>
             <td></td>
-            <td>{{ .Invoice.Hours }} hours</td>
+            <td>{{ .Office.Invoice.Hours }} hours</td>
             <td><b>Rounding</b></td>
-            <td align="right">{{ .Invoice.HourRateRounding }}</td>
+            <td align="right">{{ .Office.Invoice.HourRateRounding }}</td>
         </tr>
         <tr>
             <td></td>
             <td></td>
             <td></td>
             <td><b>Total</b></td>
-            <td align="right">{{ .Invoice.TotalEur }}</td>
+            <td align="right">{{ .Office.Invoice.TotalEur }}</td>
         </tr>
     </tbody>
 </table>
 
 
-<h3>Report on money usage ({{ .History.FirstInvoice.InvoiceDateYm }} &ndash; {{ .History.LastInvoice.InvoiceDateYm }})</h3>
+<h3>Report on money usage ({{ .Office.History.FirstInvoice.InvoiceDateYm }} &ndash; {{ .Office.History.LastInvoice.InvoiceDateYm }})</h3>
 <table border="0" cellpadding="2" cellspacing="0" width="80%" class="standart">
     <thead>
         <tr>
@@ -79,7 +80,7 @@
         </tr>
     </thead>
     <tbody>
-        {{ range $invoice := .History.Invoices }}
+        {{ range $invoice := .Office.History.Invoices }}
             <tr bgcolor="{{if $invoice.HasPendingSpends}}#F6F9D4{{else}}#EEEEEE{{end}}">
                 <td>{{ $invoice.No }}</td>
                 <td></td>
@@ -93,7 +94,7 @@
             </tr>
         {{ end }}
 
-        {{ range $expense := .History.LastInvoice.Expenses }}
+        {{ range $expense := .Office.History.LastInvoice.Expenses }}
             <tr bgcolor="{{if $expense.HasPendingSpends}}#F6F9D4{{else}}#FFFFFF{{end}}">
                 <td>{{ $expense.Invoice }}</td>
                 <td>{{ $expense.Subject }}</td>
@@ -107,14 +108,14 @@
             </tr>
         {{ end }}
         <tr style="font-weight: bold">
-            <td>{{ .History.LastInvoice.No }} Subtotal</td>
+            <td>{{ .Office.History.LastInvoice.No }} Subtotal</td>
             <td></td>
             <td></td>
             <td></td>
-            <td>{{ .History.LastInvoice.ExpensesRub }}</td>
-            <td>{{ .History.LastInvoice.ActuallySpent }}</td>
-            <td>{{ .History.LastInvoice.PendingSpend }}</td>
-            <td>{{ .History.LastInvoice.Balance }}</td>
+            <td>{{ .Office.History.LastInvoice.ExpensesRub }}</td>
+            <td>{{ .Office.History.LastInvoice.ActuallySpent }}</td>
+            <td>{{ .Office.History.LastInvoice.PendingSpend }}</td>
+            <td>{{ .Office.History.LastInvoice.Balance }}</td>
             <td></td>
         </tr>
         <tr style="font-weight: bold">
@@ -122,10 +123,10 @@
             <td></td>
             <td></td>
             <td></td>
-            <td>{{ .History.GrandTotal.ExpensesRub }}</td>
-            <td>{{ .History.GrandTotal.ActuallySpent }}</td>
-            <td>{{ .History.GrandTotal.PendingSpend }}</td>
-            <td>{{ .History.GrandTotal.Balance }}</td>
+            <td>{{ .Office.History.GrandTotal.ExpensesRub }}</td>
+            <td>{{ .Office.History.GrandTotal.ActuallySpent }}</td>
+            <td>{{ .Office.History.GrandTotal.PendingSpend }}</td>
+            <td>{{ .Office.History.GrandTotal.Balance }}</td>
             <td></td>
         </tr>
     </tbody>

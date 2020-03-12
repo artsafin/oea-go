@@ -1,6 +1,7 @@
 package dto
 
 import (
+	"oea-go/common"
 	"time"
 
 	"github.com/phouse512/go-coda"
@@ -28,21 +29,20 @@ type Invoice struct {
 	Status           string
 	Number           uint16
 	Date             *time.Time
-	HourRate         MoneyEur
-	EurFixedRate     MoneyRub
-	EurRateWorst     MoneyRub
-	ReturnOfRounding MoneyEur
-	Subtotal         MoneyEur
-	HourRateRounding MoneyEur
-	TotalEur         MoneyEur
+	HourRate         common.MoneyEur
+	EurFixedRate     common.MoneyRub
+	EurRateWorst     common.MoneyRub
+	ReturnOfRounding common.MoneyEur
+	Subtotal         common.MoneyEur
+	HourRateRounding common.MoneyEur
+	TotalEur         common.MoneyEur
 	Hours            uint16
 	Filename         string
-	ExpensesRub      MoneyRub
-	ExpensesEur      MoneyEur
-	ActuallySpent    MoneyRub
-	PendingSpend     MoneyRub
-	Balance          MoneyRub
-	Expenses         []*Expense
+	ExpensesRub      common.MoneyRub
+	ExpensesEur      common.MoneyEur
+	ActuallySpent    common.MoneyRub
+	PendingSpend     common.MoneyRub
+	Balance          common.MoneyRub
 }
 
 func (i Invoice) InvoiceDateYm() string {

@@ -1,10 +1,12 @@
 package dto
 
+import "oea-go/common"
+
 type GrandTotal struct {
-	ExpensesRub   MoneyRub
-	ActuallySpent MoneyRub
-	PendingSpend  MoneyRub
-	Balance       MoneyRub
+	ExpensesRub   common.MoneyRub
+	ActuallySpent common.MoneyRub
+	PendingSpend  common.MoneyRub
+	Balance       common.MoneyRub
 }
 
 func (t *GrandTotal) AddInvoice(inv *Invoice) {

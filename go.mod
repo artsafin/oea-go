@@ -1,4 +1,4 @@
-module ofa-go
+module oea-go
 
 go 1.13
 

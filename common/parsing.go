@@ -1,4 +1,4 @@
-package dto
+package common
 
 import (
 	"fmt"
@@ -36,7 +36,7 @@ func (e *UnexpectedFieldTypeErr) Error() string {
 	return fmt.Sprintf("Unexpected type for field %s: expected %s. Got value: %#v of type %T", e.fieldID, e.expectedType, v, v)
 }
 
-func toString(colID string, row *coda.Row) (string, *UnexpectedFieldTypeErr) {
+func ToString(colID string, row *coda.Row) (string, *UnexpectedFieldTypeErr) {
 	if row.Values[colID] == nil {
 		return "", nil
 	}
@@ -47,7 +47,7 @@ func toString(colID string, row *coda.Row) (string, *UnexpectedFieldTypeErr) {
 	return "", &UnexpectedFieldTypeErr{colID, "string", row}
 }
 
-func toDate(colID string, row *coda.Row) (*time.Time, *UnexpectedFieldTypeErr) {
+func ToDate(colID string, row *coda.Row) (*time.Time, *UnexpectedFieldTypeErr) {
 	if row.Values[colID] == nil {
 		return nil, nil
 	}
@@ -64,7 +64,7 @@ func toDate(colID string, row *coda.Row) (*time.Time, *UnexpectedFieldTypeErr) {
 	return nil, &UnexpectedFieldTypeErr{colID, "RFC3339 date", row}
 }
 
-func toFloat64(colID string, row *coda.Row) (float64, *UnexpectedFieldTypeErr) {
+func ToFloat64(colID string, row *coda.Row) (float64, *UnexpectedFieldTypeErr) {
 	if row.Values[colID] == nil {
 		return 0, nil
 	}
@@ -78,22 +78,22 @@ func toFloat64(colID string, row *coda.Row) (float64, *UnexpectedFieldTypeErr) {
 	}
 }
 
-func toUint16(colID string, row *coda.Row) (uint16, *UnexpectedFieldTypeErr) {
-	if v, err := toFloat64(colID, row); err == nil {
+func ToUint16(colID string, row *coda.Row) (uint16, *UnexpectedFieldTypeErr) {
+	if v, err := ToFloat64(colID, row); err == nil {
 		return uint16(v), nil
 	}
 	return 0, &UnexpectedFieldTypeErr{colID, "uint16", row}
 }
 
-func toEur(colID string, row *coda.Row) (MoneyEur, *UnexpectedFieldTypeErr) {
-	if v, err := toFloat64(colID, row); err == nil {
+func ToEur(colID string, row *coda.Row) (MoneyEur, *UnexpectedFieldTypeErr) {
+	if v, err := ToFloat64(colID, row); err == nil {
 		return MoneyEur(math.Round(v * 100)), nil
 	}
 	return 0, &UnexpectedFieldTypeErr{colID, "MoneyEur", row}
 }
 
-func toRub(colID string, row *coda.Row) (MoneyRub, *UnexpectedFieldTypeErr) {
-	if v, err := toFloat64(colID, row); err == nil {
+func ToRub(colID string, row *coda.Row) (MoneyRub, *UnexpectedFieldTypeErr) {
+	if v, err := ToFloat64(colID, row); err == nil {
 		return MoneyRub(math.Round(v * 100)), nil
 	}
 	return 0, &UnexpectedFieldTypeErr{colID, "MoneyRub", row}

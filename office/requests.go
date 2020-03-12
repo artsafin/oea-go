@@ -1,4 +1,4 @@
-package main
+package office
 
 import (
 	"errors"
@@ -8,16 +8,22 @@ import (
 	"time"
 
 	"github.com/phouse512/go-coda"
-	"ofa-go/dto"
+	"oea-go/common"
+	"oea-go/office/dto"
 )
 
-func (ccl *CodaClient) WaitForInvoice() string {
+type Requests struct {
+	Client *common.CodaClient
+	DocId  string
+}
+
+func (requests *Requests) WaitForInvoice() string {
 	var invoiceID string
-	fmt.Printf("Waiting for invoice in doc %s...", ccl.docId)
+	fmt.Printf("Waiting for invoice in doc %s...", requests.DocId)
 	timerChan := time.After(2 * time.Minute)
 	for {
 		var err error
-		invoiceID, err = ccl.getLastInvoice()
+		invoiceID, err = requests.GetLastInvoice()
 		if err == nil {
 			fmt.Println("Found planned invoice:", invoiceID)
 			break
@@ -37,8 +43,8 @@ func (ccl *CodaClient) WaitForInvoice() string {
 	return invoiceID
 }
 
-func (ccl *CodaClient) getLastInvoice() (string, error) {
-	lastInvoice, err := ccl.GetFormula(ccl.docId, dto.Ids.CodaFormulas.LastInvoice)
+func (requests *Requests) GetLastInvoice() (string, error) {
+	lastInvoice, err := requests.Client.GetFormula(requests.DocId, dto.Ids.CodaFormulas.LastInvoice)
 
 	if err != nil {
 		panic(err)
@@ -56,11 +62,11 @@ func (ccl *CodaClient) getLastInvoice() (string, error) {
 	return str, nil
 }
 
-func (ccl *CodaClient) getInvoice(invoiceID string) *dto.Invoice {
+func (requests *Requests) GetInvoice(invoiceID string) *dto.Invoice {
 	params := coda.ListRowsParameters{
 		Query: fmt.Sprintf("\"%s\":\"%s\"", dto.Ids.Invoices.Cols.No, invoiceID),
 	}
-	resp, err := ccl.ListTableRows(ccl.docId, dto.Ids.Invoices.Id, params)
+	resp, err := requests.Client.ListTableRows(requests.DocId, dto.Ids.Invoices.Id, params)
 	if err != nil {
 		panic(err)
 	}
@@ -74,11 +80,11 @@ func (ccl *CodaClient) getInvoice(invoiceID string) *dto.Invoice {
 	return dto.NewInvoiceFromRow(&firstRow)
 }
 
-func (ccl *CodaClient) getAllInvoices() dto.Invoices {
+func (requests *Requests) GetAllInvoices() dto.Invoices {
 	params := coda.ListRowsParameters{
 		SortBy: "natural",
 	}
-	resp, err := ccl.ListTableRows(ccl.docId, dto.Ids.Invoices.Id, params)
+	resp, err := requests.Client.ListTableRows(requests.DocId, dto.Ids.Invoices.Id, params)
 	if err != nil {
 		panic(err)
 	}
@@ -93,9 +99,9 @@ func (ccl *CodaClient) getAllInvoices() dto.Invoices {
 	return invoices
 }
 
-func (ccl *CodaClient) getExpenses(invoiceID string) []*dto.Expense {
+func (requests *Requests) GetExpenses(invoiceID string) []*dto.Expense {
 	params := coda.ListRowsParameters{}
-	resp, err := ccl.ListTableRows(ccl.docId, dto.Ids.Expenses.Id, params)
+	resp, err := requests.Client.ListTableRows(requests.DocId, dto.Ids.Expenses.Id, params)
 	if err != nil {
 		panic(err)
 	}
@@ -111,10 +117,10 @@ func (ccl *CodaClient) getExpenses(invoiceID string) []*dto.Expense {
 	return expenses
 }
 
-func (ccl *CodaClient) getHistory() *dto.History {
+func (requests *Requests) GetHistory() *dto.History {
 	sentInvoices := make([]*dto.Invoice, 0)
 	grandTotal := dto.GrandTotal{}
-	for _, inv := range ccl.getAllInvoices() {
+	for _, inv := range requests.GetAllInvoices() {
 		if inv.Status != "" {
 			sentInvoices = append(sentInvoices, inv)
 			grandTotal.AddInvoice(inv)
@@ -122,7 +128,7 @@ func (ccl *CodaClient) getHistory() *dto.History {
 	}
 
 	lastInvoice := sentInvoices[len(sentInvoices)-1]
-	lastInvoice.Expenses = ccl.getExpenses(lastInvoice.No)
+	lastInvoice.Expenses = requests.GetExpenses(lastInvoice.No)
 
 	return &dto.History{
 		FirstInvoice: sentInvoices[0],

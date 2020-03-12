@@ -1,4 +1,4 @@
-package main
+package common
 
 import (
 	"net/http"
@@ -19,10 +19,9 @@ func (adt *AuthTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 
 type CodaClient struct {
 	coda.Client
-	docId string
 }
 
-func NewCodaClient(baseUri, apiToken, docId string) *CodaClient {
+func NewCodaClient(baseUri, apiToken string) *CodaClient {
 	transport := &AuthTransport{Transport: http.DefaultTransport, apiToken: apiToken}
 	http := &http.Client{
 		Transport: transport,
@@ -36,9 +35,8 @@ func NewCodaClient(baseUri, apiToken, docId string) *CodaClient {
 	return &CodaClient{
 		Client: coda.Client{
 			BaseURL:    url,
-			UserAgent:  "ofa-go",
+			UserAgent:  "oea-go",
 			HttpClient: http,
 		},
-		docId: docId,
 	}
 }

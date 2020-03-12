@@ -4,15 +4,19 @@ package main
 
 import (
 	"fmt"
-	"os"
-	"sync"
-
 	"github.com/spf13/viper"
-	"ofa-go/dto"
+	"oea-go/common"
+	"oea-go/office"
+	"os"
+	"os/user"
+	"sync"
 	"text/template"
+	"time"
+
+	officeDto "oea-go/office/dto"
 )
 
-func main() {
+func prepareConfig() {
 	viper.SetConfigName("config")
 	viper.SetConfigType("yaml")
 	viper.AddConfigPath(".")
@@ -21,47 +25,66 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	if !viper.IsSet("api_token") || !viper.IsSet("base_uri") || !viper.IsSet("doc_id") {
+
+	if !viper.IsSet("api_token_of") || !viper.IsSet("base_uri") || !viper.IsSet("doc_id_of") {
 		panic("Config parameters are not set")
 	}
+}
 
-	ccl := NewCodaClient(viper.GetString("base_uri"), viper.GetString("api_token"), viper.GetString("doc_id"))
+func loadOfficeData(baseUri, apiTokenOf, docId string) OfficeTemplateData {
+	officeReq := office.Requests{
+		Client: common.NewCodaClient(baseUri, apiTokenOf),
+		DocId:  docId,
+	}
 
-	var invoice *dto.Invoice
-	var expensesByCategory dto.ExpenseGroupMap
-	var history *dto.History
+	var invoice *officeDto.Invoice
+	var expensesByCategory officeDto.ExpenseGroupMap
+	var history *officeDto.History
 
 	wg := sync.WaitGroup{}
 
-	invoiceID := ccl.WaitForInvoice()
+	invoiceID := officeReq.WaitForInvoice()
 
 	wg.Add(1)
 	go func() {
-		invoice = ccl.getInvoice(invoiceID)
+		fmt.Println("Loading invoice...")
+		invoice = officeReq.GetInvoice(invoiceID)
 		wg.Done()
 	}()
 
 	wg.Add(1)
 	go func() {
-		expenses := ccl.getExpenses(invoiceID)
-		expensesByCategory = dto.GroupExpensesByCategory(expenses)
+		fmt.Println("Loading expenses...")
+		expenses := officeReq.GetExpenses(invoiceID)
+		expensesByCategory = officeDto.GroupExpensesByCategory(expenses)
 		wg.Done()
 	}()
 
 	wg.Add(1)
 	go func() {
-		history = ccl.getHistory()
+		fmt.Println("Loading history...")
+		history = officeReq.GetHistory()
 		wg.Done()
 	}()
 
 	wg.Wait()
+
+	return OfficeTemplateData{
+		*invoice, expensesByCategory, *history,
+	}
+}
+
+func main() {
+	prepareConfig()
+
+	officeData := loadOfficeData(viper.GetString("base_uri"), viper.GetString("api_token_of"), viper.GetString("doc_id_of"))
 
 	outDir := viper.GetString("out_dir")
 	if err := os.MkdirAll(outDir, os.FileMode(0777)); err != nil {
 		panic(fmt.Sprintf("Unable to create target dir: %s", err))
 	}
 
-	file, err := os.Create(fmt.Sprintf("%s/%s.html", outDir, invoice.Filename))
+	file, err := os.Create(fmt.Sprintf("%s/%s.html", outDir, officeData.Invoice.Filename))
 	if err != nil {
 		panic(err)
 	}
@@ -71,17 +94,25 @@ func main() {
 		}
 	}()
 
+	wg := sync.WaitGroup{}
 	wg.Add(1)
 	go func() {
+		fmt.Println("Building post...")
+
 		tpl, err := template.New("post").Parse(string(MustAsset("resources/post.go.html")))
 		if err != nil {
 			panic(err)
 		}
-		err = tpl.Execute(file, struct {
-			Invoice       dto.Invoice
-			ExpenseGroups dto.ExpenseGroupMap
-			History       dto.History
-		}{*invoice, expensesByCategory, *history})
+		currUser, userErr := user.Current()
+		if userErr != nil {
+			panic(userErr)
+		}
+
+		err = tpl.Execute(file, TemplateData{
+			Timestamp: time.Now(),
+			Author:    currUser,
+			Office:    officeData,
+		})
 
 		if err != nil {
 			panic(err)
@@ -92,7 +123,8 @@ func main() {
 
 	wg.Add(1)
 	go func() {
-		RenderExcelTemplate(outDir, MustAsset("resources/invoice_template.xlsx"), invoice)
+		fmt.Println("Building excel...")
+		RenderExcelTemplate(outDir, MustAsset("resources/invoice_template.xlsx"), &officeData.Invoice)
 		wg.Done()
 	}()
 
