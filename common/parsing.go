@@ -2,27 +2,32 @@ package common
 
 import (
 	"fmt"
+	"golang.org/x/text/language"
+	"golang.org/x/text/message"
 	"math"
 	"time"
 
-	"github.com/phouse512/go-coda"
+	"github.com/artsafin/go-coda"
 )
 
 var datesLocation *time.Location
 
+var enPrinter *message.Printer
+
 func init() {
 	datesLocation = time.FixedZone("UTC+3", 3*60*60)
+	enPrinter = message.NewPrinter(language.AmericanEnglish)
 }
 
 type MoneyRub int64
 type MoneyEur int64
 
 func (v MoneyRub) String() string {
-	return fmt.Sprintf("%.2f ₽", float64(v)/100)
+	return enPrinter.Sprintf("%.2f ₽", float64(v)/100)
 }
 
 func (v MoneyEur) String() string {
-	return fmt.Sprintf("€%.2f", float64(v)/100)
+	return enPrinter.Sprintf("€%.2f", float64(v)/100)
 }
 
 type UnexpectedFieldTypeErr struct {
@@ -75,6 +80,20 @@ func ToFloat64(colID string, row *coda.Row) (float64, *UnexpectedFieldTypeErr) {
 		return 0, nil
 	default:
 		return 0, &UnexpectedFieldTypeErr{colID, "float64", row}
+	}
+}
+
+func ToBool(colID string, row *coda.Row) (bool, *UnexpectedFieldTypeErr) {
+	if row.Values[colID] == nil {
+		return false, nil
+	}
+	switch v := row.Values[colID].(type) {
+	case bool:
+		return v, nil
+	case string:
+		return false, nil
+	default:
+		return false, &UnexpectedFieldTypeErr{colID, "bool", row}
 	}
 }
 

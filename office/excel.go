@@ -1,8 +1,9 @@
-package main
+package office
 
 import (
 	"bytes"
 	"fmt"
+	"io"
 	"strings"
 
 	"github.com/360EntSecGroup-Skylar/excelize"
@@ -12,7 +13,7 @@ import (
 
 const sheetName = "Sheet1"
 
-func RenderExcelTemplate(outdir string, templateSource []byte, invoice *dto.Invoice) {
+func RenderExcelTemplate(wr io.Writer, templateSource []byte, invoice *dto.Invoice) {
 	f, err := excelize.OpenReader(bytes.NewReader(templateSource))
 	if err != nil {
 		panic(err)
@@ -32,5 +33,7 @@ func RenderExcelTemplate(outdir string, templateSource []byte, invoice *dto.Invo
 	words := fmt.Sprintf("%s EURO and %02d cents", num2words.Convert(euros), cents)
 	f.SetCellValue(sheetName, "AM33", strings.Replace(f.GetCellValue(sheetName, "AM33"), "%SSSS%", words, 1))
 
-	f.SaveAs(fmt.Sprintf("%s/%s.xlsx", outdir, invoice.Filename))
+	if err := f.Write(wr); err != nil {
+		panic(err)
+	}
 }

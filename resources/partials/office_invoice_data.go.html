@@ -1,0 +1,13 @@
+{{ define "title"}}Office Invoice{{end}}
+
+{{ define "sidebar"}}
+    <a class="nav-link" href="{{ link "OfficeHome" }}">&larr; Return to all invoices</a>
+    <a class="nav-link active" href="{{ link "OfficeShowInvoiceData" "invoice" .Page.InvoiceID }}">{{ .Page.InvoiceID }}</a>
+
+        <br>
+    <a type="button" class="btn btn-success" href="{{ link "OfficeDownloadInvoice" "invoice" .Page.InvoiceID }}">⏬ Download invoice</a>
+{{end}}
+
+{{ define "content"}}
+    {{ .Page.Body }}
+{{end}}

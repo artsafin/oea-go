@@ -20,6 +20,7 @@ type InvoicesColumns struct {
 	ActuallySpent    string
 	PendingSpend     string
 	Balance          string
+	PrevInvoice      string
 }
 
 type ExpensesColumns struct {
@@ -96,6 +97,7 @@ func init() {
 				ActuallySpent:    "c-XY-LhijBo3",
 				PendingSpend:     "c-bccwx_DDwv",
 				Balance:          "c-MW_JQd5O0b",
+				PrevInvoice:      "c-RWqrc6Q-Zf",
 			},
 		},
 		Expenses: ExpensesDecl{

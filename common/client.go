@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/phouse512/go-coda"
+	"github.com/artsafin/go-coda"
 )
 
 type AuthTransport struct {

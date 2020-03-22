@@ -7,7 +7,7 @@ import (
 	"sort"
 	"time"
 
-	"github.com/phouse512/go-coda"
+	"github.com/artsafin/go-coda"
 	"oea-go/common"
 	"oea-go/office/dto"
 )
@@ -15,6 +15,13 @@ import (
 type Requests struct {
 	Client *common.CodaClient
 	DocId  string
+}
+
+func NewRequests(baseUri, apiTokenOf, docId string) *Requests {
+	return &Requests{
+		Client: common.NewCodaClient(baseUri, apiTokenOf),
+		DocId:  docId,
+	}
 }
 
 func (requests *Requests) WaitForInvoice() string {

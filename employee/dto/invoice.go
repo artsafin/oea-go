@@ -1,10 +1,10 @@
 package dto
 
 import (
+	"github.com/artsafin/go-coda"
 	"oea-go/common"
+	"strings"
 	"time"
-
-	"github.com/phouse512/go-coda"
 )
 
 type Invoices []*Invoice
@@ -16,7 +16,12 @@ func (invs Invoices) Len() int {
 // Less reports whether the element with
 // index i should sort before the element with index j.
 func (invs Invoices) Less(i, j int) bool {
-	return invs[i].Date.Unix() < invs[j].Date.Unix()
+	monthCmp := strings.Compare(invs[i].Month, invs[j].Month)
+	if monthCmp != 0 {
+		return monthCmp < 0
+	}
+
+	return strings.Compare(invs[i].Employee, invs[j].Employee) < 0
 }
 
 // Swap swaps the elements with indexes i and j.
@@ -24,98 +29,117 @@ func (invs Invoices) Swap(i, j int) {
 	invs[i], invs[j] = invs[j], invs[i]
 }
 
+func NewInvoicesFromRows(resp *coda.ListRowsResponse) *Invoices {
+	invoices := make(Invoices, len(resp.Rows))
+	for i, row := range resp.Rows {
+		invoices[i] = NewInvoiceFromRow(&row)
+	}
+
+	return &invoices
+}
+
 type Invoice struct {
-	No               string
-	Status           string
-	Number           uint16
-	Date             *time.Time
-	HourRate         common.MoneyEur
-	EurFixedRate     common.MoneyRub
-	EurRateWorst     common.MoneyRub
-	ReturnOfRounding common.MoneyEur
-	Subtotal         common.MoneyEur
-	HourRateRounding common.MoneyEur
-	TotalEur         common.MoneyEur
-	Hours            uint16
-	Filename         string
-	ExpensesRub      common.MoneyRub
-	ExpensesEur      common.MoneyEur
-	ActuallySpent    common.MoneyRub
-	PendingSpend     common.MoneyRub
-	Balance          common.MoneyRub
-}
-
-func (i Invoice) InvoiceDateYm() string {
-	return i.Date.Format("January 2006")
-}
-
-func (i Invoice) InvoiceDateFull() string {
-	// Mon Jan 2 15:04:05 -0700 MST 2006
-	return i.Date.Format("02.01.2006")
-}
-
-func (i *Invoice) HasPendingSpends() bool {
-	return i.PendingSpend != 0
+	Id                   string
+	InvoiceNo            string
+	Month                string
+	Employee             string
+	PreviousInvoice      string
+	AmountRub            common.MoneyRub
+	EurRubExpected       common.MoneyRub
+	RequestedSubtotalEur common.MoneyEur
+	RoundingPrevMonEur   common.MoneyEur
+	Rounding             common.MoneyEur
+	AmountRequestedEur   common.MoneyEur
+	Hours                uint16
+	EurRubActual         common.MoneyRub
+	AmountRubActual      common.MoneyRub
+	RateErrorRub         common.MoneyRub
+	CostOfDay            common.MoneyRub
+	BankTotalFees        common.MoneyRub
+	OpeningDateIp        *time.Time
+	UnpaidDay            common.MoneyRub
+	CorrectionRub        common.MoneyRub
+	PatentRub            common.MoneyRub
+	TaxesRub             common.MoneyRub
+	BaseSalary           common.MoneyRub
+	PaymentService       common.MoneyRub
 }
 
 func NewInvoiceFromRow(row *coda.Row) *Invoice {
 	invoice := Invoice{}
-	errs := make([]UnexpectedFieldTypeErr, 0)
-	var err *UnexpectedFieldTypeErr
+	errs := make([]common.UnexpectedFieldTypeErr, 0)
+	var err *common.UnexpectedFieldTypeErr
 
-	if invoice.No, err = toString(Ids.Invoices.Cols.No, row); err != nil {
+	if invoice.Id, err = common.ToString(Ids.Invoices.Cols.Id, row); err != nil {
 		errs = append(errs, *err)
 	}
-	if invoice.Status, err = toString(Ids.Invoices.Cols.Status, row); err != nil {
+	if invoice.InvoiceNo, err = common.ToString(Ids.Invoices.Cols.InvoiceNo, row); err != nil {
 		errs = append(errs, *err)
 	}
-	if invoice.Number, err = toUint16(Ids.Invoices.Cols.Number, row); err != nil {
+	if invoice.Month, err = common.ToString(Ids.Invoices.Cols.Month, row); err != nil {
 		errs = append(errs, *err)
 	}
-	if invoice.Date, err = toDate(Ids.Invoices.Cols.Date, row); err != nil {
+	if invoice.Employee, err = common.ToString(Ids.Invoices.Cols.Employee, row); err != nil {
 		errs = append(errs, *err)
 	}
-	if invoice.HourRate, err = toEur(Ids.Invoices.Cols.HourRate, row); err != nil {
+	if invoice.PreviousInvoice, err = common.ToString(Ids.Invoices.Cols.PreviousInvoice, row); err != nil {
 		errs = append(errs, *err)
 	}
-	if invoice.EurFixedRate, err = toRub(Ids.Invoices.Cols.EurFixedRate, row); err != nil {
+	if invoice.AmountRub, err = common.ToRub(Ids.Invoices.Cols.AmountRub, row); err != nil {
 		errs = append(errs, *err)
 	}
-	if invoice.EurRateWorst, err = toRub(Ids.Invoices.Cols.EurRateWorst, row); err != nil {
+	if invoice.EurRubExpected, err = common.ToRub(Ids.Invoices.Cols.EurRubExpected, row); err != nil {
 		errs = append(errs, *err)
 	}
-	if invoice.ReturnOfRounding, err = toEur(Ids.Invoices.Cols.ReturnOfRounding, row); err != nil {
+	if invoice.RequestedSubtotalEur, err = common.ToEur(Ids.Invoices.Cols.RequestedSubtotalEur, row); err != nil {
 		errs = append(errs, *err)
 	}
-	if invoice.Subtotal, err = toEur(Ids.Invoices.Cols.Subtotal, row); err != nil {
+	if invoice.RoundingPrevMonEur, err = common.ToEur(Ids.Invoices.Cols.RoundingPrevMonEur, row); err != nil {
 		errs = append(errs, *err)
 	}
-	if invoice.HourRateRounding, err = toEur(Ids.Invoices.Cols.HourRateRounding, row); err != nil {
+	if invoice.Rounding, err = common.ToEur(Ids.Invoices.Cols.Rounding, row); err != nil {
 		errs = append(errs, *err)
 	}
-	if invoice.TotalEur, err = toEur(Ids.Invoices.Cols.TotalEur, row); err != nil {
+	if invoice.AmountRequestedEur, err = common.ToEur(Ids.Invoices.Cols.AmountRequestedEur, row); err != nil {
 		errs = append(errs, *err)
 	}
-	if invoice.Hours, err = toUint16(Ids.Invoices.Cols.Hours, row); err != nil {
+	if invoice.Hours, err = common.ToUint16(Ids.Invoices.Cols.Hours, row); err != nil {
 		errs = append(errs, *err)
 	}
-	if invoice.Filename, err = toString(Ids.Invoices.Cols.Filename, row); err != nil {
+	if invoice.EurRubActual, err = common.ToRub(Ids.Invoices.Cols.EurRubActual, row); err != nil {
 		errs = append(errs, *err)
 	}
-
-	if invoice.ExpensesRub, err = toRub(Ids.Invoices.Cols.ExpensesRub, row); err != nil {
+	if invoice.AmountRubActual, err = common.ToRub(Ids.Invoices.Cols.AmountRubActual, row); err != nil {
 		errs = append(errs, *err)
 	}
-	if invoice.ExpensesEur, err = toEur(Ids.Invoices.Cols.ExpensesEur, row); err != nil {
+	if invoice.RateErrorRub, err = common.ToRub(Ids.Invoices.Cols.RateErrorRub, row); err != nil {
 		errs = append(errs, *err)
 	}
-	if invoice.ActuallySpent, err = toRub(Ids.Invoices.Cols.ActuallySpent, row); err != nil {
+	if invoice.CostOfDay, err = common.ToRub(Ids.Invoices.Cols.CostOfDay, row); err != nil {
 		errs = append(errs, *err)
 	}
-	if invoice.PendingSpend, err = toRub(Ids.Invoices.Cols.PendingSpend, row); err != nil {
+	if invoice.BankTotalFees, err = common.ToRub(Ids.Invoices.Cols.BankTotalFees, row); err != nil {
 		errs = append(errs, *err)
 	}
-	if invoice.Balance, err = toRub(Ids.Invoices.Cols.Balance, row); err != nil {
+	if invoice.OpeningDateIp, err = common.ToDate(Ids.Invoices.Cols.OpeningDateIp, row); err != nil {
+		errs = append(errs, *err)
+	}
+	if invoice.UnpaidDay, err = common.ToRub(Ids.Invoices.Cols.UnpaidDay, row); err != nil {
+		errs = append(errs, *err)
+	}
+	if invoice.CorrectionRub, err = common.ToRub(Ids.Invoices.Cols.CorrectionRub, row); err != nil {
+		errs = append(errs, *err)
+	}
+	if invoice.PatentRub, err = common.ToRub(Ids.Invoices.Cols.PatentRub, row); err != nil {
+		errs = append(errs, *err)
+	}
+	if invoice.TaxesRub, err = common.ToRub(Ids.Invoices.Cols.TaxesRub, row); err != nil {
+		errs = append(errs, *err)
+	}
+	if invoice.BaseSalary, err = common.ToRub(Ids.Invoices.Cols.BaseSalary, row); err != nil {
+		errs = append(errs, *err)
+	}
+	if invoice.PaymentService, err = common.ToRub(Ids.Invoices.Cols.PaymentService, row); err != nil {
 		errs = append(errs, *err)
 	}
 

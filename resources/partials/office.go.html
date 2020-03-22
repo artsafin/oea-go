@@ -1,0 +1,7 @@
+{{ define "title"}}Office{{end}}
+
+{{ define "sidebar"}}
+    <a class="nav-link" href="{{ link "OfficeShowInvoiceData" "invoice" .Page.InvoiceID }}">{{ .Page.InvoiceID }}</a>
+{{end}}
+
+{{ define "content"}}Select the invoice in the sidebar{{end}}

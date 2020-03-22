@@ -1,10 +1,9 @@
 package dto
 
 import (
+	"github.com/artsafin/go-coda"
 	"oea-go/common"
 	"time"
-
-	"github.com/phouse512/go-coda"
 )
 
 type Invoices []*Invoice
@@ -44,6 +43,8 @@ type Invoice struct {
 	PendingSpend     common.MoneyRub
 	Balance          common.MoneyRub
 	Expenses         []*Expense
+	PrevInvoiceID    string
+	ApprovalLink     string
 }
 
 func (i Invoice) InvoiceDateYm() string {
@@ -117,6 +118,12 @@ func NewInvoiceFromRow(row *coda.Row) *Invoice {
 		errs = append(errs, *err)
 	}
 	if invoice.Balance, err = common.ToRub(Ids.Invoices.Cols.Balance, row); err != nil {
+		errs = append(errs, *err)
+	}
+	if invoice.PrevInvoiceID, err = common.ToString(Ids.Invoices.Cols.PrevInvoice, row); err != nil {
+		errs = append(errs, *err)
+	}
+	if invoice.ApprovalLink, err = common.ToString(Ids.Invoices.Cols.ApprovalLink, row); err != nil {
 		errs = append(errs, *err)
 	}
 

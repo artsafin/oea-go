@@ -1,43 +1,85 @@
 package dto
 
-type InvoicesColumns struct {
-	No               string
-	Status           string
-	Number           string
-	Date             string
-	Filename         string
-	HourRate         string
-	ApprovalLink     string
-	EurFixedRate     string
-	EurRateWorst     string
-	ExpensesRub      string
-	ExpensesEur      string
-	ReturnOfRounding string
-	Subtotal         string
-	HourRateRounding string
-	TotalEur         string
-	Hours            string
-	ActuallySpent    string
-	PendingSpend     string
-	Balance          string
+type MonthsColumns struct {
+	Month,
+	WorkDays,
+	Year,
+	ID,
+	PreviousMonthLink,
+	PreviousMonth,
+	IsCurrent string
 }
 
-type ExpensesColumns struct {
-	ID              string
-	Invoice         string
-	Subject         string
-	Category        string
-	Comment         string
-	AmountRub       string
-	AmountEur       string
-	Status          string
-	ActuallySpent   string
-	RejectionReason string
-	PendingSpend    string
-	Balance         string
-	CashFlow        string
-	LastCashOutDate string
-	Group           string
+type InvoicesColumns struct {
+	Id                   string
+	InvoiceNo            string
+	Month                string
+	Employee             string
+	PreviousInvoice      string
+	AmountRub            string
+	EurRubExpected       string
+	RequestedSubtotalEur string
+	RoundingPrevMonEur   string
+	Rounding             string
+	AmountRequestedEur   string
+	Hours                string
+	EurRubActual         string
+	AmountRubActual      string
+	RateErrorRub         string
+	CostOfDay            string
+	BankTotalFees        string
+	OpeningDateIp        string
+	UnpaidDay            string
+	CorrectionRefs       string
+	CorrectionRub        string
+	SalaryRub            string
+	PatentRub            string
+	TaxesRub             string
+	PatentRefs           string
+	TaxesRefs            string
+	UnpaidDayRefs        string
+	BaseSalary           string
+	PaymentService       string
+}
+
+type CorrectionsColumns struct {
+	Comment                  string
+	AbsoluteCorrectionEur    string
+	AbsoluteCorrectionRub    string
+	EurRubExpected           string
+	AbsCorrectionEurInRub    string
+	PerDayType               string
+	NumberOfDays             string
+	CostOfDay                string
+	PerDay                   string
+	TotalCorrectionRub       string
+	PaymentInvoice           string
+	PerDayCoefficient        string
+	PerDayCalculationInvoice string
+	Display                  string
+	Category                 string
+}
+
+type TaxesColumns struct {
+	Invoice            string
+	OpeningDateIp      string
+	PeriodStart        string
+	PeriodEnd          string
+	AmountIpDays       string
+	MedicalFund        string
+	PensionFundFixed   string
+	PensionFundPercent string
+	Amount             string
+}
+
+type PatentColumns struct {
+	Invoice       string
+	OpeningPatent string
+	PeriodEnd     string
+	FullMonths    string
+	AnnualCost    string
+	PeriodCost    string
+	Period        string
 }
 
 type IdOnly struct {
@@ -49,25 +91,45 @@ type InvoicesDecl struct {
 	Cols InvoicesColumns
 }
 
-type ExpensesDecl struct {
+type MonthsDecl struct {
 	IdOnly
-	Cols ExpensesColumns
+	Cols MonthsColumns
 }
 
-type CodaViewsDecl struct {
-	PlannedInvoices string
-	PlannedExpenses string
+type CorrectionsDecl struct {
+	IdOnly
+	Cols CorrectionsColumns
+}
+
+type TaxesDecl struct {
+	IdOnly
+	Cols TaxesColumns
+}
+
+type PatentDecl struct {
+	IdOnly
+	Cols PatentColumns
 }
 
 type CodaFormulasDecl struct {
-	LastInvoice string
+	CurrentMonth string
+}
+
+type CodaViewsDecl struct {
+	ThisMonthInvoices    string // table-_k4m2krdyp
+	ThisMonthCorrections string // table-29Y7W0xzVA
+	ThisMonthTaxes       string // table-X3zgg4jJ8-
+	ThisMonthPatents     string // table-n2aIqJxO80
 }
 
 type IdStruct struct {
 	Invoices     InvoicesDecl
-	Expenses     ExpensesDecl
-	CodaViews    CodaViewsDecl
+	Corrections  CorrectionsDecl
+	Taxes        TaxesDecl
+	Patent       PatentDecl
+	Months       MonthsDecl
 	CodaFormulas CodaFormulasDecl
+	//CodaViews    CodaViewsDecl
 }
 
 var Ids IdStruct
@@ -75,54 +137,104 @@ var Ids IdStruct
 func init() {
 	Ids = IdStruct{
 		Invoices: InvoicesDecl{
-			IdOnly{"grid-H_lQoXT4Hn"},
+			IdOnly{"grid-Wdy6Agpxou"},
 			InvoicesColumns{
-				No:               "c-1FLrjxKHe5",
-				Status:           "c-rqUgKu_1z_",
-				Number:           "c-qw6CtPRr6R",
-				Date:             "c-r6ev-Hfy0R",
-				Filename:         "c-gVFw0tg27k",
-				HourRate:         "c-wu0qKZLU0Z",
-				ApprovalLink:     "c-mINTWSuok_",
-				EurFixedRate:     "c-39yF51XkOy",
-				EurRateWorst:     "c-eqfmnjpn6E",
-				ExpensesRub:      "c-LnWC3NrrYo",
-				ExpensesEur:      "c-Bj-zR8QBZP",
-				ReturnOfRounding: "c-cEdaY7AsWT",
-				Subtotal:         "c-EfZ0XNkbSp",
-				HourRateRounding: "c-wbNLVBU5oW",
-				TotalEur:         "c-gywxqGt4uK",
-				Hours:            "c-2kpnqmokJ5",
-				ActuallySpent:    "c-XY-LhijBo3",
-				PendingSpend:     "c-bccwx_DDwv",
-				Balance:          "c-MW_JQd5O0b",
+				Id:                   "c-bZ_nLfZufG",
+				InvoiceNo:            "c-eJ2e_cRCaM",
+				Month:                "c-wR0IONcxGH",
+				Employee:             "c-bbHUhqlbfN",
+				PreviousInvoice:      "c-FQ7rKmbXr6",
+				AmountRub:            "c-ygtGw9Kilw",
+				EurRubExpected:       "c-tvtGu9juVL",
+				RequestedSubtotalEur: "c-9rnJJZ6gA7",
+				RoundingPrevMonEur:   "c-hLrmDsk89g",
+				Rounding:             "c-Tri-EGUP_n",
+				AmountRequestedEur:   "c-bJpHVxywXD",
+				Hours:                "c-KtVV9if8P7",
+				EurRubActual:         "c-kLIyv9EvyH",
+				AmountRubActual:      "c-AxLSgrt7e3",
+				RateErrorRub:         "c-SsHRhKa_uC",
+				CostOfDay:            "c-yJnq9stsgi",
+				BankTotalFees:        "c-IYFe5lD4td",
+				OpeningDateIp:        "c-hI1iZG3xzY",
+				UnpaidDay:            "c-23E3m2Yk_O",
+				CorrectionRefs:       "c-tpeCMU21_I",
+				CorrectionRub:        "c-jNcl4nZe_h",
+				PatentRub:            "c-qA_pPM9kuZ",
+				TaxesRub:             "c-ug709va8_K",
+				PatentRefs:           "c-bkVlencAZt",
+				TaxesRefs:            "c-aYkpi97eXt",
+				UnpaidDayRefs:        "c-IvUKXU4063",
+				BaseSalary:           "c-wqNhZf9EQY",
+				PaymentService:       "c-sRGR6jYC7g",
 			},
 		},
-		Expenses: ExpensesDecl{
-			IdOnly{"grid-j1yvp-c7Xq"},
-			ExpensesColumns{
-				ID:              "c-NIDES-BkAW",
-				Invoice:         "c-_Vwi1N_WO9",
-				Subject:         "c-dWrUpt7GHg",
-				Category:        "c-HgZFvbcM6u",
-				Comment:         "c-hLtZdaFaOE",
-				AmountRub:       "c-NWO2JHrrdw",
-				AmountEur:       "c-85jKBvNSVF",
-				Status:          "c-TlBKoSAJmV",
-				ActuallySpent:   "c-otkrTpI7VA",
-				RejectionReason: "c-OwY64F1V4B",
-				PendingSpend:    "c-MTRmKDu-3A",
-				Balance:         "c-GAIziVHBvd",
-				LastCashOutDate: "c-BhuJTIsQEP",
-				Group:           "c-18G6IQXBvd",
+		Corrections: CorrectionsDecl{
+			IdOnly{"grid-wBmvgFgaGi"},
+			CorrectionsColumns{
+				Comment:                  "c--_r48PQnSn",
+				AbsoluteCorrectionEur:    "c-pRmEece9pf",
+				AbsoluteCorrectionRub:    "c-P2x5IJuMXN",
+				EurRubExpected:           "c-8LD34cnmCh",
+				AbsCorrectionEurInRub:    "c-_GvG9w3Qs7",
+				PerDayType:               "c-3Ivn-M1j7-",
+				NumberOfDays:             "c-gDOyigH1cm",
+				CostOfDay:                "c-K_Iy0iERKR",
+				PerDay:                   "c-Y2E1Vwe2_-",
+				TotalCorrectionRub:       "c-0arkfr4qXv",
+				PaymentInvoice:           "c-7SU0iOBY9J",
+				PerDayCoefficient:        "c-pz6W2IRzFR",
+				PerDayCalculationInvoice: "c-bK4qXZUCqs",
+				Display:                  "c-FVW_9PPzZ2",
+				Category:                 "c-zDY58PF0P6",
 			},
 		},
-		CodaViews: CodaViewsDecl{
-			PlannedInvoices: "table-0oiNc6Kkw8",
-			PlannedExpenses: "table-NvLNctjziJ",
+		Taxes: TaxesDecl{
+			IdOnly{"grid-057HtXfvYH"},
+			TaxesColumns{
+				Invoice:            "c-sYkd0N-9Ef",
+				OpeningDateIp:      "c-Q83cwaB-vf",
+				PeriodStart:        "c-UgsMCGn1oX",
+				PeriodEnd:          "c-7Bt0dg_odm",
+				AmountIpDays:       "c-wraB-EUIPu",
+				MedicalFund:        "c-hRpESBxMnx",
+				PensionFundFixed:   "c-5Gm9BIf7sa",
+				PensionFundPercent: "c-nO-EnVUZSb",
+				Amount:             "c-FlQQoKxoau",
+			},
+		},
+		Patent: PatentDecl{
+			IdOnly{"grid-_IJllxLQCt"},
+			PatentColumns{
+				Invoice:       "c-sYkd0N-9Ef",
+				OpeningPatent: "c-GfXRAu21-_",
+				PeriodEnd:     "c-7Bt0dg_odm",
+				FullMonths:    "c-gARgn0s4h-",
+				AnnualCost:    "c-ayAtt8TYPI",
+				PeriodCost:    "c-FlQQoKxoau",
+				Period:        "c-gtV-Qz9osQ",
+			},
+		},
+		Months: MonthsDecl{
+			IdOnly: IdOnly{"grid-laH8qsdDyP"},
+			Cols: MonthsColumns{
+				Month:             "c-u_Pgrgevw7",
+				WorkDays:          "c-2eD8ott5yA",
+				Year:              "c-NgPwXZshJM",
+				ID:                "c-iRCjZ0JBcM",
+				PreviousMonthLink: "c-3Cc_lYdvmW",
+				PreviousMonth:     "c-vuW159vf-o",
+				IsCurrent:         "c-OLxcAJLQoW",
+			},
 		},
 		CodaFormulas: CodaFormulasDecl{
-			LastInvoice: "f-6rR6RS0Un_",
+			CurrentMonth: "f-rnJn4-MytN",
 		},
+		//CodaViews: CodaViewsDecl{
+		//	ThisMonthInvoices:    "table-_k4m2krdyp",
+		//	ThisMonthCorrections: "table-29Y7W0xzVA",
+		//	ThisMonthTaxes:       "table-X3zgg4jJ8-",
+		//	ThisMonthPatents:     "table-n2aIqJxO80",
+		//},
 	}
 }

@@ -1,22 +1,17 @@
 package main
 
-//go:generate go-bindata resources/
+//go:generate go-bindata -o "common/bindata.go" -pkg "common" resources/ resources/partials/
 
 import (
-	"fmt"
+	"github.com/gorilla/mux"
 	"github.com/spf13/viper"
+	"net/http"
 	"oea-go/common"
+	"oea-go/employee"
 	"oea-go/office"
-	"os"
-	"os/user"
-	"sync"
-	"text/template"
-	"time"
-
-	officeDto "oea-go/office/dto"
 )
 
-func prepareConfig() {
+func prepareConfig() common.Config {
 	viper.SetConfigName("config")
 	viper.SetConfigType("yaml")
 	viper.AddConfigPath(".")
@@ -26,108 +21,44 @@ func prepareConfig() {
 		panic(err)
 	}
 
-	if !viper.IsSet("api_token_of") || !viper.IsSet("base_uri") || !viper.IsSet("doc_id_of") {
-		panic("Config parameters are not set")
-	}
-}
-
-func loadOfficeData(baseUri, apiTokenOf, docId string) OfficeTemplateData {
-	officeReq := office.Requests{
-		Client: common.NewCodaClient(baseUri, apiTokenOf),
-		DocId:  docId,
-	}
-
-	var invoice *officeDto.Invoice
-	var expensesByCategory officeDto.ExpenseGroupMap
-	var history *officeDto.History
-
-	wg := sync.WaitGroup{}
-
-	invoiceID := officeReq.WaitForInvoice()
-
-	wg.Add(1)
-	go func() {
-		fmt.Println("Loading invoice...")
-		invoice = officeReq.GetInvoice(invoiceID)
-		wg.Done()
-	}()
-
-	wg.Add(1)
-	go func() {
-		fmt.Println("Loading expenses...")
-		expenses := officeReq.GetExpenses(invoiceID)
-		expensesByCategory = officeDto.GroupExpensesByCategory(expenses)
-		wg.Done()
-	}()
-
-	wg.Add(1)
-	go func() {
-		fmt.Println("Loading history...")
-		history = officeReq.GetHistory()
-		wg.Done()
-	}()
-
-	wg.Wait()
-
-	return OfficeTemplateData{
-		*invoice, expensesByCategory, *history,
-	}
-}
-
-func main() {
-	prepareConfig()
-
-	officeData := loadOfficeData(viper.GetString("base_uri"), viper.GetString("api_token_of"), viper.GetString("doc_id_of"))
-
-	outDir := viper.GetString("out_dir")
-	if err := os.MkdirAll(outDir, os.FileMode(0777)); err != nil {
-		panic(fmt.Sprintf("Unable to create target dir: %s", err))
-	}
-
-	file, err := os.Create(fmt.Sprintf("%s/%s.html", outDir, officeData.Invoice.Filename))
+	var c common.Config
+	err = viper.Unmarshal(&c)
 	if err != nil {
 		panic(err)
 	}
-	defer func() {
-		if err := file.Close(); err != nil {
-			fmt.Println("Error closing file")
-		}
-	}()
 
-	wg := sync.WaitGroup{}
-	wg.Add(1)
-	go func() {
-		fmt.Println("Building post...")
+	return c
+}
 
-		tpl, err := template.New("post").Parse(string(MustAsset("resources/post.go.html")))
-		if err != nil {
-			panic(err)
-		}
-		currUser, userErr := user.Current()
-		if userErr != nil {
-			panic(userErr)
-		}
+func main() {
+	cfg := prepareConfig()
 
-		err = tpl.Execute(file, TemplateData{
-			Timestamp: time.Now(),
-			Author:    currUser,
-			Office:    officeData,
-		})
+	/*
+		/ - index page
+			/office - list of [status=""] office invoices in sidebar
+				/2020-02%23023 - approval post
+					/invoice - downloads invoice
+			/employee - last 2 months with invoices
+				/2020-02 - list of payslip and financial posts per each employee
+					/invoice - download invoice files in .zip
+	*/
+	officeHandler := office.Handler{Config: &cfg}
+	employeesHandler := employee.Handler{Config: &cfg}
+	listenAndServe(func(router *mux.Router) {
+		GET := router.Methods("GET").Subrouter()
 
-		if err != nil {
-			panic(err)
-		}
+		globals := &templateGlobals{GET}
 
-		wg.Done()
-	}()
+		GET.HandleFunc("/office/{invoice:.+}/invoice", officeHandler.DownloadInvoice).Name("OfficeDownloadInvoice")
+		GET.HandleFunc("/office/{invoice:.+}", partial("office_invoice_data", globals, officeHandler.ShowInvoiceData)).Name("OfficeShowInvoiceData")
+		GET.HandleFunc("/office", partial("office", globals, officeHandler.Home)).Name("OfficeHome")
 
-	wg.Add(1)
-	go func() {
-		fmt.Println("Building excel...")
-		RenderExcelTemplate(outDir, MustAsset("resources/invoice_template.xlsx"), &officeData.Invoice)
-		wg.Done()
-	}()
+		GET.HandleFunc("/employees", partial("employees", globals, employeesHandler.Home)).Name("EmployeesHome")
+		router.HandleFunc("/employee/{month}", partial("employees_month", globals, nilTemplateData)).Name("EmployeesMonth")
+		//router.HandleFunc("/employee/{month}/invoice", partial("employee", employee.MainController))
 
-	wg.Wait()
-	fmt.Println("Finished")
+		GET.HandleFunc("/", partial("index", globals, nilTemplateData))
+
+		router.NotFoundHandler = http.HandlerFunc(partial("404", globals, nilTemplateData))
+	})
 }

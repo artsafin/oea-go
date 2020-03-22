@@ -1,5 +1,4 @@
 config.yaml
-generated
 oea-go
 resources/invoice_template.xlsx
 bindata.go

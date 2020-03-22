@@ -5,7 +5,7 @@ import (
 	"oea-go/common"
 	"time"
 
-	"github.com/phouse512/go-coda"
+	"github.com/artsafin/go-coda"
 )
 
 type Expense struct {

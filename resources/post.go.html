@@ -1,4 +1,13 @@
-<!-- Generated at {{ .Timestamp.Format "2006-01-02T15:04:05Z07:00" }} by {{ .Author.Username }} -->
+<!-- Generated at {{ .Timestamp.Format "2006-01-02T15:04:05Z07:00" }} -->
+<pre>
+    FXTM Kazan / {{ .Office.Invoice.InvoiceDateYm }} invoice
+</pre>
+
+<div class="atten alert alert-secondary" role="alert">
+    Previous Task: <a href="{{ .Office.PrevInvoice.ApprovalLink }}" target="_blank">FXTM Kazan / {{ .Office.PrevInvoice.InvoiceDateYm }} invoice</a>
+</div>
+<p>&nbsp;</p>
+
 <p>Please approve the following items to be included in:</p>
 
 <h3>{{ .Office.Invoice.InvoiceDateYm }} Invoice</h3>
@@ -130,4 +139,49 @@
             <td></td>
         </tr>
     </tbody>
-</table><p><br /><br /></p><p>The signed invoice from my side is in attachment.</p>
+</table>
+
+<p><br /><br /></p>
+
+<h3>Employees monitoring</h3>
+
+<table  border="1" cellpadding="2" cellspacing="0" valign="top" class="standart">
+    <thead>
+        <tr>
+            <th>Office</th>
+            <th>Type</th>
+            <th>Name</th>
+            <th>Comment</th>
+            <th>Amount</th>
+            <th>Currency</th>
+        </tr>
+    </thead>
+    <tbody>
+        {{ range $cat := .Employees.Categories }}
+            {{ range $cat.Payments }}
+                <tr>
+                    <td>Kazan</td>
+                    <td>{{ $cat.Name }}</td>
+                    <td>{{ .Name }}</td>
+                    <td>{{ .Comment }}</td>
+                    <td style="{{ if lt .Amount 0 }}color: red{{ end }}">{{ .Amount }}</td>
+                    <td>RUB</td>
+                </tr>
+            {{ end }}
+            <tr style="font-weight: bold">
+                <td colspan="4">Total {{ $cat.Name }} by office</td>
+                <td style="{{ if lt $cat.Total 0 }}color: red{{ end }}">{{ $cat.Total }}</td>
+                <td>RUB</td>
+            </tr>
+        {{ end }}
+        <tr style="font-weight: bold">
+            <td colspan="4">Total amount</td>
+            <td>{{ .Employees.Total }}</td>
+            <td>RUB</td>
+        </tr>
+    </tbody>
+</table>
+
+
+<p><br /><br /></p>
+<p>The signed invoice from my side is in attachment.</p>

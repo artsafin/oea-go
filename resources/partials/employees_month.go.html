@@ -1,0 +1,10 @@
+{{ define "title"}}Employees{{end}}
+
+{{ define "sidebar"}}
+    {{ range .Page.Months }}
+        <a class="nav-link" href="{{ link "EmployeesMonth" "month" .ID }}">{{ .ID }}{{ if .IsCurrent }}<span title="Current month"> 🟢</span>{{end}}</a>
+    {{ end }}
+{{end}}
+
+{{ define "content"}}
+{{end}}
