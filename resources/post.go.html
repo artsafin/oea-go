@@ -12,8 +12,8 @@
 
 <h3>{{ .Office.Invoice.InvoiceDateYm }} Invoice</h3>
 
-<table border="0" cellpadding="2" cellspacing="0" width="80%" class="standart">
-    <thead>
+<table border="1" cellpadding="2" cellspacing="0" width="80%" class="standart">
+    <thead style="background-color: #cacaca">
         <tr>
             <th width="400">Item</th>
             <th width="100">Category</th>
@@ -72,10 +72,11 @@
     </tbody>
 </table>
 
+<p><br /><br /></p>
 
 <h3>Report on money usage ({{ .Office.History.FirstInvoice.InvoiceDateYm }} &ndash; {{ .Office.History.LastInvoice.InvoiceDateYm }})</h3>
-<table border="0" cellpadding="2" cellspacing="0" width="80%" class="standart">
-    <thead>
+<table border="1" cellpadding="2" cellspacing="0" width="80%" class="standart">
+    <thead style="background-color: #cacaca">
         <tr>
             <th width="160">Invoice</th>
             <th width="230">Subject</th>
@@ -143,10 +144,10 @@
 
 <p><br /><br /></p>
 
-<h3>Employees monitoring</h3>
+<h3>Employees monitoring ({{ .Employees.Month }})</h3>
 
 <table  border="1" cellpadding="2" cellspacing="0" valign="top" class="standart">
-    <thead>
+    <thead style="background-color: #cacaca">
         <tr>
             <th>Office</th>
             <th>Type</th>

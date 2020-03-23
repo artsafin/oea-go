@@ -84,7 +84,7 @@ func loadEmployeesData(baseUri, apiToken, docId string) *dto.EmployeesPaymentCat
 
 	sort.Sort(invoices)
 
-	emplCats := dto.NewEmployeesPaymentCategories()
+	emplCats := dto.NewEmployeesPaymentCategories(month)
 
 	for _, invoice := range *invoices {
 		emplCats.AddItem(CatSalaries, &dto.EmployeePayment{

@@ -19,13 +19,15 @@ type EmployeePayment struct {
 	Amount  common.MoneyRub
 }
 
-func NewEmployeesPaymentCategories() *EmployeesPaymentCategories {
+func NewEmployeesPaymentCategories(month string) *EmployeesPaymentCategories {
 	return &EmployeesPaymentCategories{
+		Month:      month,
 		Categories: make(map[string]*paymentCategory),
 	}
 }
 
 type EmployeesPaymentCategories struct {
+	Month      string
 	Categories map[string]*paymentCategory
 	Total      common.MoneyRub
 }
