@@ -25,7 +25,17 @@ func (m Months) Swap(i, j int) {
 	m[i], m[j] = m[j], m[i]
 }
 
-func (m Months) IndexOf(of time.Time) (int, error) {
+func (m Months) FindByName(name string) (*Month, error) {
+	for _, v := range m {
+		if v.ID == name {
+			return v, nil
+		}
+	}
+
+	return nil, errors.New("not found")
+}
+
+func (m Months) IndexOfYearMonth(of time.Time) (int, error) {
 	for k, v := range m {
 		if v.LastMonthDay.Month() == of.Month() && v.LastMonthDay.Year() == of.Year() {
 			return k, nil

@@ -1,10 +1,109 @@
-{{ define "title"}}Employees{{end}}
-
-{{ define "sidebar"}}
-    {{ range .Page.Months }}
-        <a class="nav-link" href="{{ link "EmployeesMonth" "month" .ID }}">{{ .ID }}{{ if .IsCurrent }}<span title="Current month"> 🟢</span>{{end}}</a>
-    {{ end }}
-{{end}}
-
 {{ define "content"}}
+    {{ range .Page.Invoices }}
+        <table width="100%">
+            <thead>
+                <tr>
+                    <td colspan="2"><br><br><h3>{{ .Employee }}</h3></td>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td width="50%">
+                        <table border="1" cellspacing="0" cellpadding="2" width="600" valign="top" class="standart">
+                            <thead style="font-weight: bold; background-color: #cacaca">
+                                <tr>
+                                    <td>Subject</td>
+                                    <td width="150">RUB</td>
+                                    <td width="150">EUR</td>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Salary&nbsp;<b>{{ .Employee }}</b></td>
+                                    <td>{{ .BaseSalary }}</td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td>Bank fees</td>
+                                    <td>{{ .BankFees }}</td>
+                                    <td></td>
+                                </tr>
+                                {{ range .Corrections }}
+                                    <tr>
+                                        <td title="{{ .LongComment }}">{{ .LongComment }}</td>
+                                        <td>{{ .TotalCorrectionRub }}</td>
+                                        <td></td>
+                                    </tr>
+                                {{ end }}
+                                {{ if ne .PatentRub 0 }}
+                                    <tr>
+                                        <td>Patent</td>
+                                        <td>{{ .PatentRub }}</td>
+                                        <td></td>
+                                    </tr>
+                                {{ end }}
+                                {{ if ne .TaxesRub 0 }}
+                                    <tr>
+                                        <td>Taxes</td>
+                                        <td>{{ .TaxesRub }}</td>
+                                        <td></td>
+                                    </tr>
+                                {{ end }}
+                                {{ if ne .UnpaidDay 0 }}
+                                    <tr>
+                                        <td>Unpaid day offs</td>
+                                        <td> -{{ .UnpaidDay }}</td>
+                                        <td></td>
+                                    </tr>
+                                {{ end }}
+                                <tr>
+                                    <td>
+                                        <p>Currency rate variance from previous month</p>
+                                        {{ if .PrevInvoice }}
+                                            <p>
+                                                Expected EURRUB {{ .PrevInvoice.EurRubExpected }}<br>
+                                                Actual EURRUB {{ .PrevInvoice.EurRubActual }}
+                                            </p>
+                                        {{ end }}
+                                    </td>
+                                    <td>{{ .RateErrorPrevMon }}</td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td>Subtotal (EURRUB {{ .EurRubExpected }})</td>
+                                    <td>{{ .AmountRub }}</td>
+                                    <td>{{ .RequestedSubtotalEur }}</td>
+                                </tr>
+                                <tr>
+                                    <td>Rounding in previous month</td>
+                                    <td></td>
+                                    <td> -{{ .RoundingPrevMonEur }}</td>
+                                </tr>
+                                <tr>
+                                    <td>Rounding</td>
+                                    <td></td>
+                                    <td>{{ .Rounding }}</td>
+                                </tr>
+                                <tr>
+                                    <td>Total</td>
+                                    <td></td>
+                                    <td>{{ .AmountRequestedEur }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </td>
+                    <td>
+                        <p>Invoice for {{ .FullMonthName }}</p>
+                        <p>Full Name of the vendor/provider: {{ .Employee }}</p>
+                        <p>Amount and currency: EUR {{ .AmountRequestedEur }}</p>
+                        <p>Date of invoice: {{ .InvoiceDate }}</p>
+                        <p>Date of payment: {{ .PaymentDate }}</p>
+                        <p>Specify if it's a one-time payment or recurring: recurring</p>
+                        <p>Bank details of the supplier (if this info is not included on the invoice): included in the invoice</p>
+                        <p>Attach the invoice/agreement that relates to the payment request: attached</p>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    {{ end }}
 {{end}}

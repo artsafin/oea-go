@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-type Taxes struct {
+type TaxCalculation struct {
 	Invoice            string
 	OpeningDateIp      *time.Time
 	PeriodStart        *time.Time

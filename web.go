@@ -34,10 +34,10 @@ type templateGlobals struct {
 	Router *mux.Router
 }
 
-func partial(partial string, globals *templateGlobals, templateDataFn func(map[string]string, *http.Request) interface{}) func(http.ResponseWriter, *http.Request) {
-	tpl, err := layout(globals.Router).Parse(string(common.MustAsset(fmt.Sprintf("resources/partials/%s.go.html", partial))))
-	if err != nil {
-		panic(err)
+func partial(names []string, globals *templateGlobals, templateDataFn func(map[string]string, *http.Request) interface{}) func(http.ResponseWriter, *http.Request) {
+	tpl := layout(globals.Router)
+	for _, name := range names {
+		tpl = template.Must(tpl.Parse(string(common.MustAsset(fmt.Sprintf("resources/partials/%s.go.html", name)))))
 	}
 
 	return func(resp http.ResponseWriter, req *http.Request) {

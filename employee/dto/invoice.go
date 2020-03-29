@@ -1,6 +1,7 @@
 package dto
 
 import (
+	"fmt"
 	"github.com/artsafin/go-coda"
 	"oea-go/common"
 	"strings"
@@ -29,21 +30,12 @@ func (invs Invoices) Swap(i, j int) {
 	invs[i], invs[j] = invs[j], invs[i]
 }
 
-func NewInvoicesFromRows(resp *coda.ListRowsResponse) *Invoices {
-	invoices := make(Invoices, len(resp.Rows))
-	for i, row := range resp.Rows {
-		invoices[i] = NewInvoiceFromRow(&row)
-	}
-
-	return &invoices
-}
-
 type Invoice struct {
 	Id                   string
 	InvoiceNo            string
 	Month                string
 	Employee             string
-	PreviousInvoice      string
+	PreviousInvoiceId    string
 	AmountRub            common.MoneyRub
 	EurRubExpected       common.MoneyRub
 	RequestedSubtotalEur common.MoneyEur
@@ -62,7 +54,23 @@ type Invoice struct {
 	PatentRub            common.MoneyRub
 	TaxesRub             common.MoneyRub
 	BaseSalary           common.MoneyRub
-	PaymentService       common.MoneyRub
+	BankFees             common.MoneyRub
+	RateErrorPrevMon     common.MoneyRub
+	Corrections          []*Correction
+	MonthData            *Month
+	PrevInvoice          *Invoice
+}
+
+func (inv *Invoice) FullMonthName() string {
+	return inv.MonthData.LastMonthDay.Format("January")
+}
+
+func (inv *Invoice) InvoiceDate() string {
+	return fmt.Sprintf("%02d %s", time.Now().Day(), inv.MonthData.LastMonthDay.Format("Jan 2006"))
+}
+
+func (inv *Invoice) PaymentDate() string {
+	return fmt.Sprintf("%02d %s", time.Now().Day(), inv.MonthData.LastMonthDay.Format("Jan 2006"))
 }
 
 func NewInvoiceFromRow(row *coda.Row) *Invoice {
@@ -82,7 +90,7 @@ func NewInvoiceFromRow(row *coda.Row) *Invoice {
 	if invoice.Employee, err = common.ToString(Ids.Invoices.Cols.Employee, row); err != nil {
 		errs = append(errs, *err)
 	}
-	if invoice.PreviousInvoice, err = common.ToString(Ids.Invoices.Cols.PreviousInvoice, row); err != nil {
+	if invoice.PreviousInvoiceId, err = common.ToString(Ids.Invoices.Cols.PreviousInvoice, row); err != nil {
 		errs = append(errs, *err)
 	}
 	if invoice.AmountRub, err = common.ToRub(Ids.Invoices.Cols.AmountRub, row); err != nil {
@@ -139,7 +147,10 @@ func NewInvoiceFromRow(row *coda.Row) *Invoice {
 	if invoice.BaseSalary, err = common.ToRub(Ids.Invoices.Cols.BaseSalary, row); err != nil {
 		errs = append(errs, *err)
 	}
-	if invoice.PaymentService, err = common.ToRub(Ids.Invoices.Cols.PaymentService, row); err != nil {
+	if invoice.BankFees, err = common.ToRub(Ids.Invoices.Cols.BankFees, row); err != nil {
+		errs = append(errs, *err)
+	}
+	if invoice.RateErrorPrevMon, err = common.ToRub(Ids.Invoices.Cols.RateErrorPrevMon, row); err != nil {
 		errs = append(errs, *err)
 	}
 

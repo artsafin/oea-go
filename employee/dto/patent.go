@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-type Patent struct {
+type PatentCalculation struct {
 	Invoice       string
 	OpeningPatent *time.Time
 	PeriodEnd     *time.Time

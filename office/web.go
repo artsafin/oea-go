@@ -80,28 +80,28 @@ func loadEmployeesData(baseUri, apiToken, docId string) *dto.EmployeesPaymentCat
 
 	log.Println("Fetching month", month)
 
-	invoices := req.GetInvoices(month)
+	invoices := req.GetInvoices(month, empl.With{Corrections: true})
 
 	sort.Sort(invoices)
 
 	emplCats := dto.NewEmployeesPaymentCategories(month)
 
 	for _, invoice := range *invoices {
+
 		emplCats.AddItem(CatSalaries, &dto.EmployeePayment{
 			Name:   invoice.Employee,
 			Amount: invoice.BaseSalary,
 		})
 		emplCats.AddItem(CatPaymentService, &dto.EmployeePayment{
 			Name:   invoice.Employee,
-			Amount: invoice.PaymentService,
+			Amount: invoice.BankFees,
 		})
 
-		if invoice.CorrectionRub > 0 {
-			// Add corrections detalization soon
-
-			emplCats.AddItem(CatGeneralCorrection, &dto.EmployeePayment{
-				Name:   invoice.Employee,
-				Amount: invoice.CorrectionRub,
+		for _, corr := range invoice.Corrections {
+			emplCats.AddItem(corr.Category, &dto.EmployeePayment{
+				Name:    invoice.Employee,
+				Comment: template.HTML(fmt.Sprintf("%s [%s]", strings.Replace(corr.Comment, "\n", "<br>", -1), corr.SubCategory())),
+				Amount:  corr.TotalCorrectionRub,
 			})
 		}
 
@@ -152,20 +152,24 @@ type Page struct {
 	Body      template.HTML
 }
 
-type Handler struct {
-	Config *common.Config
+type handler struct {
+	config *common.Config
 }
 
-func (h Handler) Home(vars map[string]string, req *http.Request) interface{} {
-	client := NewRequests(h.Config.BaseUri, h.Config.ApiTokenOf, h.Config.DocIdOf)
+func NewHandler(cfg *common.Config) *handler {
+	return &handler{config: cfg}
+}
+
+func (h handler) Home(vars map[string]string, req *http.Request) interface{} {
+	client := NewRequests(h.config.BaseUri, h.config.ApiTokenOf, h.config.DocIdOf)
 	invoiceId, _ := client.GetLastInvoice()
 
 	return Page{InvoiceID: invoiceId}
 }
 
-func (h Handler) ShowInvoiceData(vars map[string]string, req *http.Request) interface{} {
-	officeData := loadOfficeData(vars["invoice"], h.Config.BaseUri, h.Config.ApiTokenOf, h.Config.DocIdOf)
-	employeesData := loadEmployeesData(h.Config.BaseUri, h.Config.ApiTokenEm, h.Config.DocIdEm)
+func (h handler) ShowInvoiceData(vars map[string]string, req *http.Request) interface{} {
+	officeData := loadOfficeData(vars["invoice"], h.config.BaseUri, h.config.ApiTokenOf, h.config.DocIdOf)
+	employeesData := loadEmployeesData(h.config.BaseUri, h.config.ApiTokenEm, h.config.DocIdEm)
 
 	html := buildApprovalRequestHtml(officeData, employeesData)
 	return Page{
@@ -174,9 +178,9 @@ func (h Handler) ShowInvoiceData(vars map[string]string, req *http.Request) inte
 	}
 }
 
-func (h Handler) DownloadInvoice(resp http.ResponseWriter, req *http.Request) {
+func (h handler) DownloadInvoice(resp http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
-	data := loadOfficeData(vars["invoice"], h.Config.BaseUri, h.Config.ApiTokenOf, h.Config.DocIdOf)
+	data := loadOfficeData(vars["invoice"], h.config.BaseUri, h.config.ApiTokenOf, h.config.DocIdOf)
 
 	resp.Header().Add("Content-Disposition", fmt.Sprintf("attachment; filename=\"%s.xlsx\"", data.Invoice.Filename))
 

@@ -1,6 +1,9 @@
 package dto
 
-import "oea-go/common"
+import (
+	"html/template"
+	"oea-go/common"
+)
 
 type paymentCategory struct {
 	Name     string
@@ -15,7 +18,7 @@ func (cat *paymentCategory) AddPayment(payment *EmployeePayment) {
 
 type EmployeePayment struct {
 	Name    string
-	Comment string
+	Comment template.HTML
 	Amount  common.MoneyRub
 }
 

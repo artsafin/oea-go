@@ -42,23 +42,23 @@ func main() {
 				/2020-02 - list of payslip and financial posts per each employee
 					/invoice - download invoice files in .zip
 	*/
-	officeHandler := office.Handler{Config: &cfg}
-	employeesHandler := employee.Handler{Config: &cfg}
+	officeHandler := office.NewHandler(&cfg)
+	employeesHandler := employee.NewHandler(&cfg)
 	listenAndServe(func(router *mux.Router) {
 		GET := router.Methods("GET").Subrouter()
 
 		globals := &templateGlobals{GET}
 
 		GET.HandleFunc("/office/{invoice:.+}/invoice", officeHandler.DownloadInvoice).Name("OfficeDownloadInvoice")
-		GET.HandleFunc("/office/{invoice:.+}", partial("office_invoice_data", globals, officeHandler.ShowInvoiceData)).Name("OfficeShowInvoiceData")
-		GET.HandleFunc("/office", partial("office", globals, officeHandler.Home)).Name("OfficeHome")
+		GET.HandleFunc("/office/{invoice:.+}", partial([]string{"office_invoice_data"}, globals, officeHandler.ShowInvoiceData)).Name("OfficeShowInvoiceData")
+		GET.HandleFunc("/office", partial([]string{"office"}, globals, officeHandler.Home)).Name("OfficeHome")
 
-		GET.HandleFunc("/employees", partial("employees", globals, employeesHandler.Home)).Name("EmployeesHome")
-		router.HandleFunc("/employee/{month}", partial("employees_month", globals, nilTemplateData)).Name("EmployeesMonth")
+		GET.HandleFunc("/employees", partial([]string{"employees"}, globals, employeesHandler.Home)).Name("EmployeesHome")
+		router.HandleFunc("/employee/{month}", partial([]string{"employees", "employees_month"}, globals, employeesHandler.Month)).Name("EmployeesMonth")
 		//router.HandleFunc("/employee/{month}/invoice", partial("employee", employee.MainController))
 
-		GET.HandleFunc("/", partial("index", globals, nilTemplateData))
+		GET.HandleFunc("/", partial([]string{"index"}, globals, nilTemplateData))
 
-		router.NotFoundHandler = http.HandlerFunc(partial("404", globals, nilTemplateData))
+		router.NotFoundHandler = http.HandlerFunc(partial([]string{"404"}, globals, nilTemplateData))
 	})
 }

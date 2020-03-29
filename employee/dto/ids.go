@@ -39,7 +39,8 @@ type InvoicesColumns struct {
 	TaxesRefs            string
 	UnpaidDayRefs        string
 	BaseSalary           string
-	PaymentService       string
+	BankFees             string
+	RateErrorPrevMon     string
 }
 
 type CorrectionsColumns struct {
@@ -129,7 +130,6 @@ type IdStruct struct {
 	Patent       PatentDecl
 	Months       MonthsDecl
 	CodaFormulas CodaFormulasDecl
-	//CodaViews    CodaViewsDecl
 }
 
 var Ids IdStruct
@@ -166,7 +166,8 @@ func init() {
 				TaxesRefs:            "c-aYkpi97eXt",
 				UnpaidDayRefs:        "c-IvUKXU4063",
 				BaseSalary:           "c-wqNhZf9EQY",
-				PaymentService:       "c-sRGR6jYC7g",
+				BankFees:             "c-sRGR6jYC7g",
+				RateErrorPrevMon:     "c-_9tuuG4RIN",
 			},
 		},
 		Corrections: CorrectionsDecl{
@@ -230,11 +231,5 @@ func init() {
 		CodaFormulas: CodaFormulasDecl{
 			CurrentMonth: "f-rnJn4-MytN",
 		},
-		//CodaViews: CodaViewsDecl{
-		//	ThisMonthInvoices:    "table-_k4m2krdyp",
-		//	ThisMonthCorrections: "table-29Y7W0xzVA",
-		//	ThisMonthTaxes:       "table-X3zgg4jJ8-",
-		//	ThisMonthPatents:     "table-n2aIqJxO80",
-		//},
 	}
 }
