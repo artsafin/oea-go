@@ -5,7 +5,7 @@
     <a class="nav-link active" href="{{ link "OfficeShowInvoiceData" "invoice" .Page.InvoiceID }}">{{ .Page.InvoiceID }}</a>
 
         <br>
-    <a type="button" class="btn btn-success" href="{{ link "OfficeDownloadInvoice" "invoice" .Page.InvoiceID }}">⏬ Download invoice</a>
+    <a type="button" class="btn btn-secondary" href="{{ link "OfficeDownloadInvoice" "invoice" .Page.InvoiceID }}">Download invoice</a>
 {{end}}
 
 {{ define "content"}}

@@ -86,20 +86,20 @@ func loadEmployeesData(baseUri, apiToken, docId string) *dto.EmployeesPaymentCat
 
 	emplCats := dto.NewEmployeesPaymentCategories(month)
 
-	for _, invoice := range *invoices {
+	for _, invoice := range invoices {
 
 		emplCats.AddItem(CatSalaries, &dto.EmployeePayment{
-			Name:   invoice.Employee,
+			Name:   invoice.EmployeeName,
 			Amount: invoice.BaseSalary,
 		})
 		emplCats.AddItem(CatPaymentService, &dto.EmployeePayment{
-			Name:   invoice.Employee,
+			Name:   invoice.EmployeeName,
 			Amount: invoice.BankFees,
 		})
 
 		for _, corr := range invoice.Corrections {
 			emplCats.AddItem(corr.Category, &dto.EmployeePayment{
-				Name:    invoice.Employee,
+				Name:    invoice.EmployeeName,
 				Comment: template.HTML(fmt.Sprintf("%s [%s]", strings.Replace(corr.Comment, "\n", "<br>", -1), corr.SubCategory())),
 				Amount:  corr.TotalCorrectionRub,
 			})
@@ -107,21 +107,21 @@ func loadEmployeesData(baseUri, apiToken, docId string) *dto.EmployeesPaymentCat
 
 		if invoice.PatentRub > 0 {
 			emplCats.AddItem(CatPatents, &dto.EmployeePayment{
-				Name:   invoice.Employee,
+				Name:   invoice.EmployeeName,
 				Amount: invoice.PatentRub,
 			})
 		}
 
 		if invoice.TaxesRub > 0 {
 			emplCats.AddItem(CatTaxes, &dto.EmployeePayment{
-				Name:   invoice.Employee,
+				Name:   invoice.EmployeeName,
 				Amount: invoice.TaxesRub,
 			})
 		}
 
 		if invoice.UnpaidDay > 0 {
 			emplCats.AddItem(CatDayoff, &dto.EmployeePayment{
-				Name:   invoice.Employee,
+				Name:   invoice.EmployeeName,
 				Amount: invoice.UnpaidDay,
 			})
 		}
@@ -182,7 +182,7 @@ func (h handler) DownloadInvoice(resp http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	data := loadOfficeData(vars["invoice"], h.config.BaseUri, h.config.ApiTokenOf, h.config.DocIdOf)
 
-	resp.Header().Add("Content-Disposition", fmt.Sprintf("attachment; filename=\"%s.xlsx\"", data.Invoice.Filename))
+	resp.Header().Add("Content-Disposition", fmt.Sprintf("attachment; filename=\"%s.xlsx\"", data.Invoice.Filename()))
 
-	RenderExcelTemplate(resp, common.MustAsset("resources/invoice_template.xlsx"), &data.Invoice)
+	common.RenderExcelTemplate(resp, common.MustAsset("resources/invoice_template.xlsx"), &data.Invoice)
 }

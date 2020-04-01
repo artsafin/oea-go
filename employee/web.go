@@ -1,9 +1,15 @@
 package employee
 
 import (
+	"archive/zip"
+	"bytes"
+	"fmt"
+	"github.com/gorilla/mux"
+	"log"
 	"net/http"
 	"oea-go/common"
 	"oea-go/employee/dto"
+	"sync"
 	"time"
 )
 
@@ -57,11 +63,83 @@ func (h Handler) Month(vars map[string]string, req *http.Request) interface{} {
 		return h.Home(vars, req)
 	}
 
-	invoices := h.client.GetInvoices(month, With{Corrections: true, PrevInvoice: true})
+	invoices := h.client.GetInvoices(month, With{Corrections: true, PrevInvoice: true, Employees: true})
 
 	return Page{
 		SelectedMonth: month,
 		Months:        h.getLastMonths(limitForMonths),
-		Invoices:      *invoices,
+		Invoices:      invoices,
 	}
+}
+
+func (h Handler) DownloadInvoice(resp http.ResponseWriter, request *http.Request) {
+	vars := mux.Vars(request)
+	month, containsMonth := vars["month"]
+	if !containsMonth {
+		resp.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	employee, containsEmployee := vars["employee"]
+	if !containsEmployee {
+		resp.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	invoice := h.client.GetInvoiceForMonthAndEmployee(month, employee)
+
+	resp.Header().Add("Content-Disposition", fmt.Sprintf("attachment; filename=\"%s\"", invoice.Filename()))
+	common.RenderExcelTemplate(resp, common.MustAsset("resources/invoice_template_empl.xlsx"), invoice)
+}
+
+func (h Handler) DownloadAllInvoices(resp http.ResponseWriter, request *http.Request) {
+	vars := mux.Vars(request)
+	month, containsMonth := vars["month"]
+	if !containsMonth {
+		resp.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	invoices := h.client.GetInvoices(month, With{Employees: true})
+
+	wg := sync.WaitGroup{}
+	wg.Add(len(invoices))
+
+	var bufs sync.Map
+
+	for _, invoice := range invoices {
+		go func(invoice *dto.Invoice) {
+			buf := &bytes.Buffer{}
+
+			common.RenderExcelTemplate(buf, common.MustAsset("resources/invoice_template_empl.xlsx"), invoice)
+
+			bufs.Store(invoice.Filename(), *buf)
+
+			wg.Done()
+		}(invoice)
+	}
+
+	wg.Wait()
+
+	resp.Header().Add("Content-Disposition", fmt.Sprintf("attachment; filename=\"invoices_%s.zip\"", month))
+
+	zipWriter := zip.NewWriter(resp)
+	defer zipWriter.Close()
+
+	bufs.Range(func(key, value interface{}) bool {
+		fileName := key.(string)
+		fileContent := value.(bytes.Buffer)
+
+		zipFileWriter, err := zipWriter.Create(fileName)
+		if err != nil {
+			log.Printf("skipping %s: %v", fileName, err)
+		}
+
+		_, err = fileContent.WriteTo(zipFileWriter)
+
+		if err != nil {
+			log.Printf("skipping %s: %v", fileName, err)
+		}
+
+		return true
+	})
 }

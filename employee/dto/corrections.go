@@ -3,6 +3,7 @@ package dto
 import (
 	"fmt"
 	"github.com/artsafin/go-coda"
+	"html/template"
 	"oea-go/common"
 	"strings"
 )
@@ -23,8 +24,9 @@ type Correction struct {
 	PerDayCalculationInvoice string
 }
 
-func (corr *Correction) LongComment() string {
-	return fmt.Sprintf("[%s] %s: %s", corr.SubCategory(), corr.Category, corr.Comment)
+func (corr *Correction) LongComment() template.HTML {
+	htmlComment := strings.Replace(corr.Comment, "\n", "<br>", -1)
+	return template.HTML(fmt.Sprintf("<code>%s - %s</code><br>%s", corr.Category, corr.SubCategory(), htmlComment))
 }
 
 func (corr *Correction) SubCategory() string {

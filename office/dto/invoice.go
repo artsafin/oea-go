@@ -1,6 +1,7 @@
 package dto
 
 import (
+	"fmt"
 	"github.com/artsafin/go-coda"
 	"oea-go/common"
 	"time"
@@ -26,17 +27,17 @@ func (invs Invoices) Swap(i, j int) {
 type Invoice struct {
 	No               string
 	Status           string
-	Number           uint16
+	number           uint16
 	Date             *time.Time
-	HourRate         common.MoneyEur
+	hourRate         common.MoneyEur
 	EurFixedRate     common.MoneyRub
 	EurRateWorst     common.MoneyRub
 	ReturnOfRounding common.MoneyEur
 	Subtotal         common.MoneyEur
 	HourRateRounding common.MoneyEur
-	TotalEur         common.MoneyEur
-	Hours            uint16
-	Filename         string
+	totalEur         common.MoneyEur
+	hours            uint16
+	filename         string
 	ExpensesRub      common.MoneyRub
 	ExpensesEur      common.MoneyEur
 	ActuallySpent    common.MoneyRub
@@ -47,11 +48,44 @@ type Invoice struct {
 	ApprovalLink     string
 }
 
-func (i Invoice) InvoiceDateYm() string {
+func (i Invoice) Filename() string {
+	return i.filename
+}
+
+func (i Invoice) BeneficiaryRequisites() string {
+	return ""
+}
+
+func (i Invoice) PayerRequisites() string {
+	return ""
+}
+
+func (i Invoice) BeneficiaryName() string {
+	return ""
+}
+
+func (i Invoice) PayerName() string {
+	return ""
+}
+
+func (i Invoice) Number() string {
+	return fmt.Sprint(i.number)
+}
+func (i Invoice) HourRate() common.MoneyEur {
+	return i.hourRate
+}
+func (i Invoice) Hours() uint16 {
+	return i.hours
+}
+func (i Invoice) TotalEur() common.MoneyEur {
+	return i.totalEur
+}
+
+func (i Invoice) DateYm() string {
 	return i.Date.Format("January 2006")
 }
 
-func (i Invoice) InvoiceDateFull() string {
+func (i Invoice) DateFull() string {
 	// Mon Jan 2 15:04:05 -0700 MST 2006
 	return i.Date.Format("02.01.2006")
 }
@@ -71,13 +105,13 @@ func NewInvoiceFromRow(row *coda.Row) *Invoice {
 	if invoice.Status, err = common.ToString(Ids.Invoices.Cols.Status, row); err != nil {
 		errs = append(errs, *err)
 	}
-	if invoice.Number, err = common.ToUint16(Ids.Invoices.Cols.Number, row); err != nil {
+	if invoice.number, err = common.ToUint16(Ids.Invoices.Cols.Number, row); err != nil {
 		errs = append(errs, *err)
 	}
 	if invoice.Date, err = common.ToDate(Ids.Invoices.Cols.Date, row); err != nil {
 		errs = append(errs, *err)
 	}
-	if invoice.HourRate, err = common.ToEur(Ids.Invoices.Cols.HourRate, row); err != nil {
+	if invoice.hourRate, err = common.ToEur(Ids.Invoices.Cols.HourRate, row); err != nil {
 		errs = append(errs, *err)
 	}
 	if invoice.EurFixedRate, err = common.ToRub(Ids.Invoices.Cols.EurFixedRate, row); err != nil {
@@ -95,13 +129,13 @@ func NewInvoiceFromRow(row *coda.Row) *Invoice {
 	if invoice.HourRateRounding, err = common.ToEur(Ids.Invoices.Cols.HourRateRounding, row); err != nil {
 		errs = append(errs, *err)
 	}
-	if invoice.TotalEur, err = common.ToEur(Ids.Invoices.Cols.TotalEur, row); err != nil {
+	if invoice.totalEur, err = common.ToEur(Ids.Invoices.Cols.TotalEur, row); err != nil {
 		errs = append(errs, *err)
 	}
-	if invoice.Hours, err = common.ToUint16(Ids.Invoices.Cols.Hours, row); err != nil {
+	if invoice.hours, err = common.ToUint16(Ids.Invoices.Cols.Hours, row); err != nil {
 		errs = append(errs, *err)
 	}
-	if invoice.Filename, err = common.ToString(Ids.Invoices.Cols.Filename, row); err != nil {
+	if invoice.filename, err = common.ToString(Ids.Invoices.Cols.Filename, row); err != nil {
 		errs = append(errs, *err)
 	}
 

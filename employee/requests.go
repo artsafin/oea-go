@@ -14,6 +14,7 @@ import (
 type With struct {
 	Corrections bool
 	PrevInvoice bool
+	Employees   bool
 }
 
 type Requests struct {
@@ -65,17 +66,29 @@ func (requests *Requests) GetCurrentMonth() (string, error) {
 	return str, nil
 }
 
-func uniqueInvoiceById(invoices *dto.Invoices) map[string]*dto.Invoice {
+func uniqueInvoiceById(invoices dto.Invoices) map[string]*dto.Invoice {
 	result := make(map[string]*dto.Invoice)
 
-	for _, v := range *invoices {
+	for _, v := range invoices {
 		result[v.Id] = v
 	}
 
 	return result
 }
 
-func (requests *Requests) GetInvoices(month string, with With) *dto.Invoices {
+func (requests *Requests) GetInvoiceForMonthAndEmployee(month, employee string) *dto.Invoice {
+	invoices := requests.GetInvoices(month, With{Employees: true})
+
+	for _, invoice := range invoices {
+		if invoice.EmployeeName == employee {
+			return invoice
+		}
+	}
+
+	return nil
+}
+
+func (requests *Requests) GetInvoices(month string, with With) dto.Invoices {
 	params := coda.ListRowsParameters{
 		Query: fmt.Sprintf("%s:\"%s\"", dto.Ids.Invoices.Cols.Month, month),
 	}
@@ -88,9 +101,14 @@ func (requests *Requests) GetInvoices(month string, with With) *dto.Invoices {
 	invoices := make(dto.Invoices, len(resp.Rows))
 
 	var corrs map[string][]*dto.Correction
+	var employees map[string]*dto.Employee
 
 	if len(invoices) > 0 && with.Corrections {
 		corrs = requests.getCorrectionsIndexedByInvoice(month)
+	}
+
+	if len(invoices) > 0 && with.Employees {
+		employees = requests.GetAllEmployees()
 	}
 
 	thisMonth, prevMonth, monthErr := requests.getMonthsData(month)
@@ -114,11 +132,14 @@ func (requests *Requests) GetInvoices(month string, with With) *dto.Invoices {
 		if with.PrevInvoice {
 			invoices[i].PrevInvoice = prevInvoices[invoices[i].PreviousInvoiceId]
 		}
+		if with.Employees {
+			invoices[i].Employee = employees[invoices[i].EmployeeName]
+		}
 
 		invoices[i].MonthData = thisMonth
 	}
 
-	return &invoices
+	return invoices
 }
 
 func (requests *Requests) getMonthsData(month string) (*dto.Month, *dto.Month, error) {
@@ -158,8 +179,19 @@ func (requests *Requests) getCorrectionsIndexedByInvoice(month string) map[strin
 	return result
 }
 
-//func (requests *Requests) GetTaxes(month string) (string, error) {
-//}
-//
-//func (requests *Requests) GetPatents(month string) (string, error) {
-//}
+func (requests *Requests) GetAllEmployees() map[string]*dto.Employee {
+	resp, err := requests.Client.ListTableRows(requests.DocId, dto.Ids.Employees.Id, coda.ListRowsParameters{})
+
+	if err != nil {
+		panic(err)
+	}
+
+	result := make(map[string]*dto.Employee)
+
+	for _, row := range resp.Rows {
+		empl := dto.NewEmployeeFromRow(&row)
+		result[empl.Name] = empl
+	}
+
+	return result
+}

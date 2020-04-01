@@ -54,8 +54,9 @@ func main() {
 		GET.HandleFunc("/office", partial([]string{"office"}, globals, officeHandler.Home)).Name("OfficeHome")
 
 		GET.HandleFunc("/employees", partial([]string{"employees"}, globals, employeesHandler.Home)).Name("EmployeesHome")
-		router.HandleFunc("/employee/{month}", partial([]string{"employees", "employees_month"}, globals, employeesHandler.Month)).Name("EmployeesMonth")
-		//router.HandleFunc("/employee/{month}/invoice", partial("employee", employee.MainController))
+		GET.HandleFunc("/employee/{month}", partial([]string{"employees", "employees_month"}, globals, employeesHandler.Month)).Name("EmployeesMonth")
+		GET.HandleFunc("/employee/{month}/invoices", employeesHandler.DownloadAllInvoices).Name("EmployeesDownloadAllInvoices")
+		GET.HandleFunc("/employee/{month}/{employee}/invoice", employeesHandler.DownloadInvoice).Name("EmployeesDownloadInvoice")
 
 		GET.HandleFunc("/", partial([]string{"index"}, globals, nilTemplateData))
 

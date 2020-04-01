@@ -83,6 +83,36 @@ type PatentColumns struct {
 	Period        string
 }
 
+type EmployeesColumns struct {
+	Name                    string
+	StartDate               string
+	ProbationEnd            string
+	AnnualLeaveFrom         string
+	SalaryBeforeIp          string
+	SalaryAfterIp           string
+	NetSalaryAfterProbation string
+	EndDate                 string
+	HourRate                string
+	BankCurrencyControl     string
+	BankService             string
+	BankTotalFees           string
+	Address                 string
+	OpeningDateIp           string
+	StartMonth              string
+	MattermostLogin         string
+	RussianFullName         string
+	Position                string
+	INN                     string
+	IsWorkingNow            string
+	AllSalaries             string
+	PatentDocuments         string
+	PatentFee               string
+	LastSalary              string
+	EnglishFullName         string
+	BankRequisites          string
+	BillTo                  string
+}
+
 type IdOnly struct {
 	Id string
 }
@@ -112,6 +142,11 @@ type PatentDecl struct {
 	Cols PatentColumns
 }
 
+type EmployeesDecl struct {
+	IdOnly
+	Cols EmployeesColumns
+}
+
 type CodaFormulasDecl struct {
 	CurrentMonth string
 }
@@ -129,6 +164,7 @@ type IdStruct struct {
 	Taxes        TaxesDecl
 	Patent       PatentDecl
 	Months       MonthsDecl
+	Employees    EmployeesDecl
 	CodaFormulas CodaFormulasDecl
 }
 
@@ -226,6 +262,38 @@ func init() {
 				PreviousMonthLink: "c-3Cc_lYdvmW",
 				PreviousMonth:     "c-vuW159vf-o",
 				IsCurrent:         "c-OLxcAJLQoW",
+			},
+		},
+		Employees: EmployeesDecl{
+			IdOnly: IdOnly{"grid-TGESBHJkVA"},
+			Cols: EmployeesColumns{
+				Name:                    "c-tCDt6yt4Ix",
+				StartDate:               "c-Zs7oQbj-_J",
+				ProbationEnd:            "c-35cUDxDnAo",
+				AnnualLeaveFrom:         "c-uzP6UrJs3a",
+				SalaryBeforeIp:          "c-MZLKSGSxFn",
+				SalaryAfterIp:           "c-5asgm6tqZs",
+				NetSalaryAfterProbation: "c-fvHtrLntTN",
+				EndDate:                 "c-7OoHuXqt8n",
+				HourRate:                "c-SItGvyE3ie",
+				BankCurrencyControl:     "c-HbuzOpvaPf",
+				BankService:             "c-214wDdnGtE",
+				BankTotalFees:           "c-156kDMsJzb",
+				Address:                 "c-lEdEHoijqv",
+				OpeningDateIp:           "c-uU3-6piESs",
+				StartMonth:              "c-pnvQkCAJ7U",
+				MattermostLogin:         "c-BmjWOCSXHd",
+				RussianFullName:         "c-7N8qU2h-Zv",
+				Position:                "c-4nDWkuySVp",
+				INN:                     "c-Gsx7-a_kGU",
+				IsWorkingNow:            "c-QfV5QzjuJP",
+				AllSalaries:             "c-P0cTAu016r",
+				PatentDocuments:         "c-FKDG1g17Su",
+				PatentFee:               "c-kwYGeFl40p",
+				LastSalary:              "c-Is6fozVp1a",
+				EnglishFullName:         "c-TAlfzDcFzQ",
+				BankRequisites:          "c-OlCoWd7n4S",
+				BillTo:                  "c-XnSDzWgAgQ",
 			},
 		},
 		CodaFormulas: CodaFormulasDecl{

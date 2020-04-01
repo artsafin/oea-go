@@ -71,8 +71,8 @@ func listenAndServe(routerConfigurer func(*mux.Router)) {
 
 			router.ServeHTTP(w, r)
 		}),
-		WriteTimeout: 15 * time.Second,
-		ReadTimeout:  15 * time.Second,
+		WriteTimeout: 60 * time.Second,
+		ReadTimeout:  60 * time.Second,
 	}
 	err := server.ListenAndServe()
 

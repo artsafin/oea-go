@@ -8,6 +8,8 @@ import (
 	"time"
 )
 
+const paymentDateDaysBeforeEndOfMonth = 3
+
 type Invoices []*Invoice
 
 func (invs Invoices) Len() int {
@@ -22,7 +24,7 @@ func (invs Invoices) Less(i, j int) bool {
 		return monthCmp < 0
 	}
 
-	return strings.Compare(invs[i].Employee, invs[j].Employee) < 0
+	return strings.Compare(invs[i].EmployeeName, invs[j].EmployeeName) < 0
 }
 
 // Swap swaps the elements with indexes i and j.
@@ -34,7 +36,8 @@ type Invoice struct {
 	Id                   string
 	InvoiceNo            string
 	Month                string
-	Employee             string
+	EmployeeName         string
+	Employee             *Employee
 	PreviousInvoiceId    string
 	AmountRub            common.MoneyRub
 	EurRubExpected       common.MoneyRub
@@ -42,7 +45,7 @@ type Invoice struct {
 	RoundingPrevMonEur   common.MoneyEur
 	Rounding             common.MoneyEur
 	AmountRequestedEur   common.MoneyEur
-	Hours                uint16
+	hours                uint16
 	EurRubActual         common.MoneyRub
 	AmountRubActual      common.MoneyRub
 	RateErrorRub         common.MoneyRub
@@ -61,16 +64,84 @@ type Invoice struct {
 	PrevInvoice          *Invoice
 }
 
+func (inv *Invoice) Filename() string {
+	nameWithoutSpaces := strings.Replace(inv.EmployeeName, " ", "_", -1)
+	nameLower := strings.ToLower(nameWithoutSpaces)
+
+	return fmt.Sprintf("%s_%s.xlsx", inv.Month, nameLower)
+}
+
+func (inv *Invoice) BeneficiaryRequisites() string {
+	if inv.Employee == nil {
+		return "n/a"
+	}
+	return inv.Employee.BankRequisites
+}
+
+func (inv *Invoice) PayerRequisites() string {
+	if inv.Employee == nil {
+		return "n/a"
+	}
+	return inv.Employee.BillTo
+}
+
+func (inv *Invoice) BeneficiaryName() string {
+	if inv.Employee == nil {
+		return "n/a"
+	}
+	return inv.Employee.EnglishFullName
+}
+
+func (inv *Invoice) PayerName() string {
+	return ""
+}
+
+func (inv *Invoice) Number() string {
+	return inv.InvoiceNo
+}
+
+func (inv *Invoice) DateYm() string {
+	if inv.MonthData == nil {
+		return "n/a"
+	}
+	return inv.MonthData.LastMonthDay.Format("January 2006")
+}
+
+func (inv *Invoice) HourRate() common.MoneyEur {
+	if inv.Employee == nil {
+		return common.MoneyEur(0)
+	}
+	return inv.Employee.HourRate
+}
+
+func (inv *Invoice) Hours() uint16 {
+	return inv.hours
+}
+
+func (inv *Invoice) TotalEur() common.MoneyEur {
+	return inv.AmountRequestedEur
+}
+
 func (inv *Invoice) FullMonthName() string {
+	if inv.MonthData == nil {
+		return "n/a"
+	}
 	return inv.MonthData.LastMonthDay.Format("January")
 }
 
-func (inv *Invoice) InvoiceDate() string {
+func (inv *Invoice) DateFull() string {
+	if inv.MonthData == nil {
+		return "n/a"
+	}
 	return fmt.Sprintf("%02d %s", time.Now().Day(), inv.MonthData.LastMonthDay.Format("Jan 2006"))
 }
 
-func (inv *Invoice) PaymentDate() string {
-	return fmt.Sprintf("%02d %s", time.Now().Day(), inv.MonthData.LastMonthDay.Format("Jan 2006"))
+func (inv *Invoice) DatePayment() string {
+	if inv.MonthData == nil {
+		return "n/a"
+	}
+	paymentDate := common.AddWorkingDate(inv.MonthData.LastMonthDay, 0, 0, -paymentDateDaysBeforeEndOfMonth)
+	return paymentDate.Format("2 Jan 2006")
 }
 
 func NewInvoiceFromRow(row *coda.Row) *Invoice {
@@ -87,7 +158,7 @@ func NewInvoiceFromRow(row *coda.Row) *Invoice {
 	if invoice.Month, err = common.ToString(Ids.Invoices.Cols.Month, row); err != nil {
 		errs = append(errs, *err)
 	}
-	if invoice.Employee, err = common.ToString(Ids.Invoices.Cols.Employee, row); err != nil {
+	if invoice.EmployeeName, err = common.ToString(Ids.Invoices.Cols.Employee, row); err != nil {
 		errs = append(errs, *err)
 	}
 	if invoice.PreviousInvoiceId, err = common.ToString(Ids.Invoices.Cols.PreviousInvoice, row); err != nil {
@@ -111,7 +182,7 @@ func NewInvoiceFromRow(row *coda.Row) *Invoice {
 	if invoice.AmountRequestedEur, err = common.ToEur(Ids.Invoices.Cols.AmountRequestedEur, row); err != nil {
 		errs = append(errs, *err)
 	}
-	if invoice.Hours, err = common.ToUint16(Ids.Invoices.Cols.Hours, row); err != nil {
+	if invoice.hours, err = common.ToUint16(Ids.Invoices.Cols.Hours, row); err != nil {
 		errs = append(errs, *err)
 	}
 	if invoice.EurRubActual, err = common.ToRub(Ids.Invoices.Cols.EurRubActual, row); err != nil {
