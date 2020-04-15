@@ -1,0 +1,19 @@
+Subject: {{ .Subject }}
+Content-Type: text/html
+From: {{ .From }}
+To: {{ .To }}
+
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+    </head>
+    <body>
+        <h4>{{ .Subject }} has been requested on {{ .Timestamp }} from IP {{ .IP }}.</h4>
+        <p>Please click on the link below to proceed with authentication:</p>
+        <p>
+            <a href="{{ .Link }}">{{ .Link }}</a>
+        </p>
+        <hr>
+        <p>Should you have any questions please contact <i>me</i> directly.</p>
+    </body>
+</html>

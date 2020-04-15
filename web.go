@@ -1,9 +1,12 @@
 package main
 
 import (
+	"context"
 	"fmt"
+	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 	"html/template"
+	"io"
 	"log"
 	"net/http"
 	"net/url"
@@ -11,10 +14,20 @@ import (
 	"time"
 )
 
-const AuthCookieName = "a"
+const (
+	RequestIdHeader = "X-Request-Id"
+	RequestIdContextKey = "requestId"
+)
 
 type webRouter struct {
 	*mux.Router
+	AuthToken *Token
+}
+
+// Writes Location header to response writer and sets specified status
+func httpRedirect(resp http.ResponseWriter, url string, status int) {
+	resp.Header().Add("Location", url)
+	resp.WriteHeader(status)
 }
 
 func (router *webRouter) createFuncMap() template.FuncMap {
@@ -31,6 +44,12 @@ func (router *webRouter) createFuncMap() template.FuncMap {
 			}
 			return u.String()
 		},
+		"styles": func() template.CSS {
+			return template.CSS(common.MustAsset("resources/bootstrap.min.css"))
+		},
+		"authToken": func() *Token {
+			return router.AuthToken
+		},
 	}
 }
 
@@ -42,38 +61,64 @@ func (router *webRouter) parseLayout() *template.Template {
 			Parse(string(common.MustAsset("resources/layout.go.html"))))
 }
 
-type templateGlobals struct {
-	Router *mux.Router
+type Partial struct {
+	*template.Template
 }
 
-func (router *webRouter) partial(templateDataFn func(map[string]string, *http.Request) interface{}, names ...string) func(http.ResponseWriter, *http.Request) {
+type PartialData struct {
+	Page       interface{}
+	RequestURI string
+}
+
+func NewPartialData(data interface{}, r *http.Request) *PartialData {
+	return &PartialData{
+		Page:       data,
+		RequestURI: r.RequestURI,
+	}
+}
+
+func (router *webRouter) createPartial(names ...string) Partial {
 	tpl := router.parseLayout()
 	for _, name := range names {
 		tpl = template.Must(tpl.Parse(string(common.MustAsset(fmt.Sprintf("resources/partials/%s.go.html", name)))))
 	}
 
-	return func(resp http.ResponseWriter, req *http.Request) {
-		tplData := struct {
-			Page interface{}
-		}{
-			Page: templateDataFn(mux.Vars(req), req),
-		}
+	return Partial{tpl}
+}
 
-		if err := tpl.Execute(resp, tplData); err != nil {
-			panic(err)
-		}
+func (partial Partial) MustRenderWithData(wr io.Writer, data *PartialData) {
+	if err := partial.Execute(wr, data); err != nil {
+		panic(err)
 	}
 }
 
-func listenAndServe(routerConfigurer func(*webRouter)) {
-	router := &webRouter{mux.NewRouter()}
-	auth := &AuthMiddleware{
+func (router *webRouter) page(templateDataFn func(map[string]string, *http.Request) interface{}, names ...string) func(http.ResponseWriter, *http.Request) {
+	tpl := router.createPartial(names...)
+
+	return func(resp http.ResponseWriter, req *http.Request) {
+		data := NewPartialData(templateDataFn(mux.Vars(req), req), req)
+
+		tpl.MustRenderWithData(resp, data)
+	}
+}
+
+func listenAndServe(cfg common.Config, routerConfigurer func(*webRouter)) {
+	router := &webRouter{Router: mux.NewRouter()}
+	auth := &authMiddleware{
 		router: router,
+		config: cfg,
 	}
 	router.Use(faviconMiddleware)
+	router.Use(requestIdMiddleware)
 	router.Use(loggerMiddleware)
 	router.Use(auth.Middleware)
-	router.NotFoundHandler = http.HandlerFunc(router.partial(nilTemplateData, "404"))
+	router.NotFoundHandler = http.HandlerFunc(router.page(nilTemplateData, "404"))
+
+	authHandler := authController{cfg, router.createPartial("auth")}
+	router.HandleFunc("/auth/success", authHandler.HandleSendSuccess)
+	router.HandleFunc("/auth/set", authHandler.HandleTokenSet)
+	router.HandleFunc("/auth/logout", authHandler.HandleLogout).Methods(http.MethodPost).Name("Logout")
+	router.HandleFunc("/auth", authHandler.HandleAuthStart)
 
 	routerConfigurer(router)
 
@@ -94,25 +139,6 @@ func nilTemplateData(vars map[string]string, req *http.Request) interface{} {
 	return nil
 }
 
-type AuthMiddleware struct {
-	router *webRouter
-}
-
-func (auth *AuthMiddleware) Middleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		authCookie, cookieErr := r.Cookie(AuthCookieName)
-		if cookieErr != nil {
-			log.Println("Forbidden:", r.Method, r.RequestURI)
-			auth.router.partial(nilTemplateData, "403")(w, r)
-			return
-		}
-
-		log.Printf("Auth cookie found: %v\n", authCookie)
-
-		next.ServeHTTP(w, r)
-	})
-}
-
 func faviconMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
 		if request.RequestURI == "/favicon.ico" {
@@ -128,8 +154,32 @@ func faviconMiddleware(next http.Handler) http.Handler {
 
 func loggerMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(writer http.ResponseWriter, r *http.Request) {
-		log.Println("Request:", r.Method, r.RequestURI, r.RemoteAddr, r.UserAgent())
+		logger := NewRequestLogger(r)
+		logger.Println("Request:", r.Method, r.RequestURI, r.RemoteAddr, r.UserAgent())
 
 		next.ServeHTTP(writer, r)
 	})
+}
+
+func requestIdMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(writer http.ResponseWriter, r *http.Request) {
+		requestId := r.Header.Get(RequestIdHeader)
+		if requestId == "" {
+			requestId = uuid.Must(uuid.NewRandom()).String()
+		}
+
+		ctx := context.WithValue(r.Context(), RequestIdContextKey, requestId)
+
+		writer.Header().Set(RequestIdHeader, requestId)
+
+		next.ServeHTTP(writer, r.WithContext(ctx))
+	})
+}
+
+func getRequestId(r *http.Request) string {
+	id, ok := r.Context().Value(RequestIdContextKey).(string)
+	if !ok {
+		return "no-request-id"
+	}
+	return id
 }

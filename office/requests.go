@@ -3,6 +3,7 @@ package office
 import (
 	"errors"
 	"fmt"
+	"log"
 	"os"
 	"sort"
 	"time"
@@ -26,25 +27,25 @@ func NewRequests(baseUri, apiTokenOf, docId string) *Requests {
 
 func (requests *Requests) WaitForInvoice() string {
 	var invoiceID string
-	fmt.Printf("Waiting for invoice in doc %s...", requests.DocId)
+	log.Printf("Waiting for invoice in doc %s...", requests.DocId)
 	timerChan := time.After(2 * time.Minute)
 	for {
 		var err error
 		invoiceID, err = requests.GetLastInvoice()
 		if err == nil {
-			fmt.Println("Found planned invoice:", invoiceID)
+			log.Println("Found planned invoice:", invoiceID)
 			break
 		}
 
 		select {
 		case t := <-timerChan:
-			fmt.Printf("Stopped waiting at %v\n", t)
+			log.Printf("Stopped waiting at %v\n", t)
 			os.Exit(1)
 		default:
 		}
 
 		time.Sleep(500 * time.Millisecond)
-		fmt.Print(".")
+		log.Print(".")
 	}
 
 	return invoiceID

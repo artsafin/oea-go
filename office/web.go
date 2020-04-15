@@ -36,10 +36,10 @@ func loadOfficeData(invoiceID, baseUri, apiToken, docId string) OfficeTemplateDa
 
 	wg.Add(1)
 	go func() {
-		fmt.Println("Loading invoice", invoiceID, "...")
+		log.Println("Loading invoice", invoiceID, "...")
 		invoice = req.GetInvoice(invoiceID)
 		if invoice.PrevInvoiceID != "" {
-			fmt.Println("Loading prev invoice", invoice.PrevInvoiceID, "...")
+			log.Println("Loading prev invoice", invoice.PrevInvoiceID, "...")
 			prevInvoice = req.GetInvoice(invoice.PrevInvoiceID)
 		}
 		wg.Done()
@@ -47,7 +47,7 @@ func loadOfficeData(invoiceID, baseUri, apiToken, docId string) OfficeTemplateDa
 
 	wg.Add(1)
 	go func() {
-		fmt.Println("Loading expenses...")
+		log.Println("Loading expenses...")
 		expenses := req.GetExpenses(invoiceID)
 		expensesByCategory = dto.GroupExpensesByCategory(expenses)
 		wg.Done()
@@ -55,7 +55,7 @@ func loadOfficeData(invoiceID, baseUri, apiToken, docId string) OfficeTemplateDa
 
 	wg.Add(1)
 	go func() {
-		fmt.Println("Loading history...")
+		log.Println("Loading history...")
 		history = req.GetHistory()
 		wg.Done()
 	}()

@@ -3,16 +3,23 @@
     <head>
         <meta charset="UTF-8">
         <title>{{ block "title" .}}Unknown{{end}} - OEA</title>
-        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+        <style type="text/css">{{ styles }}</style>
     </head>
     <body>
-        <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <nav class="navbar navbar-expand-sm navbar-light bg-light">
             <a class="navbar-brand" href="/">OEA export tool</a>
             <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
                 <div class="navbar-nav">
                     <a class="nav-item nav-link" href="{{ link "OfficeHome" }}">Office</a>
                     <a class="nav-item nav-link" href="{{ link "EmployeesHome" }}">Employees</a>
                 </div>
+            </div>
+            <div class="justify-content-end">
+                {{ if authToken }}
+                    <form action="{{ link "Logout" }}?return={{ .RequestURI }}" method="POST">
+                        <button type="submit" class="btn btn-danger" role="button">Logout {{ authToken.Claims.Audience }}</button>
+                    </form>
+                {{ end }}
             </div>
         </nav>
 

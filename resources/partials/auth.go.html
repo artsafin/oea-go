@@ -1,0 +1,29 @@
+{{ define "title"}}Auth{{end}}
+{{ define "sidebar"}}{{end}}
+{{ define "content"}}
+    {{ if .Page.Error }}
+        <div class="alert alert-danger" role="alert">
+            Authentication failed: {{ .Page.Error }}
+        </div>
+    {{ end }}
+    {{ if .Page.IsSent }}
+        <div class="alert alert-success" role="alert">
+            The email has been sent with the further instructions
+        </div>
+    {{ else }}
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-sm-6">
+                    <form method="POST">
+                        <label for="email">Email:</label>
+                        <div class="input-group mb-3">
+                            <input type="email" class="form-control" id="email" name="email" value="{{ .Page.PrevEmail }}" >
+                        </div>
+                        <input type="hidden" name="returnUrl" value="{{ .Page.ReturnUrl }}" />
+                        <button type="submit" class="btn btn-primary">Send auth link</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    {{ end }}
+{{end}}
