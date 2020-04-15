@@ -15,10 +15,23 @@ type Config struct {
 	SmtpUser           string `mapstructure:"smtp_user"`
 	SmtpPass           string `mapstructure:"smtp_pass"`
 	SmtpPort           int
+	LetsEncryptDomain  string `mapstructure:"letsencrypt_domain"`
+	CertsDir           string `mapstructure:"certs_dir"`
+	SecurePort         uint
+	InsecurePort       uint
 }
 
 func NewConfig() Config {
-	return Config{SmtpPort: 25}
+	return Config{
+		SecurePort:   8443,
+		InsecurePort: 8080,
+		SmtpPort:     25,
+		CertsDir:     "/tmp/oeacerts",
+	}
+}
+
+func (c Config) IsTLS() bool {
+	return c.LetsEncryptDomain != ""
 }
 
 func (c Config) MustValidate() {

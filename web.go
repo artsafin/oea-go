@@ -2,20 +2,23 @@ package main
 
 import (
 	"context"
+	"crypto/tls"
 	"fmt"
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
+	"golang.org/x/crypto/acme/autocert"
 	"html/template"
 	"io"
 	"log"
 	"net/http"
 	"net/url"
 	"oea-go/common"
+	"os"
 	"time"
 )
 
 const (
-	RequestIdHeader = "X-Request-Id"
+	RequestIdHeader     = "X-Request-Id"
 	RequestIdContextKey = "requestId"
 )
 
@@ -122,17 +125,41 @@ func listenAndServe(cfg common.Config, routerConfigurer func(*webRouter)) {
 
 	routerConfigurer(router)
 
-	log.Println("Server started")
+	var certManager autocert.Manager
+	if cfg.IsTLS() {
+		certsDirErr := os.MkdirAll(cfg.CertsDir, os.ModePerm)
+		if certsDirErr != nil {
+			panic(certsDirErr)
+		}
+		certManager = autocert.Manager{
+			Prompt:     autocert.AcceptTOS,
+			HostPolicy: autocert.HostWhitelist(cfg.LetsEncryptDomain),
+			Cache:      autocert.DirCache(cfg.CertsDir),
+		}
+	}
 
 	server := &http.Server{
-		Addr:         ":8080",
+		Addr:         fmt.Sprintf(":%d", cfg.InsecurePort),
 		Handler:      router,
 		WriteTimeout: 60 * time.Second,
 		ReadTimeout:  60 * time.Second,
 	}
-	err := server.ListenAndServe()
 
-	log.Fatal("Server shutdown", err)
+	var listenErr error
+	if cfg.IsTLS() {
+		server.TLSConfig = &tls.Config{
+			GetCertificate: certManager.GetCertificate,
+		}
+		server.Addr = fmt.Sprintf(":%d", cfg.SecurePort)
+
+		go http.ListenAndServe(fmt.Sprintf(":%d", cfg.InsecurePort), certManager.HTTPHandler(nil))
+		log.Printf("Server started at %s (secure)\n", server.Addr)
+		listenErr = server.ListenAndServeTLS("", "")
+	} else {
+		log.Printf("Server started at %s (insecure)\n", server.Addr)
+		listenErr = server.ListenAndServe()
+	}
+	log.Fatal("Server shutdown", listenErr)
 }
 
 func nilTemplateData(vars map[string]string, req *http.Request) interface{} {
