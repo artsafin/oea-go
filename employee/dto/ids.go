@@ -84,6 +84,7 @@ type PatentColumns struct {
 }
 
 type EmployeesColumns struct {
+	Location                string
 	Name                    string
 	StartDate               string
 	ProbationEnd            string
@@ -267,6 +268,7 @@ func init() {
 		Employees: EmployeesDecl{
 			IdOnly: IdOnly{"grid-TGESBHJkVA"},
 			Cols: EmployeesColumns{
+				Location:                "c-WcmDQXPChx",
 				Name:                    "c-tCDt6yt4Ix",
 				StartDate:               "c-Zs7oQbj-_J",
 				ProbationEnd:            "c-35cUDxDnAo",

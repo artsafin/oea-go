@@ -45,6 +45,17 @@ func (m Months) IndexOfYearMonth(of time.Time) (int, error) {
 	return 0, errors.New("not found")
 }
 
+func (m Months) IndexOfTime(t time.Time) int {
+	var curMonthIndex int
+	var err error
+
+	if curMonthIndex, err = m.IndexOfYearMonth(t); err != nil {
+		curMonthIndex = 0
+	}
+
+	return curMonthIndex
+}
+
 type Month struct {
 	LastMonthDay      *time.Time
 	WorkDays          uint16

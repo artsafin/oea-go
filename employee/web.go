@@ -39,13 +39,7 @@ func NewHandler(cfg *common.Config) *Handler {
 
 func (h Handler) getLastMonths(num int) dto.Months {
 	months := h.client.GetMonths()
-
-	var curMonthIndex int
-	var err error
-
-	if curMonthIndex, err = months.IndexOfYearMonth(time.Now()); err != nil {
-		curMonthIndex = 0
-	}
+	curMonthIndex := months.IndexOfTime(time.Now())
 
 	return (*months)[curMonthIndex-1 : curMonthIndex+num-1]
 }

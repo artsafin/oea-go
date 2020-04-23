@@ -7,6 +7,7 @@ import (
 )
 
 type Employee struct {
+	Location                string
 	Name                    string
 	StartDate               *time.Time
 	ProbationEnd            *time.Time
@@ -39,6 +40,9 @@ func NewEmployeeFromRow(row *coda.Row) *Employee {
 	errs := make([]common.UnexpectedFieldTypeErr, 0)
 	var err *common.UnexpectedFieldTypeErr
 
+	if empl.Location, err = common.ToString(Ids.Employees.Cols.Location, row); err != nil {
+		errs = append(errs, *err)
+	}
 	if empl.Name, err = common.ToString(Ids.Employees.Cols.Name, row); err != nil {
 		errs = append(errs, *err)
 	}

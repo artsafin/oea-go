@@ -1,8 +1,7 @@
-config.yaml
 oea-go
 resources/bootstrap.min.css
 resources/invoice_template.xlsx
 resources/invoice_template_empl.xlsx
-bindata.go
+common/bindata.go
 .idea
 .env

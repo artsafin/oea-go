@@ -1,6 +1,7 @@
 package office
 
 import (
+	"bytes"
 	"fmt"
 	"github.com/gorilla/mux"
 	"html/template"
@@ -8,25 +9,14 @@ import (
 	"net/http"
 	"oea-go/common"
 	empl "oea-go/employee"
+	emplDto "oea-go/employee/dto"
 	"oea-go/office/dto"
 	"sort"
-	"strings"
 	"sync"
 	"time"
 )
 
-const (
-	CatSalaries          = "Salaries"
-	CatTaxes             = "Taxes"
-	CatPatents           = "Patents"
-	CatPaymentService    = "Payment services"
-	CatDayoff            = "Day offs"
-	CatGeneralCorrection = "Correction"
-)
-
-func loadOfficeData(invoiceID, baseUri, apiToken, docId string) OfficeTemplateData {
-	req := NewRequests(baseUri, apiToken, docId)
-
+func loadOfficeData(req *Requests, invoiceID string) OfficeTemplateData {
 	var invoice *dto.Invoice
 	var prevInvoice *dto.Invoice
 	var expensesByCategory dto.ExpenseGroupMap
@@ -70,71 +60,64 @@ func loadOfficeData(invoiceID, baseUri, apiToken, docId string) OfficeTemplateDa
 	}
 }
 
-func loadEmployeesData(baseUri, apiToken, docId string) *dto.EmployeesPaymentCategories {
-	req := empl.NewRequests(baseUri, apiToken, docId)
+func getMonthsN(req *empl.Requests, num int, now time.Time) emplDto.Months {
+	months := req.GetMonths()
 
-	month, err := req.GetCurrentMonth()
-	if err != nil {
-		panic(err)
+	curMonthIndex := months.IndexOfTime(now)
+
+	if curMonthIndex == len(*months)-1 {
+		num = 0
 	}
 
-	log.Println("Fetching month", month)
-
-	invoices := req.GetInvoices(month, empl.With{Corrections: true})
-
-	sort.Sort(invoices)
-
-	emplCats := dto.NewEmployeesPaymentCategories(month)
-
-	for _, invoice := range invoices {
-
-		emplCats.AddItem(CatSalaries, &dto.EmployeePayment{
-			Name:   invoice.EmployeeName,
-			Amount: invoice.BaseSalary,
-		})
-		emplCats.AddItem(CatPaymentService, &dto.EmployeePayment{
-			Name:   invoice.EmployeeName,
-			Amount: invoice.BankFees,
-		})
-
-		for _, corr := range invoice.Corrections {
-			emplCats.AddItem(corr.Category, &dto.EmployeePayment{
-				Name:    invoice.EmployeeName,
-				Comment: template.HTML(fmt.Sprintf("%s [%s]", strings.Replace(corr.Comment, "\n", "<br>", -1), corr.SubCategory())),
-				Amount:  corr.TotalCorrectionRub,
-			})
-		}
-
-		if invoice.PatentRub > 0 {
-			emplCats.AddItem(CatPatents, &dto.EmployeePayment{
-				Name:   invoice.EmployeeName,
-				Amount: invoice.PatentRub,
-			})
-		}
-
-		if invoice.TaxesRub > 0 {
-			emplCats.AddItem(CatTaxes, &dto.EmployeePayment{
-				Name:   invoice.EmployeeName,
-				Amount: invoice.TaxesRub,
-			})
-		}
-
-		if invoice.UnpaidDay > 0 {
-			emplCats.AddItem(CatDayoff, &dto.EmployeePayment{
-				Name:   invoice.EmployeeName,
-				Amount: invoice.UnpaidDay,
-			})
-		}
-	}
-
-	return emplCats
+	return (*months)[curMonthIndex : curMonthIndex+num+1]
 }
 
-func buildApprovalRequestHtml(officeData OfficeTemplateData, employeesData *dto.EmployeesPaymentCategories) string {
+func loadTodayAndPastInvoices(req *empl.Requests, numPastInvoices int, today time.Time) dto.EmployeesHistoricReport {
+	months := getMonthsN(req, numPastInvoices, today)
+	numMonths := len(months)
+
+	monthlyInvoices := make(chan emplDto.InvoicesPerMonth, numMonths)
+
+	for _, month := range months {
+		go func(month *emplDto.Month) {
+			log.Println("started loading invoices for month", month.ID)
+			invoices := req.GetInvoices(month.ID, empl.With{Corrections: true, Employees: true})
+			sort.Sort(invoices)
+			monthlyInvoices <- emplDto.InvoicesPerMonth{
+				Invoices: invoices,
+				Month:    month,
+			}
+			log.Println("finished loading invoices for month", month.ID)
+		}(month)
+	}
+
+	hist := dto.EmployeesHistoricReport{}
+
+	for i := 0; i < numMonths; i++ {
+		invoices := <-monthlyInvoices
+
+		rep := dto.NewEmployeesMonthlyReport(invoices.Month.ID)
+		rep.AddItemsFromInvoices(invoices.Invoices)
+
+		if invoices.Month.IsCurrent {
+			hist.CurrentMonth = rep
+		} else {
+			hist.AppendHistoricReport(rep)
+		}
+	}
+
+	close(monthlyInvoices)
+
+	hist.RunPostCalculations()
+
+	return hist
+}
+
+func buildApprovalRequestHtml(officeData OfficeTemplateData, employeesData dto.EmployeesHistoricReport) string {
 	tpl := template.Must(template.New("post").Parse(string(common.MustAsset("resources/post.go.html"))))
 
-	var sb strings.Builder
-	err := tpl.Execute(&sb, TemplateData{
+	buf := &bytes.Buffer{}
+	err := tpl.Execute(buf, TemplateData{
 		Timestamp: time.Now(),
 		Office:    officeData,
 		Employees: employeesData,
@@ -144,7 +127,7 @@ func buildApprovalRequestHtml(officeData OfficeTemplateData, employeesData *dto.
 		panic(err)
 	}
 
-	return sb.String()
+	return buf.String()
 }
 
 type Page struct {
@@ -168,10 +151,14 @@ func (h handler) Home(vars map[string]string, req *http.Request) interface{} {
 }
 
 func (h handler) ShowInvoiceData(vars map[string]string, req *http.Request) interface{} {
-	officeData := loadOfficeData(vars["invoice"], h.config.BaseUri, h.config.ApiTokenOf, h.config.DocIdOf)
-	employeesData := loadEmployeesData(h.config.BaseUri, h.config.ApiTokenEm, h.config.DocIdEm)
+	officeClient := NewRequests(h.config.BaseUri, h.config.ApiTokenOf, h.config.DocIdOf)
+	officeData := loadOfficeData(officeClient, vars["invoice"])
+
+	emplClient := empl.NewRequests(h.config.BaseUri, h.config.ApiTokenEm, h.config.DocIdEm)
+	employeesData := loadTodayAndPastInvoices(emplClient, 5, time.Now())
 
 	html := buildApprovalRequestHtml(officeData, employeesData)
+
 	return Page{
 		InvoiceID: vars["invoice"],
 		Body:      template.HTML(html),
@@ -180,7 +167,8 @@ func (h handler) ShowInvoiceData(vars map[string]string, req *http.Request) inte
 
 func (h handler) DownloadInvoice(resp http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
-	data := loadOfficeData(vars["invoice"], h.config.BaseUri, h.config.ApiTokenOf, h.config.DocIdOf)
+	officeClient := NewRequests(h.config.BaseUri, h.config.ApiTokenOf, h.config.DocIdOf)
+	data := loadOfficeData(officeClient, vars["invoice"])
 
 	resp.Header().Add("Content-Disposition", fmt.Sprintf("attachment; filename=\"%s.xlsx\"", data.Invoice.Filename()))
 

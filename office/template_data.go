@@ -1,7 +1,7 @@
 package office
 
 import (
-	officeDto "oea-go/office/dto"
+	"oea-go/office/dto"
 	"time"
 )
 
@@ -9,12 +9,12 @@ type TemplateData struct {
 	Timestamp time.Time
 
 	Office    OfficeTemplateData
-	Employees *officeDto.EmployeesPaymentCategories
+	Employees dto.EmployeesHistoricReport
 }
 
 type OfficeTemplateData struct {
-	PrevInvoice   officeDto.Invoice
-	Invoice       officeDto.Invoice
-	ExpenseGroups officeDto.ExpenseGroupMap
-	History       officeDto.History
+	PrevInvoice   dto.Invoice
+	Invoice       dto.Invoice
+	ExpenseGroups dto.ExpenseGroupMap
+	History       dto.History
 }

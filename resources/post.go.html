@@ -1,16 +1,16 @@
 <!-- Generated at {{ .Timestamp.Format "2006-01-02T15:04:05Z07:00" }} -->
 <pre>
-    FXTM Kazan / {{ .Office.Invoice.InvoiceDateYm }} invoice
+    FXTM Kazan / {{ .Office.Invoice.DateYm }} invoice
 </pre>
 
 <div class="atten alert alert-secondary" role="alert">
-    Previous Task: <a href="{{ .Office.PrevInvoice.ApprovalLink }}" target="_blank">FXTM Kazan / {{ .Office.PrevInvoice.InvoiceDateYm }} invoice</a>
+    Previous Task: <a href="{{ .Office.PrevInvoice.ApprovalLink }}" target="_blank">FXTM Kazan / {{ .Office.PrevInvoice.DateYm }} invoice</a>
 </div>
 <p>&nbsp;</p>
 
 <p>Please approve the following items to be included in:</p>
 
-<h3>{{ .Office.Invoice.InvoiceDateYm }} Invoice</h3>
+<h3>{{ .Office.Invoice.DateYm }} Invoice</h3>
 
 <table border="1" cellpadding="2" cellspacing="0" width="80%" class="standart">
     <thead style="background-color: #cacaca">
@@ -74,7 +74,7 @@
 
 <p><br /><br /></p>
 
-<h3>Report on money usage ({{ .Office.History.FirstInvoice.InvoiceDateYm }} &ndash; {{ .Office.History.LastInvoice.InvoiceDateYm }})</h3>
+<h3>Report on money usage ({{ .Office.History.FirstInvoice.DateYm }} &ndash; {{ .Office.History.LastInvoice.DateYm }})</h3>
 <table border="1" cellpadding="2" cellspacing="0" width="80%" class="standart">
     <thead style="background-color: #cacaca">
         <tr>
@@ -144,7 +144,7 @@
 
 <p><br /><br /></p>
 
-<h3>Employees monitoring ({{ .Employees.Month }})</h3>
+<h3>Employees monitoring ({{ .Employees.CurrentMonth.Month }})</h3>
 
 <table  border="1" cellpadding="2" cellspacing="0" valign="top" class="standart">
     <thead style="background-color: #cacaca">
@@ -155,29 +155,48 @@
             <th>Comment</th>
             <th>Amount</th>
             <th>Currency</th>
+            {{ range .Employees.RestMonths }}
+                <th>{{ .Month }}</th>
+            {{ end }}
         </tr>
     </thead>
     <tbody>
-        {{ range $cat := .Employees.Categories }}
-            {{ range $cat.Payments }}
+        {{ range $category := .Employees.CurrentMonth.Categories }}
+            {{ range $category.Payments }}
                 <tr>
-                    <td>Kazan</td>
-                    <td>{{ $cat.Name }}</td>
+                    <td>{{ .Location }}</td>
+                    <td>{{ $category.Name }}</td>
                     <td>{{ .Name }}</td>
                     <td>{{ .Comment }}</td>
                     <td style="{{ if lt .Amount 0 }}color: red{{ end }}">{{ .Amount }}</td>
                     <td>RUB</td>
                 </tr>
             {{ end }}
-            <tr style="font-weight: bold">
-                <td colspan="4">Total {{ $cat.Name }} by office</td>
-                <td style="{{ if lt $cat.Total 0 }}color: red{{ end }}">{{ $cat.Total }}</td>
-                <td>RUB</td>
+            <tr>
+                <th colspan="4">Total {{ $category.Name }}</th>
+                <th style="{{ if lt $category.Total 0 }}color: red{{ end }}">{{ $category.Total }}</th>
+                <th>RUB</th>
+                {{ range $.Employees.RestMonths }}
+                    <td style="font-size: 90%;">
+                        {{ if .HasCategory $category.Name }}
+                            {{ $percent := .GetPercentForCategory $category.Name }}
+                            {{ $total := (.GetCategoryByName $category.Name).Total }}
+                            <span title="{{ $category.Name }} for {{ .Month }}">{{ $total }}</span>
+                            <span title="{{ $category.Total }} {{ $percent }} = {{ $total }}">({{ $percent }})</span>
+                        {{ end}}
+                    </td>
+                {{ end }}
+            </tr>
+            <tr>
+                <td colspan="6"></td>
+                {{ range $.Employees.RestMonths }}
+                    <th>{{ .Month }}</th>
+                {{ end }}
             </tr>
         {{ end }}
         <tr style="font-weight: bold">
             <td colspan="4">Total amount</td>
-            <td>{{ .Employees.Total }}</td>
+            <td>{{ .Employees.CurrentMonth.Total }}</td>
             <td>RUB</td>
         </tr>
     </tbody>

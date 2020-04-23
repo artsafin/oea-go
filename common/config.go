@@ -1,42 +1,120 @@
 package common
 
-import "strings"
+import (
+	"fmt"
+	"log"
+	"reflect"
+	"strings"
+)
+
+func isValueEmpty(v interface{}) bool {
+	switch v.(type) {
+	case string:
+		return v == ""
+	case uint:
+		return v == 0
+	case int:
+		return v == 0
+	}
+
+	return true
+}
 
 type Config struct {
-	BaseUri            string `mapstructure:"base_uri"`
-	ApiTokenOf         string `mapstructure:"api_token_of"`
-	ApiTokenEm         string `mapstructure:"api_token_em"`
-	DocIdOf            string `mapstructure:"doc_id_of"`
-	DocIdEm            string `mapstructure:"doc_id_em"`
-	AuthKey            string `mapstructure:"auth_key"`
-	AuthAllowedDomains string `mapstructure:"auth_allowed_domains"`
-	AuthAllowedEmails  string `mapstructure:"auth_allowed_emails"`
-	SmtpHost           string `mapstructure:"smtp_host"`
-	SmtpUser           string `mapstructure:"smtp_user"`
-	SmtpPass           string `mapstructure:"smtp_pass"`
-	SmtpPort           int
-	LetsEncryptDomain  string `mapstructure:"letsencrypt_domain"`
-	CertsDir           string `mapstructure:"certs_dir"`
-	SecurePort         uint
-	InsecurePort       uint
+	BaseUri            string `oea:"base_uri,mandatory"`
+	ApiTokenOf         string `oea:"api_token_of,mandatory"`
+	ApiTokenEm         string `oea:"api_token_em,mandatory"`
+	DocIdOf            string `oea:"doc_id_of,mandatory"`
+	DocIdEm            string `oea:"doc_id_em,mandatory"`
+	AuthKey            string `oea:"auth_key,mandatory"`
+	AuthAllowedDomains string `oea:"auth_allowed_domains,"`
+	AuthAllowedEmails  string `oea:"auth_allowed_emails,"`
+	SmtpHost           string `oea:"smtp_host,mandatory"`
+	SmtpUser           string `oea:"smtp_user,mandatory"`
+	SmtpPass           string `oea:"smtp_pass,mandatory"`
+	SmtpPort           uint   `oea:"smtp_port,mandatory"`
+	SecurePort         uint   `oea:"secure_port,mandatory"`
+	InsecurePort       uint   `oea:"insecure_port,mandatory"`
+	TlsCert            string `oea:"tls_cert,"`
+	TlsKey             string `oea:"tls_key,"`
+	UseAuth            bool   `oea:"use_auth"`
 }
 
 func NewConfig() Config {
 	return Config{
+		BaseUri:      "https://coda.io/apis/v1beta1",
 		SecurePort:   8443,
 		InsecurePort: 8080,
 		SmtpPort:     25,
-		CertsDir:     "/tmp/oeacerts",
+		UseAuth:      true,
+	}
+}
+
+func (c *Config) ForeachKey(mapFn func(name string, val interface{}, isMandatory bool, dstKind reflect.Kind) (interface{}, bool)) {
+	val := reflect.ValueOf(c)
+	typ := reflect.TypeOf(c)
+	for i := 0; i < val.Elem().NumField(); i++ {
+		fieldVal := val.Elem().Field(i)
+		fieldType := typ.Elem().Field(i)
+		if !fieldVal.CanInterface() {
+			continue
+		}
+		tagVals := strings.SplitN(fieldType.Tag.Get("oea"), ",", 2)
+		isMandatory := false
+		fieldName := fieldType.Name
+		if len(tagVals) == 1 {
+			fieldName = tagVals[0]
+		} else if len(tagVals) > 1 {
+			fieldName = tagVals[0]
+			isMandatory = tagVals[1] == "mandatory"
+		}
+
+		newVal, shouldContinue := mapFn(fieldName, fieldVal.Interface(), isMandatory, fieldVal.Kind())
+
+		if newVal != nil {
+			if !fieldVal.CanSet() {
+				log.Printf("config: %v: field is not settable. Skipping\n", fieldName)
+				continue
+			}
+			reflNewVal := reflect.ValueOf(newVal)
+			if fieldVal.Type() != reflNewVal.Type() {
+				log.Printf("config: %v: type mismatch: %v is not assignable to %v. Skipping\n", fieldName, reflNewVal.Kind(), fieldVal.Kind())
+				continue
+			}
+
+			fieldVal.Set(reflNewVal)
+		}
+
+		if !shouldContinue {
+			break
+		}
 	}
 }
 
 func (c Config) IsTLS() bool {
-	return c.LetsEncryptDomain != ""
+	return c.TlsCert != ""
+}
+
+func (c Config) getEmptyFields() []string {
+	emptyFields := make([]string, 0)
+
+	c.ForeachKey(func(fieldName string, val interface{}, isMandatory bool, dstKind reflect.Kind) (interface{}, bool) {
+		if !isMandatory {
+			return nil, true
+		}
+
+		if isValueEmpty(val) {
+			emptyFields = append(emptyFields, fieldName)
+		}
+		return nil, true
+	})
+
+	return emptyFields
 }
 
 func (c Config) MustValidate() {
-	if c == (Config{}) {
-		panic("config validation: not all config parameters are set")
+	if empty := c.getEmptyFields(); len(empty) > 0 {
+		panic(fmt.Errorf("config validation: not all config parameters are set: %v", empty))
 	}
 }
 

@@ -3,47 +3,24 @@ package main
 //go:generate go-bindata -o "common/bindata.go" -pkg "common" resources/ resources/partials/
 
 import (
-	"github.com/spf13/viper"
-	"oea-go/common"
+	"flag"
 	"oea-go/employee"
 	"oea-go/office"
+	"os"
+	"strings"
+	"time"
 )
 
-func prepareConfig() common.Config {
-	viper.SetConfigName("config")
-	viper.SetConfigType("yaml")
-	viper.AddConfigPath(".")
-	viper.SetDefault("out_dir", "generated")
-
-	viper.SetEnvPrefix("oea")
-	viper.BindEnv("auth_key")
-	viper.BindEnv("smtp_host")
-	viper.BindEnv("smtp_user")
-	viper.BindEnv("smtp_pass")
-	viper.BindEnv("auth_key")
-	viper.BindEnv("api_token_of")
-	viper.BindEnv("api_token_em")
-	viper.BindEnv("auth_allowed_domains")
-	viper.BindEnv("auth_allowed_emails")
-
-	err := viper.ReadInConfig()
-	if err != nil {
-		panic(err)
-	}
-
-	c := common.NewConfig()
-	err = viper.Unmarshal(&c)
-	if err != nil {
-		panic(err)
-	}
-
-	c.MustValidate()
-
-	return c
-}
+const configTimeout = 2 * time.Second
 
 func main() {
-	cfg := prepareConfig()
+	etcdAddr := flag.String("etcd", "", "Addresses of etcd cluster, separater by comma")
+	flag.Parse()
+	if *etcdAddr == "" {
+		flag.Usage()
+		os.Exit(1)
+	}
+	cfg := loadEtcdConfig(strings.Split(*etcdAddr, ","))
 
 	/*
 		/ - index page

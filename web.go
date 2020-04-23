@@ -2,18 +2,16 @@ package main
 
 import (
 	"context"
-	"crypto/tls"
 	"fmt"
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
-	"golang.org/x/crypto/acme/autocert"
 	"html/template"
 	"io"
 	"log"
 	"net/http"
 	"net/url"
 	"oea-go/common"
-	"os"
+	"strings"
 	"time"
 )
 
@@ -107,36 +105,26 @@ func (router *webRouter) page(templateDataFn func(map[string]string, *http.Reque
 
 func listenAndServe(cfg common.Config, routerConfigurer func(*webRouter)) {
 	router := &webRouter{Router: mux.NewRouter()}
-	auth := &authMiddleware{
-		router: router,
-		config: cfg,
-	}
 	router.Use(faviconMiddleware)
+	router.Use(cssMapRejectorMiddleware)
 	router.Use(requestIdMiddleware)
 	router.Use(loggerMiddleware)
-	router.Use(auth.Middleware)
+	if cfg.UseAuth {
+		auth := &authMiddleware{
+			router: router,
+			config: cfg,
+		}
+		router.Use(auth.Middleware)
+
+		authHandler := authController{cfg, router.createPartial("auth")}
+		router.HandleFunc("/auth/success", authHandler.HandleSendSuccess)
+		router.HandleFunc("/auth/set", authHandler.HandleTokenSet)
+		router.HandleFunc("/auth/logout", authHandler.HandleLogout).Methods(http.MethodPost).Name("Logout")
+		router.HandleFunc("/auth", authHandler.HandleAuthStart)
+	}
 	router.NotFoundHandler = http.HandlerFunc(router.page(nilTemplateData, "404"))
 
-	authHandler := authController{cfg, router.createPartial("auth")}
-	router.HandleFunc("/auth/success", authHandler.HandleSendSuccess)
-	router.HandleFunc("/auth/set", authHandler.HandleTokenSet)
-	router.HandleFunc("/auth/logout", authHandler.HandleLogout).Methods(http.MethodPost).Name("Logout")
-	router.HandleFunc("/auth", authHandler.HandleAuthStart)
-
 	routerConfigurer(router)
-
-	var certManager autocert.Manager
-	if cfg.IsTLS() {
-		certsDirErr := os.MkdirAll(cfg.CertsDir, os.ModePerm)
-		if certsDirErr != nil {
-			panic(certsDirErr)
-		}
-		certManager = autocert.Manager{
-			Prompt:     autocert.AcceptTOS,
-			HostPolicy: autocert.HostWhitelist(cfg.LetsEncryptDomain),
-			Cache:      autocert.DirCache(cfg.CertsDir),
-		}
-	}
 
 	server := &http.Server{
 		Addr:         fmt.Sprintf(":%d", cfg.InsecurePort),
@@ -147,19 +135,15 @@ func listenAndServe(cfg common.Config, routerConfigurer func(*webRouter)) {
 
 	var listenErr error
 	if cfg.IsTLS() {
-		server.TLSConfig = &tls.Config{
-			GetCertificate: certManager.GetCertificate,
-		}
 		server.Addr = fmt.Sprintf(":%d", cfg.SecurePort)
 
-		go http.ListenAndServe(fmt.Sprintf(":%d", cfg.InsecurePort), certManager.HTTPHandler(nil))
 		log.Printf("Server started at %s (secure)\n", server.Addr)
-		listenErr = server.ListenAndServeTLS("", "")
+		listenErr = server.ListenAndServeTLS(cfg.TlsCert, cfg.TlsKey)
 	} else {
 		log.Printf("Server started at %s (insecure)\n", server.Addr)
 		listenErr = server.ListenAndServe()
 	}
-	log.Fatal("Server shutdown", listenErr)
+	log.Fatalf("Server shutdown: %v\n", listenErr)
 }
 
 func nilTemplateData(vars map[string]string, req *http.Request) interface{} {
@@ -172,6 +156,17 @@ func faviconMiddleware(next http.Handler) http.Handler {
 			writer.Header().Add("Content-Type", "image/png")
 			writer.WriteHeader(http.StatusOK)
 			writer.Write(common.MustAsset("resources/icon.png"))
+			return
+		}
+
+		next.ServeHTTP(writer, request)
+	})
+}
+
+func cssMapRejectorMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+		if strings.HasSuffix(request.RequestURI, ".css.map") {
+			writer.WriteHeader(http.StatusNotFound)
 			return
 		}
 
