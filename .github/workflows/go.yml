@@ -26,9 +26,10 @@ jobs:
       run: |
         go get -v -t -d ./...
         go get -u github.com/go-bindata/go-bindata/go-bindata
-        echo "GOPATH=$(go env GOPATH)"
+        go env
         echo "PATH=${PATH}"
-        ls -ld "$(go env GOPATH)/go-bindata"
+        ls -ld "$(go env GOROOT)/bin/go-bindata" || echo "no_go_root"
+        ls -ld "$(go env GOPATH)/bin/go-bindata"
 
     - name: Build
       run: make
