@@ -1,7 +1,5 @@
 package main
 
-//go:generate go-bindata -o "common/bindata.go" -pkg "common" resources/ resources/partials/
-
 import (
 	"flag"
 	"log"
