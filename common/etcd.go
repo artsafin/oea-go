@@ -9,13 +9,14 @@ import (
 )
 
 const (
-	dialTimeout = 30 * time.Second
-	readTimeout = 2 * time.Second
+	connectTimeout = 30 * time.Second
+	readTimeout    = 2 * time.Second
 )
 
 type Etcd struct {
 	Client         *etcd.Client
-	defaultContext context.Context
+	dialContext    context.Context
+	requestContext context.Context
 	endpoints      []string
 }
 
@@ -30,12 +31,16 @@ func (e *Etcd) Connect() error {
 		e.Close()
 	}
 
-	timeoutCtx, _ := context.WithTimeout(context.Background(), readTimeout)
-	e.defaultContext = timeoutCtx
+	dialCtx, _ := context.WithTimeout(context.Background(), connectTimeout)
+	e.dialContext = dialCtx
+
+	requestCtx, _ := context.WithTimeout(context.Background(), readTimeout)
+	e.requestContext = requestCtx
 
 	kv, dialErr := etcd.New(etcd.Config{
 		Endpoints:   e.endpoints,
-		DialTimeout: dialTimeout,
+		DialTimeout: connectTimeout,
+		Context:     dialCtx,
 	})
 	if dialErr != nil {
 		return dialErr
@@ -54,11 +59,11 @@ func (e *Etcd) Close() {
 }
 
 func (e *Etcd) MemberList() (*etcd.MemberListResponse, error) {
-	return e.Client.MemberList(e.defaultContext)
+	return e.Client.MemberList(e.dialContext)
 }
 
 func (e *Etcd) GetNotEmpty(key string, opts ...etcd.OpOption) (*etcd.GetResponse, error) {
-	get, err := e.Client.Get(e.defaultContext, key, opts...)
+	get, err := e.Client.Get(e.requestContext, key, opts...)
 
 	if err != nil {
 		return nil, err

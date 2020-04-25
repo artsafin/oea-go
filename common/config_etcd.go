@@ -18,7 +18,7 @@ func FillConfigFromEtcd(cfg *Config, etcd *Etcd) error {
 	}
 	defer etcd.Close()
 
-	log.Printf("Waiting for etcd at %v for %v seconds...\n", etcd.Client.Endpoints(), dialTimeout)
+	log.Printf("Waiting for etcd at %v for %v...\n", etcd.Client.Endpoints(), connectTimeout)
 
 	membersList, membersErr := etcd.MemberList()
 	if membersErr != nil {
