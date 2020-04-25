@@ -1,6 +1,6 @@
 GOBIN=$(shell go env GOROOT)/bin/go
 TARGET = oea-go
-TARGET_LOCAL_PATH = $(TARGET)
+TARGET_LOCAL_PATH = docker/$(TARGET)
 VERSION = $(shell git rev-parse --short HEAD)
 
 .PHONY: all
