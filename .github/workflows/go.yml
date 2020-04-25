@@ -33,3 +33,12 @@ jobs:
 
     - name: Build
       run: make
+
+    - name: Push to GitHub Packages
+      uses: docker/build-push-action@v1
+      with:
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+        registry: docker.pkg.github.com
+        repository: artsafin/oea-go/oea-go
+        tag_with_ref: true
