@@ -26,6 +26,8 @@ jobs:
       run: |
         go get -v -t -d ./...
         go get -u github.com/go-bindata/go-bindata/go-bindata
+        echo "GOPATH=${GOPATH}"
+        find / -name go-bindata
 
     - name: Build
       run: make
