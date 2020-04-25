@@ -1,7 +1,7 @@
 oea-go
+oea_etcd_private
 resources/bootstrap.min.css
 resources/invoice_template.xlsx
-resources/invoice_template_empl.xlsx
 common/bindata.go
 .idea
 .env

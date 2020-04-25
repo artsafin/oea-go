@@ -105,8 +105,6 @@ func (router *webRouter) page(templateDataFn func(map[string]string, *http.Reque
 
 func listenAndServe(cfg common.Config, routerConfigurer func(*webRouter)) {
 	router := &webRouter{Router: mux.NewRouter()}
-	router.Use(faviconMiddleware)
-	router.Use(cssMapRejectorMiddleware)
 	router.Use(requestIdMiddleware)
 	router.Use(loggerMiddleware)
 	if cfg.UseAuth {
@@ -128,7 +126,7 @@ func listenAndServe(cfg common.Config, routerConfigurer func(*webRouter)) {
 
 	server := &http.Server{
 		Addr:         fmt.Sprintf(":%d", cfg.InsecurePort),
-		Handler:      router,
+		Handler:      faviconMiddleware(cssMapRejectorMiddleware(router)),
 		WriteTimeout: 60 * time.Second,
 		ReadTimeout:  60 * time.Second,
 	}

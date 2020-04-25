@@ -137,10 +137,11 @@ type Page struct {
 
 type handler struct {
 	config *common.Config
+	etcd   *common.Etcd
 }
 
-func NewHandler(cfg *common.Config) *handler {
-	return &handler{config: cfg}
+func NewHandler(cfg *common.Config, etcd *common.Etcd) *handler {
+	return &handler{config: cfg, etcd: etcd}
 }
 
 func (h handler) Home(vars map[string]string, req *http.Request) interface{} {
@@ -172,5 +173,11 @@ func (h handler) DownloadInvoice(resp http.ResponseWriter, req *http.Request) {
 
 	resp.Header().Add("Content-Disposition", fmt.Sprintf("attachment; filename=\"%s.xlsx\"", data.Invoice.Filename()))
 
-	common.RenderExcelTemplate(resp, common.MustAsset("resources/invoice_template.xlsx"), &data.Invoice)
+	if err := h.etcd.Connect(); err != nil {
+		panic(err)
+	}
+	defer h.etcd.Close()
+	templateSource := h.etcd.MustGetBytes("resources/invoice_template.xlsx")
+
+	common.RenderExcelTemplate(resp, templateSource, &data.Invoice)
 }

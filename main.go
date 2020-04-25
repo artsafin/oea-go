@@ -4,34 +4,34 @@ package main
 
 import (
 	"flag"
+	"log"
+	"oea-go/common"
 	"oea-go/employee"
 	"oea-go/office"
 	"os"
 	"strings"
-	"time"
 )
 
-const configTimeout = 2 * time.Second
-
 func main() {
+	verbose := flag.Bool("v", false, "Be more verbose")
 	etcdAddr := flag.String("etcd", "", "Addresses of etcd cluster, separater by comma")
 	flag.Parse()
 	if *etcdAddr == "" {
 		flag.Usage()
 		os.Exit(1)
 	}
-	cfg := loadEtcdConfig(strings.Split(*etcdAddr, ","))
+	cfg := common.NewConfig()
+	etcd := common.NewEtcdConnection(strings.Split(*etcdAddr, ","))
+	configErr := common.FillConfigFromEtcd(&cfg, etcd)
+	if configErr != nil {
+		log.Fatalf("error loading config: %v\n", configErr)
+	}
 
-	/*
-		/ - index page
-			/office - list of [status=""] office invoices in sidebar
-				/2020-02%23023 - approval post
-					/invoice - downloads invoice
-			/employee - last 2 months with invoices
-				/2020-02 - list of payslip and financial posts per each employee
-					/invoice - download invoice files in .zip
-	*/
-	officeHandler := office.NewHandler(&cfg)
+	if *verbose {
+		cfg.DumpNonSecretParameters(os.Stdout)
+	}
+
+	officeHandler := office.NewHandler(&cfg, etcd)
 	employeesHandler := employee.NewHandler(&cfg)
 	listenAndServe(cfg, func(router *webRouter) {
 		GET := router.Methods("GET").Subrouter()

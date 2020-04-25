@@ -2,8 +2,10 @@ package common
 
 import (
 	"fmt"
+	"io"
 	"log"
 	"reflect"
+	"strconv"
 	"strings"
 )
 
@@ -18,6 +20,11 @@ func isValueEmpty(v interface{}) bool {
 	}
 
 	return true
+}
+
+type ConfigTags struct {
+	Name        string
+	IsMandatory bool
 }
 
 type Config struct {
@@ -50,7 +57,70 @@ func NewConfig() Config {
 	}
 }
 
-func (c *Config) ForeachKey(mapFn func(name string, val interface{}, isMandatory bool, dstKind reflect.Kind) (interface{}, bool)) {
+func (c Config) DumpNonSecretParameters(wr io.Writer) {
+	lines := []string{
+		"\033[31mUse Auth:\033[0m %v",
+		"\033[31mTLS:\033[0m %v",
+		"\033[33mDocument IDs:\033[0m of=%v; em=%v",
+		"\033[33mUser Auth Restrictions:\033[0m %v; %v",
+		"\033[33mSmtp:\033[0m %v:%v (%v)",
+		"",
+	}
+	params := []interface{}{
+		c.UseAuth,
+		boolStr(c.TlsCert != "", "configured", "disabled"),
+		c.DocIdOf,
+		c.DocIdEm,
+		c.AuthAllowedDomains,
+		c.AuthAllowedEmails,
+		c.SmtpHost,
+		c.SmtpPort,
+		boolStr(c.SmtpPass != "", "auth enabled", "auth disabled"),
+	}
+	_, _ = wr.Write([]byte(fmt.Sprintf(strings.Join(lines, "\n"), params...)))
+}
+
+func (c Config) CastStringValueToConfigType(fieldName string, val string) interface{} {
+	typ := reflect.TypeOf(c)
+	field, found := typ.FieldByName(fieldName)
+	if !found {
+		panic(fmt.Sprintf("config: CastStringValueToConfigType: field %s was not found", fieldName))
+	}
+
+	switch field.Type.Kind() {
+	case reflect.Uint:
+		newValUint, convErr := strconv.ParseUint(val, 10, 64)
+		if convErr != nil {
+			return nil
+		}
+		return uint(newValUint)
+	case reflect.Bool:
+		boolVal := val != "0" && val != "false" && val != "no"
+		return boolVal
+	default:
+		return val
+	}
+}
+
+func parseTags(fieldType reflect.StructField, tag string) ConfigTags {
+	tags := ConfigTags{
+		IsMandatory: false,
+		Name:        fieldType.Name,
+	}
+
+	tagVals := strings.Split(tag, ",")
+
+	if len(tagVals) == 1 {
+		tags.Name = tagVals[0]
+	} else if len(tagVals) > 1 {
+		tags.Name = tagVals[0]
+		tags.IsMandatory = tagVals[1] == "mandatory"
+	}
+
+	return tags
+}
+
+func (c *Config) ForeachKey(mapFn func(name string, val interface{}, configTags ConfigTags) (interface{}, bool)) {
 	val := reflect.ValueOf(c)
 	typ := reflect.TypeOf(c)
 	for i := 0; i < val.Elem().NumField(); i++ {
@@ -59,26 +129,18 @@ func (c *Config) ForeachKey(mapFn func(name string, val interface{}, isMandatory
 		if !fieldVal.CanInterface() {
 			continue
 		}
-		tagVals := strings.SplitN(fieldType.Tag.Get("oea"), ",", 2)
-		isMandatory := false
-		fieldName := fieldType.Name
-		if len(tagVals) == 1 {
-			fieldName = tagVals[0]
-		} else if len(tagVals) > 1 {
-			fieldName = tagVals[0]
-			isMandatory = tagVals[1] == "mandatory"
-		}
+		tags := parseTags(fieldType, fieldType.Tag.Get("oea"))
 
-		newVal, shouldContinue := mapFn(fieldName, fieldVal.Interface(), isMandatory, fieldVal.Kind())
+		newVal, shouldContinue := mapFn(fieldType.Name, fieldVal.Interface(), tags)
 
 		if newVal != nil {
 			if !fieldVal.CanSet() {
-				log.Printf("config: %v: field is not settable. Skipping\n", fieldName)
+				log.Printf("config: %v: field is not settable. Skipping\n", fieldType.Name)
 				continue
 			}
 			reflNewVal := reflect.ValueOf(newVal)
 			if fieldVal.Type() != reflNewVal.Type() {
-				log.Printf("config: %v: type mismatch: %v is not assignable to %v. Skipping\n", fieldName, reflNewVal.Kind(), fieldVal.Kind())
+				log.Printf("config: %v: type mismatch: %v is not assignable to %v. Skipping\n", fieldType.Name, reflNewVal.Kind(), fieldVal.Kind())
 				continue
 			}
 
@@ -98,13 +160,13 @@ func (c Config) IsTLS() bool {
 func (c Config) getEmptyFields() []string {
 	emptyFields := make([]string, 0)
 
-	c.ForeachKey(func(fieldName string, val interface{}, isMandatory bool, dstKind reflect.Kind) (interface{}, bool) {
-		if !isMandatory {
+	c.ForeachKey(func(fieldName string, val interface{}, tags ConfigTags) (interface{}, bool) {
+		if !tags.IsMandatory {
 			return nil, true
 		}
 
 		if isValueEmpty(val) {
-			emptyFields = append(emptyFields, fieldName)
+			emptyFields = append(emptyFields, tags.Name)
 		}
 		return nil, true
 	})
@@ -112,10 +174,12 @@ func (c Config) getEmptyFields() []string {
 	return emptyFields
 }
 
-func (c Config) MustValidate() {
+func (c Config) Validate() error {
 	if empty := c.getEmptyFields(); len(empty) > 0 {
-		panic(fmt.Errorf("config validation: not all config parameters are set: %v", empty))
+		return fmt.Errorf("config validation: not all config parameters are set: %v", empty)
 	}
+
+	return nil
 }
 
 func extractEmailDomain(email string) string {
