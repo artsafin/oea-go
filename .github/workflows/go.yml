@@ -25,6 +25,7 @@ jobs:
     - name: Get dependencies
       run: |
         go get -v -t -d ./...
+        go get -u github.com/go-bindata/go-bindata/go-bindata
 
     - name: Build
       run: make
