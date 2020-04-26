@@ -9,13 +9,16 @@
                     <td colspan="2">
                         <br><br>
                         <h3 style="display: inline-block">
+                            {{ if not .PaymentChecksPassed }}
+                                <span title="Suspicious amount - needs manual approval">❌</span>
+                            {{ end}}
                             {{ .EmployeeName }}
                             <a type="button" class="btn-secondary btn-sm" href="{{ link "EmployeesDownloadInvoice" "month" $month "employee" .EmployeeName }}">Invoice</a>
                         </h3>
                     </td>
                 </tr>
             </thead>
-            <tbody>
+            <tbody style="{{ if not .PaymentChecksPassed }}opacity: 0.3{{end}}">
                 <tr>
                     <td width="50%">
                         <table border="1" cellspacing="0" cellpadding="2" width="600" valign="top" class="standart">

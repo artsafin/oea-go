@@ -62,6 +62,7 @@ type Invoice struct {
 	Corrections          []*Correction
 	MonthData            *Month
 	PrevInvoice          *Invoice
+	PaymentChecksPassed  bool
 }
 
 func (inv *Invoice) Filename() string {
@@ -222,6 +223,9 @@ func NewInvoiceFromRow(row *coda.Row) *Invoice {
 		errs = append(errs, *err)
 	}
 	if invoice.RateErrorPrevMon, err = common.ToRub(Ids.Invoices.Cols.RateErrorPrevMon, row); err != nil {
+		errs = append(errs, *err)
+	}
+	if invoice.PaymentChecksPassed, err = common.ToBool(Ids.Invoices.Cols.PaymentChecksPassed, row); err != nil {
 		errs = append(errs, *err)
 	}
 
