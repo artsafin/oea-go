@@ -83,7 +83,7 @@ func (inv *Invoice) PayerRequisites() string {
 	if inv.Employee == nil {
 		return "n/a"
 	}
-	return inv.Employee.BillTo
+	return strings.ReplaceAll(inv.Employee.BillTo, "\n", "\r\n")
 }
 
 func (inv *Invoice) BeneficiaryName() string {
