@@ -41,3 +41,4 @@ jobs:
         path: docker
         dockerfile: docker/Dockerfile
         add_git_labels: true
+
