@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-const paymentDateDaysBeforeEndOfMonth = 3
+const paymentDateDaysBeforeEndOfMonth = 2
 
 type Invoices []*Invoice
 
