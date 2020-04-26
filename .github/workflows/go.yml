@@ -42,9 +42,3 @@ jobs:
         dockerfile: docker/Dockerfile
         add_git_labels: true
 
-    - uses: yanzay/notify-telegram@v0.1.0
-      if: always()
-      with:
-        chat: ${{ secrets.TG_DEPLOYBOT_CHAT }} # user id or channel name secret
-        token: ${{ secrets.TG_DEPLOYBOT_TOKEN }} # token secret
-        status: ${{ job.status }} # do not modify this line
