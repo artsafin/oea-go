@@ -177,7 +177,7 @@ func (h handler) DownloadInvoice(resp http.ResponseWriter, req *http.Request) {
 		panic(err)
 	}
 	defer h.etcd.Close()
-	templateSource := h.etcd.MustGetBytes("resources/invoice_template.xlsx")
+	templateSource := h.etcd.MustGetBytes("files/invoice_template.xlsx")
 
 	common.RenderExcelTemplate(resp, templateSource, &data.Invoice)
 }
