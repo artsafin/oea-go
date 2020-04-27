@@ -10,6 +10,9 @@ import (
 	"strings"
 )
 
+
+// invalidate all tokens
+
 func main() {
 	verbose := flag.Bool("v", false, "Be more verbose")
 	etcdAddr := flag.String("etcd", "", "Addresses of etcd cluster, separater by comma")
