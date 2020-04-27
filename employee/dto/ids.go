@@ -113,6 +113,10 @@ type EmployeesColumns struct {
 	EnglishFullName         string
 	BankRequisites          string
 	BillTo                  string
+	GeneralSdLink           string
+	PersonnelSdLink         string
+	FinanceSdLink           string
+	AclSdLink               string
 }
 
 type IdOnly struct {
@@ -298,6 +302,10 @@ func init() {
 				EnglishFullName:         "c-TAlfzDcFzQ",
 				BankRequisites:          "c-OlCoWd7n4S",
 				BillTo:                  "c-XnSDzWgAgQ",
+				GeneralSdLink:           "c-EMbqnhOkkr",
+				PersonnelSdLink:         "c-6L5oS7LZ4a",
+				FinanceSdLink:           "c-NeQmHu-raB",
+				AclSdLink:               "c-aKn3TiCF_A",
 			},
 		},
 		CodaFormulas: CodaFormulasDecl{

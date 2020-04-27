@@ -3,17 +3,22 @@
     <a type="button" class="btn btn-secondary" href="{{ link "EmployeesDownloadAllInvoices" "month" $month }}">Download all invoices</a>
 
     {{ range .Page.Invoices }}
-        <table width="100%">
+        <table width="100%" style="margin-top: 3em;">
             <thead>
                 <tr>
                     <td colspan="2">
-                        <br><br>
-                        <h3 style="display: inline-block">
+                        <div>
                             {{ if not .PaymentChecksPassed }}
                                 <span title="Suspicious amount - needs manual approval">❌</span>
                             {{ end}}
-                            {{ .EmployeeName }}
+                            {{ if .Employee.GeneralSdLink }}<a class="btn btn-outline-info btn-sm" role="button" href="{{ .Employee.GeneralSdLink }}" target="_blank">General SD</a>{{ end }}
+                            {{ if .Employee.PersonnelSdLink }}<a class="btn btn-outline-info btn-sm" role="button" href="{{ .Employee.PersonnelSdLink }}" target="_blank">Personnel SD</a>{{ end }}
+                            {{ if .Employee.FinanceSdLink }}<a class="btn btn-outline-info btn-sm" role="button" href="{{ .Employee.FinanceSdLink }}" target="_blank">Finance SD</a>{{ end }}
+                            {{ if .Employee.AclSdLink }}<a class="btn btn-outline-info btn-sm" role="button" href="{{ .Employee.AclSdLink }}" target="_blank">ACL SD</a>{{ end }}
                             <a type="button" class="btn-secondary btn-sm" href="{{ link "EmployeesDownloadInvoice" "month" $month "employee" .EmployeeName }}">Invoice</a>
+                        </div>
+                        <h3 style="display: inline-block">
+                            {{ .EmployeeName }}
                         </h3>
                     </td>
                 </tr>
