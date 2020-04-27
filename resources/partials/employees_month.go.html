@@ -118,6 +118,10 @@
                         <p>Specify if it's a one-time payment or recurring: recurring</p>
                         <p>Bank details of the supplier (if this info is not included on the invoice): included in the invoice</p>
                         <p>Attach the invoice/agreement that relates to the payment request: attached</p>
+                        {{ if .Employee.GeneralSdLink }}
+                            <p></p>
+                            <p><a href="{{ .Employee.GeneralSdLink }}#unread">Calculation details</a></p>
+                        {{ end }}
                     </td>
                 </tr>
             </tbody>
