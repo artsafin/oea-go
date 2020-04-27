@@ -117,6 +117,8 @@ type EmployeesColumns struct {
 	PersonnelSdLink         string
 	FinanceSdLink           string
 	AclSdLink               string
+	ContractDate            string
+	ContractNumber          string
 }
 
 type IdOnly struct {
@@ -306,6 +308,8 @@ func init() {
 				PersonnelSdLink:         "c-6L5oS7LZ4a",
 				FinanceSdLink:           "c-NeQmHu-raB",
 				AclSdLink:               "c-aKn3TiCF_A",
+				ContractDate:            "c-fDIRo1JHHX",
+				ContractNumber:          "c-XX2OkCkOSR",
 			},
 		},
 		CodaFormulas: CodaFormulasDecl{

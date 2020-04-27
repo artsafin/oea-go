@@ -137,6 +137,14 @@ func (inv *Invoice) DateFull() string {
 	return fmt.Sprintf("%02d %s", time.Now().Day(), inv.MonthData.LastMonthDay.Format("Jan 2006"))
 }
 
+func (inv *Invoice) ContractNumber() string {
+	return inv.Employee.ContractNumber
+}
+
+func (inv *Invoice) ContractDate() string {
+	return inv.Employee.ContractDate
+}
+
 func (inv *Invoice) DatePayment() string {
 	if inv.MonthData == nil {
 		return "n/a"

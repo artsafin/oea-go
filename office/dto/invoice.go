@@ -94,6 +94,14 @@ func (i *Invoice) HasPendingSpends() bool {
 	return i.PendingSpend != 0
 }
 
+func (i *Invoice) ContractNumber() string {
+	return "1"
+}
+
+func (i *Invoice) ContractDate() string {
+	return "..."
+}
+
 func NewInvoiceFromRow(row *coda.Row) *Invoice {
 	invoice := Invoice{}
 	errs := make([]common.UnexpectedFieldTypeErr, 0)

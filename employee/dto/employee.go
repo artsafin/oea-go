@@ -37,6 +37,8 @@ type Employee struct {
 	PersonnelSdLink         string
 	FinanceSdLink           string
 	AclSdLink               string
+	ContractDate            string
+	ContractNumber          string
 }
 
 func NewEmployeeFromRow(row *coda.Row) *Employee {
@@ -132,6 +134,12 @@ func NewEmployeeFromRow(row *coda.Row) *Employee {
 		errs = append(errs, *err)
 	}
 	if empl.AclSdLink, err = common.ToString(Ids.Employees.Cols.AclSdLink, row); err != nil {
+		errs = append(errs, *err)
+	}
+	if empl.ContractDate, err = common.ToString(Ids.Employees.Cols.ContractDate, row); err != nil {
+		errs = append(errs, *err)
+	}
+	if empl.ContractNumber, err = common.ToString(Ids.Employees.Cols.ContractNumber, row); err != nil {
 		errs = append(errs, *err)
 	}
 

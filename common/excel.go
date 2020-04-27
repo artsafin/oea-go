@@ -24,6 +24,8 @@ type InvoiceDataProvider interface {
 	BeneficiaryName() string
 	PayerName() string
 	Filename() string
+	ContractNumber() string
+	ContractDate() string
 }
 
 func interpolateCell(file *excelize.File, cell, placeholder, value string) {
@@ -38,23 +40,36 @@ func RenderExcelTemplate(wr io.Writer, templateSource []byte, data InvoiceDataPr
 		panic(err)
 	}
 
-	interpolateCell(f, "A8", "%SSSS%", data.BeneficiaryRequisites())
-	interpolateCell(f, "A21", "%SSSS%", data.PayerRequisites())
-	interpolateCell(f, "AM5", "%D%", fmt.Sprint(data.Number()))
-	interpolateCell(f, "AM6", "%MMMM DD YYYY%", data.DateFull())
-	interpolateCell(f, "D28", "%MMMM YYYY%", data.DateYm())
-	interpolateCell(f, "Z28", "%D%", data.HourRate().String())
-	interpolateCell(f, "AE28", "%D%", fmt.Sprint(data.Hours()))
-	interpolateCell(f, "AH28", "%D%", data.TotalEur().String())
-	interpolateCell(f, "AH30", "%D%", data.TotalEur().String())
-	interpolateCell(f, "AM32", "%D%", data.TotalEur().String())
-	interpolateCell(f, "U38", "%SSSS%", data.BeneficiaryName())
-	interpolateCell(f, "U44", "%SSSS%", data.PayerName())
+	// Header
+	interpolateCell(f, "AM4", "%D%", fmt.Sprint(data.Number())) // Invoice Number
+	interpolateCell(f, "AM5", "%MMMM DD YYYY%", data.DateFull()) // Invoice Date
+	interpolateCell(f, "AM6", "%S%", data.ContractNumber()) // Contract Number
+	interpolateCell(f, "AM7", "%S%", data.ContractDate()) // Contract Date
+
+	// Requisites
+	interpolateCell(f, "A9", "%SSSS%", data.BeneficiaryRequisites())
+	interpolateCell(f, "A22", "%SSSS%", data.PayerRequisites())
+
+	// Invoice line
+	interpolateCell(f, "D29", "%MMMM YYYY%", data.DateYm()) // Service type
+	interpolateCell(f, "Z29", "%D%", data.HourRate().String()) // Price, EUR
+	interpolateCell(f, "AE29", "%D%", fmt.Sprint(data.Hours())) // Qty
+	interpolateCell(f, "AH29", "%D%", data.TotalEur().String()) // Cost
+
+	// Subtotal
+	interpolateCell(f, "AH31", "%D%", data.TotalEur().String())
+
+	// Total
+	interpolateCell(f, "AM33", "%D%", data.TotalEur().String())
 
 	euros := int(data.TotalEur() / 100)
 	cents := int(data.TotalEur()) - euros*100
 	words := fmt.Sprintf("%s EURO and %02d cents", num2words.Convert(euros), cents)
-	interpolateCell(f, "AM33", "%SSSS%", words)
+	interpolateCell(f, "AM34", "%SSSS%", words)
+
+	// Signs
+	interpolateCell(f, "U39", "%SSSS%", data.BeneficiaryName())
+	interpolateCell(f, "U45", "%SSSS%", data.PayerName())
 
 	if err := f.Write(wr); err != nil {
 		panic(err)
