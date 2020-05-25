@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-const paymentDateDaysBeforeEndOfMonth = 2
+const paymentDateDaysBeforeEndOfMonth = 3
 
 type Invoices []*Invoice
 
@@ -149,7 +149,7 @@ func (inv *Invoice) DatePayment() string {
 	if inv.MonthData == nil {
 		return "n/a"
 	}
-	paymentDate := common.AddWorkingDate(inv.MonthData.LastMonthDay, 0, 0, -paymentDateDaysBeforeEndOfMonth)
+	paymentDate := common.AddWorkingDate(*inv.MonthData.LastMonthDay, 0, 0, -paymentDateDaysBeforeEndOfMonth)
 	return paymentDate.Format("2 Jan 2006")
 }
 

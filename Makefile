@@ -18,3 +18,6 @@ build: assets
 
 clean:
 	rm -fv $(TARGET_LOCAL_PATH)
+
+test:
+	go test ./...
