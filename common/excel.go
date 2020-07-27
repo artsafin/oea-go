@@ -69,7 +69,6 @@ func RenderExcelTemplate(wr io.Writer, templateSource []byte, data InvoiceDataPr
 
 	// Signs
 	interpolateCell(f, "U39", "%SSSS%", data.BeneficiaryName())
-	interpolateCell(f, "U45", "%SSSS%", data.PayerName())
 
 	if err := f.Write(wr); err != nil {
 		panic(err)

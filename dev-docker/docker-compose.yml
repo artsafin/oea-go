@@ -1,0 +1,37 @@
+version: '3'
+
+services:
+  app:
+    build: ../docker
+    ports:
+      - 80:8080
+    command:
+      - "-v"
+      - "-etcd"
+      - "etcd:2379"
+    networks:
+      - oea-go-dev-network
+  etcd:
+    image: quay.io/coreos/etcd:latest
+    ports:
+      - 127.0.0.1:2379:2379
+    volumes:
+      - etcd_data:/etcd-data
+    command:
+      - "etcd"
+      - "--data-dir=/etcd-data"
+      - "--name=node1"
+      - "--initial-advertise-peer-urls=http://etcd:2380,http://127.0.0.1:2380"
+      - "--listen-peer-urls=http://0.0.0.0:2380"
+      - "--advertise-client-urls=http://etcd:2379,http://127.0.0.1:2379"
+      - "--listen-client-urls=http://0.0.0.0:2379"
+      - "--initial-cluster=node1=http://127.0.0.1:2380,node1=http://etcd:2380"
+    networks:
+      - oea-go-dev-network
+
+volumes:
+  etcd_data:
+
+networks:
+  oea-go-dev-network:
+    external: true

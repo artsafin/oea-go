@@ -1,0 +1,13 @@
+#!/usr/bin/env sh
+
+set -eux
+
+export ETCDCTL_API=3
+
+echo "Loading keys..."
+cat .etcd | xargs -n2 etcdctl --endpoints "http://etcd:2379" put
+
+echo "Loading files..."
+find files/ -type f -print0 | xargs -0 -n1 -I% sh -c 'etcdctl --endpoints "http://etcd:2379" put "$1" < "$1"' -- %
+
+echo "Ready for start!"
