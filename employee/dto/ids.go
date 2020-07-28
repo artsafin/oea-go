@@ -42,6 +42,7 @@ type InvoicesColumns struct {
 	BankFees             string
 	RateErrorPrevMon     string
 	PaymentChecksPassed  string
+	SelfEmployedTax      string
 }
 
 type CorrectionsColumns struct {
@@ -213,6 +214,7 @@ func init() {
 				BankFees:             "c-sRGR6jYC7g",
 				RateErrorPrevMon:     "c-_9tuuG4RIN",
 				PaymentChecksPassed:  "c-DRPGK3XTmD",
+				SelfEmployedTax:      "c-ajiCLJah3k",
 			},
 		},
 		Corrections: CorrectionsDecl{

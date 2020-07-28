@@ -86,6 +86,13 @@
                                     <td>{{ .RateErrorPrevMon }}</td>
                                     <td></td>
                                 </tr>
+                                {{ if ne .SelfEmployedTax 0 }}
+                                    <tr>
+                                        <td>Self-employed tax (6%)</td>
+                                        <td>{{ .SelfEmployedTax }}</td>
+                                        <td></td>
+                                    </tr>
+                                {{ end }}
                                 <tr>
                                     <td>Subtotal (EURRUB {{ .EurRubExpected }})</td>
                                     <td>{{ .AmountRub }}</td>
