@@ -2,19 +2,39 @@ version: '3'
 
 services:
   app:
-    build: ../docker
+    image: alpine
     ports:
-      - 80:8080
+      - 8080:8080
+    environment:
+      MEM_PROFILE_PREFIX: '/profiling'
+    volumes:
+      - ../docker/oea-go:/oea-go
+      - profiling:/profiling
     command:
+      - "/oea-go"
       - "-v"
       - "-etcd"
       - "etcd:2379"
     networks:
       - oea-go-dev-network
+  etcd_loader:
+    image: quay.io/coreos/etcd:latest
+    environment:
+      ETCDCTL_API: 3
+      ETCDCTL_ENDPOINTS: 'http://etcd:2379'
+    networks:
+      - oea-go-dev-network
+    volumes:
+      - ./.etcd:/etcd-config
+      - ../oea_etcd_private/files:/files
+    entrypoint: ""
+    command: >-
+      /bin/sh -c 'echo "Waiting for 5 seconds for etcd to initialize" && sleep 5 &&
+      cat /etcd-config | xargs -n2 etcdctl put &&
+      etcdctl put "files/invoice_template.xlsx" < /files/invoice_template.xlsx &&
+      echo "Done initialization"'
   etcd:
     image: quay.io/coreos/etcd:latest
-    ports:
-      - 127.0.0.1:2379:2379
     volumes:
       - etcd_data:/etcd-data
     command:
@@ -31,6 +51,7 @@ services:
 
 volumes:
   etcd_data:
+  profiling:
 
 networks:
   oea-go-dev-network:

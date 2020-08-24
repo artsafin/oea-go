@@ -93,7 +93,11 @@ func (h Handler) DownloadAllInvoices(resp http.ResponseWriter, request *http.Req
 		return
 	}
 
+	common.WriteMemProfile("before_getinvoices")
+
 	invoices := h.client.GetInvoices(month, With{Employees: true})
+
+	common.WriteMemProfile("after_getinvoices")
 
 	wg := sync.WaitGroup{}
 	wg.Add(len(invoices))
@@ -113,6 +117,8 @@ func (h Handler) DownloadAllInvoices(resp http.ResponseWriter, request *http.Req
 	}
 
 	wg.Wait()
+
+	common.WriteMemProfile("after_all_render")
 
 	resp.Header().Add("Content-Disposition", fmt.Sprintf("attachment; filename=\"invoices_%s.zip\"", month))
 

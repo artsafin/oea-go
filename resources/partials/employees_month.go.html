@@ -1,6 +1,9 @@
 {{ define "content"}}
     {{ $month := .Page.SelectedMonth }}
-    <a type="button" class="btn btn-secondary" href="{{ link "EmployeesDownloadAllInvoices" "month" $month }}">Download all invoices</a>
+    <a type="button"
+       class="btn btn-secondary"
+       href="{{ link "EmployeesDownloadAllInvoices" "month" $month }}"
+    >Download all invoices</a>
 
     {{ range .Page.Invoices }}
         <table width="100%" style="margin-top: 3em;">
@@ -11,11 +14,30 @@
                             {{ if not .PaymentChecksPassed }}
                                 <span title="Suspicious amount - needs manual approval">❌</span>
                             {{ end}}
-                            {{ if .Employee.GeneralSdLink }}<a class="btn btn-outline-info btn-sm" role="button" href="{{ .Employee.GeneralSdLink }}" target="_blank">General SD</a>{{ end }}
-                            {{ if .Employee.PersonnelSdLink }}<a class="btn btn-outline-info btn-sm" role="button" href="{{ .Employee.PersonnelSdLink }}" target="_blank">Personnel SD</a>{{ end }}
-                            {{ if .Employee.FinanceSdLink }}<a class="btn btn-outline-info btn-sm" role="button" href="{{ .Employee.FinanceSdLink }}" target="_blank">Finance SD</a>{{ end }}
-                            {{ if .Employee.AclSdLink }}<a class="btn btn-outline-info btn-sm" role="button" href="{{ .Employee.AclSdLink }}" target="_blank">ACL SD</a>{{ end }}
-                            <a type="button" class="btn-secondary btn-sm" href="{{ link "EmployeesDownloadInvoice" "month" $month "employee" .EmployeeName }}">Invoice</a>
+                            {{ if .Employee.GeneralSdLink }}<a class="btn btn-outline-info btn-sm"
+                                                               role="button"
+                                                               href="{{ .Employee.GeneralSdLink }}"
+                                                               target="_blank"
+                            >General SD</a>{{ end }}
+                            {{ if .Employee.PersonnelSdLink }}<a class="btn btn-outline-info btn-sm"
+                                                                 role="button"
+                                                                 href="{{ .Employee.PersonnelSdLink }}"
+                                                                 target="_blank"
+                            >Personnel SD</a>{{ end }}
+                            {{ if .Employee.FinanceSdLink }}<a class="btn btn-outline-info btn-sm"
+                                                               role="button"
+                                                               href="{{ .Employee.FinanceSdLink }}"
+                                                               target="_blank"
+                            >Finance SD</a>{{ end }}
+                            {{ if .Employee.AclSdLink }}<a class="btn btn-outline-info btn-sm"
+                                                           role="button"
+                                                           href="{{ .Employee.AclSdLink }}"
+                                                           target="_blank"
+                            >ACL SD</a>{{ end }}
+                            <a type="button"
+                               class="btn-secondary btn-sm"
+                               href="{{ link "EmployeesDownloadInvoice" "month" $month "employee" .EmployeeName }}"
+                            >Invoice</a>
                         </div>
                         <h3 style="display: inline-block">
                             {{ .EmployeeName }}
@@ -118,13 +140,17 @@
                     </td>
                     <td>
                         <p>Invoice for {{ .FullMonthName }}</p>
-                        <p>Full Name of the vendor/provider: {{ .Employee.EnglishFullName }}</p>
-                        <p>Amount and currency: EUR {{ .AmountRequestedEur }}</p>
-                        <p>Date of invoice: {{ .DateFull }}</p>
-                        <p>Date of payment: {{ .DatePayment }}</p>
-                        <p>Specify if it's a one-time payment or recurring: recurring</p>
-                        <p>Bank details of the supplier (if this info is not included on the invoice): included in the invoice</p>
-                        <p>Attach the invoice/agreement that relates to the payment request: attached</p>
+                        <div class="code">
+                            <pre>
+                                <p>Full Name of the vendor/provider: {{ .Employee.EnglishFullName }}</p>
+                                <p>Amount and currency: EUR {{ .AmountRequestedEur }}</p>
+                                <p>Date of invoice: {{ .DateFull }}</p>
+                                <p>Date of payment: {{ .DatePayment }}</p>
+                                <p>Specify if it's a one-time payment or recurring: recurring</p>
+                                <p>Bank details of the supplier (if this info is not included on the invoice): included in the invoice</p>
+                                <p>Attach the invoice/agreement that relates to the payment request: attached</p>
+                            </pre>
+                        </div>
                         {{ if .Employee.GeneralSdLink }}
                             <p></p>
                             <p><a href="{{ .Employee.GeneralSdLink }}">Calculation details</a></p>
