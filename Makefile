@@ -1,4 +1,3 @@
-GOBIN=$(shell go env GOROOT)/bin/go
 TARGET = oea-go
 TARGET_LOCAL_PATH = docker/$(TARGET)
 VERSION = $(shell git rev-parse --short HEAD)
@@ -10,13 +9,17 @@ all: build
 
 assets:
 	test -f resources/bootstrap.min.css || curl -s https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css -o resources/bootstrap.min.css
-	GO111MODULE=off $(GOBIN) get github.com/go-bindata/go-bindata/go-bindata
 
-build: assets
-	$(shell go env GOPATH)/bin/go-bindata -o "common/bindata.go" -pkg "common" resources/ resources/partials/
+build-image:
+	docker build -f docker/Dockerfile-build -t oea-go-builder .
 
-	CGO_ENABLED=0 GOOS=linux \
-	$(GOBIN) build -i -installsuffix cgo -o "$(TARGET_LOCAL_PATH)" -ldflags "-X main.AppVersion=$(VERSION)"
+build: assets build-image
+	docker run --rm -v $(PWD):/app -w /app oea-go-builder \
+	sh -x -c '\
+		pwd && \
+		go-bindata -o "common/bindata.go" -pkg "common" resources/ resources/partials/ && \
+		go build -v -o "$(TARGET_LOCAL_PATH)" -ldflags "-X main.AppVersion=$(VERSION)" \
+	'
 
 clean:
 	rm -fv $(TARGET_LOCAL_PATH)

@@ -1,6 +1,6 @@
 module oea-go
 
-go 1.13
+go 1.14
 
 require (
 	github.com/360EntSecGroup-Skylar/excelize v1.4.1
@@ -14,6 +14,7 @@ require (
 	github.com/cristalhq/jwt v1.1.1
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible // indirect
 	github.com/divan/num2words v0.0.0-20170904212200-57dba452f942
+	github.com/go-bindata/go-bindata v3.1.2+incompatible // indirect
 	github.com/gogo/protobuf v1.2.1 // indirect
 	github.com/golang/groupcache v0.0.0-20190129154638-5b532d6fd5ef // indirect
 	github.com/google/btree v1.0.0 // indirect

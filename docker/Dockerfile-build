@@ -1,0 +1,8 @@
+FROM golang:1.14-alpine
+
+WORKDIR /
+
+ADD go.mod /go.mod
+
+RUN go mod download -x && \
+    go get -u github.com/go-bindata/go-bindata/go-bindata

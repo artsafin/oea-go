@@ -59,7 +59,6 @@ type Invoice struct {
 	BaseSalary           common.MoneyRub
 	BankFees             common.MoneyRub
 	RateErrorPrevMon     common.MoneyRub
-	SelfEmployedTax      common.MoneyRub
 	Corrections          []*Correction
 	MonthData            *Month
 	PrevInvoice          *Invoice
@@ -235,9 +234,6 @@ func NewInvoiceFromRow(row *coda.Row) *Invoice {
 		errs = append(errs, *err)
 	}
 	if invoice.PaymentChecksPassed, err = common.ToBool(Ids.Invoices.Cols.PaymentChecksPassed, row); err != nil {
-		errs = append(errs, *err)
-	}
-	if invoice.SelfEmployedTax, err = common.ToRub(Ids.Invoices.Cols.SelfEmployedTax, row); err != nil {
 		errs = append(errs, *err)
 	}
 

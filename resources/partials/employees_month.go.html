@@ -108,13 +108,6 @@
                                     <td>{{ .RateErrorPrevMon }}</td>
                                     <td></td>
                                 </tr>
-                                {{ if ne .SelfEmployedTax 0 }}
-                                    <tr>
-                                        <td>Self-employed tax (6%)</td>
-                                        <td>{{ .SelfEmployedTax }}</td>
-                                        <td></td>
-                                    </tr>
-                                {{ end }}
                                 <tr>
                                     <td>Subtotal (EURRUB {{ .EurRubExpected }})</td>
                                     <td>{{ .AmountRub }}</td>
@@ -142,14 +135,14 @@
                         <p>Invoice for {{ .FullMonthName }}</p>
                         <div class="code">
                             <pre>
-                                <p>Full Name of the vendor/provider: {{ .Employee.EnglishFullName }}</p>
-                                <p>Amount and currency: EUR {{ .AmountRequestedEur }}</p>
-                                <p>Date of invoice: {{ .DateFull }}</p>
-                                <p>Date of payment: {{ .DatePayment }}</p>
-                                <p>Specify if it's a one-time payment or recurring: recurring</p>
-                                <p>Bank details of the supplier (if this info is not included on the invoice): included in the invoice</p>
-                                <p>Attach the invoice/agreement that relates to the payment request: attached</p>
-                            </pre>
+Full Name of the vendor/provider: {{ .Employee.EnglishFullName }}
+Amount and currency: EUR {{ .AmountRequestedEur }}
+Date of invoice: {{ .DateFull }}
+Date of payment: {{ .DatePayment }}
+Specify if it's a one-time payment or recurring: recurring
+Bank details of the supplier (if this info is not included on the invoice): included in the invoice
+Attach the invoice/agreement that relates to the payment request: attached
+</pre>
                         </div>
                         {{ if .Employee.GeneralSdLink }}
                             <p></p>

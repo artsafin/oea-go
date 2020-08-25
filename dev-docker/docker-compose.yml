@@ -5,11 +5,10 @@ services:
     image: alpine
     ports:
       - 8080:8080
-    environment:
-      MEM_PROFILE_PREFIX: '/profiling'
+#    environment:
+#      MEM_PROFILE_PREFIX: '/profiling'
     volumes:
       - ../docker/oea-go:/oea-go
-      - profiling:/profiling
     command:
       - "/oea-go"
       - "-v"
@@ -29,7 +28,7 @@ services:
       - ../oea_etcd_private/files:/files
     entrypoint: ""
     command: >-
-      /bin/sh -c 'echo "Waiting for 5 seconds for etcd to initialize" && sleep 5 &&
+      /bin/sh -c 'echo "Waiting for 2 seconds hoping etcd will initialize" && sleep 2 &&
       cat /etcd-config | xargs -n2 etcdctl put &&
       etcdctl put "files/invoice_template.xlsx" < /files/invoice_template.xlsx &&
       echo "Done initialization"'
@@ -51,7 +50,6 @@ services:
 
 volumes:
   etcd_data:
-  profiling:
 
 networks:
   oea-go-dev-network:
