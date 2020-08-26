@@ -179,5 +179,10 @@ func (h handler) DownloadInvoice(resp http.ResponseWriter, req *http.Request) {
 	defer h.etcd.Close()
 	templateSource := h.etcd.MustGetBytes("files/invoice_template.xlsx")
 
-	common.RenderExcelTemplate(resp, templateSource, &data.Invoice)
+	err := common.RenderExcelTemplate(resp, templateSource, &data.Invoice)
+	if err != nil {
+		resp.Header().Del("Content-Disposition")
+		resp.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprint(resp, err)
+	}
 }

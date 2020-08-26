@@ -34,10 +34,10 @@ func interpolateCell(file *excelize.File, cell, placeholder, value string) {
 	file.SetCellValue(sheetName, cell, newValue)
 }
 
-func RenderExcelTemplate(wr io.Writer, templateSource []byte, data InvoiceDataProvider) {
+func RenderExcelTemplate(wr io.Writer, templateSource []byte, data InvoiceDataProvider) error {
 	f, err := excelize.OpenReader(bytes.NewReader(templateSource))
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	// Header
@@ -71,6 +71,8 @@ func RenderExcelTemplate(wr io.Writer, templateSource []byte, data InvoiceDataPr
 	interpolateCell(f, "U39", "%SSSS%", data.BeneficiaryName())
 
 	if err := f.Write(wr); err != nil {
-		panic(err)
+		return err
 	}
+
+	return nil
 }

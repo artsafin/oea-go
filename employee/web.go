@@ -2,14 +2,12 @@ package employee
 
 import (
 	"archive/zip"
-	"bytes"
 	"fmt"
 	"github.com/gorilla/mux"
 	"log"
 	"net/http"
 	"oea-go/common"
 	"oea-go/employee/dto"
-	"sync"
 	"time"
 )
 
@@ -82,7 +80,12 @@ func (h Handler) DownloadInvoice(resp http.ResponseWriter, request *http.Request
 	invoice := h.client.GetInvoiceForMonthAndEmployee(month, employee)
 
 	resp.Header().Add("Content-Disposition", fmt.Sprintf("attachment; filename=\"%s\"", invoice.Filename()))
-	common.RenderExcelTemplate(resp, common.MustAsset("resources/invoice_template_empl.xlsx"), invoice)
+	err := common.RenderExcelTemplate(resp, common.MustAsset("resources/invoice_template_empl.xlsx"), invoice)
+	if err != nil {
+		resp.Header().Del("Content-Disposition")
+		resp.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprint(resp, err)
+	}
 }
 
 func (h Handler) DownloadAllInvoices(resp http.ResponseWriter, request *http.Request) {
@@ -99,47 +102,29 @@ func (h Handler) DownloadAllInvoices(resp http.ResponseWriter, request *http.Req
 
 	common.WriteMemProfile("after_getinvoices")
 
-	wg := sync.WaitGroup{}
-	wg.Add(len(invoices))
-
-	var bufs sync.Map
-
-	for _, invoice := range invoices {
-		go func(invoice *dto.Invoice) {
-			buf := &bytes.Buffer{}
-
-			common.RenderExcelTemplate(buf, common.MustAsset("resources/invoice_template_empl.xlsx"), invoice)
-
-			bufs.Store(invoice.Filename(), *buf)
-
-			wg.Done()
-		}(invoice)
-	}
-
-	wg.Wait()
-
-	common.WriteMemProfile("after_all_render")
-
 	resp.Header().Add("Content-Disposition", fmt.Sprintf("attachment; filename=\"invoices_%s.zip\"", month))
 
 	zipWriter := zip.NewWriter(resp)
 	defer zipWriter.Close()
 
-	bufs.Range(func(key, value interface{}) bool {
-		fileName := key.(string)
-		fileContent := value.(bytes.Buffer)
+	invoiceTpl := common.MustAsset("resources/invoice_template_empl.xlsx")
 
-		zipFileWriter, err := zipWriter.Create(fileName)
-		if err != nil {
-			log.Printf("skipping %s: %v", fileName, err)
+	for _, invoice := range invoices {
+		name := invoice.Filename()
+
+		zipFileWriter, zipErr := zipWriter.Create(name)
+		if zipErr != nil {
+			log.Printf("skipping %s: %v", name, zipErr)
+			return
 		}
 
-		_, err = fileContent.WriteTo(zipFileWriter)
+		renderErr := common.RenderExcelTemplate(zipFileWriter, invoiceTpl, invoice)
 
-		if err != nil {
-			log.Printf("skipping %s: %v", fileName, err)
+		if renderErr != nil {
+			log.Printf("skipping %s: %v", name, renderErr)
+			return
 		}
+	}
 
-		return true
-	})
+	common.WriteMemProfile("after_all_render")
 }

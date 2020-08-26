@@ -5,10 +5,11 @@ services:
     image: alpine
     ports:
       - 8080:8080
-#    environment:
-#      MEM_PROFILE_PREFIX: '/profiling'
+    environment:
+      MEM_PROFILE_PREFIX: '/profiling'
     volumes:
       - ../docker/oea-go:/oea-go
+      - ./pr:/profiling
     command:
       - "/oea-go"
       - "-v"

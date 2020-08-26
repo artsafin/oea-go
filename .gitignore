@@ -6,3 +6,4 @@ common/bindata.go
 .idea
 .env
 dev-docker/.etcd
+nohup.out
