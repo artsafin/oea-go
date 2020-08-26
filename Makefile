@@ -5,7 +5,7 @@ COMPOSE_FILE=dev-docker/docker-compose.yml
 
 .PHONY: all
 
-all: build
+all: build-image build
 
 assets:
 	test -f resources/bootstrap.min.css || curl -s https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css -o resources/bootstrap.min.css
