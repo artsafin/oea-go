@@ -13,7 +13,7 @@ assets:
 build-image:
 	docker build -f docker/Dockerfile-build -t oea-go-builder .
 
-build: assets build-image
+build: assets
 	docker run --rm -v $(PWD):/app -w /app oea-go-builder \
 	sh -x -c '\
 		pwd && \
@@ -31,5 +31,6 @@ dev-env:
 	@echo 'export COMPOSE_PROJECT_NAME=oea-go-dev; export COMPOSE_FILE=$(COMPOSE_FILE)'
 
 run-dev: build
-	docker-compose -p oea-go-dev -f $(COMPOSE_FILE) up -d --build --remove-orphans --force-recreate
-	docker-compose -p oea-go-dev -f $(COMPOSE_FILE) logs -f --tail=10 app
+	docker-compose -p oea-go-dev -f $(COMPOSE_FILE) down
+	docker-compose -p oea-go-dev -f $(COMPOSE_FILE) up -d --force-recreate --remove-orphans --build
+	docker-compose -p oea-go-dev -f $(COMPOSE_FILE) logs -f --tail=50

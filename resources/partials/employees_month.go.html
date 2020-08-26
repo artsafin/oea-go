@@ -5,6 +5,38 @@
        href="{{ link "EmployeesDownloadAllInvoices" "month" $month }}"
     >Download all invoices</a>
 
+    <script>
+        const copyWithStyle = (element, button) => {
+            console.log('copyWithStyle', element, button);
+            const doc = document;
+            let range;
+            let selection;
+
+            if (doc.body.createTextRange) {
+                range = doc.body.createTextRange();
+                range.moveToElement(element);
+                range.select();
+            } else if (window.getSelection) {
+                selection = window.getSelection();
+
+                range = doc.createRange();
+                range.selectNodeContents(element);
+
+                selection.removeAllRanges();
+                selection.addRange(range);
+            }
+
+            document.execCommand('copy');
+            window.getSelection().removeAllRanges();
+
+            const oldValue = button.value
+            button.value = 'Copied!';
+            setTimeout(() => {
+                button.value = oldValue
+            }, 5000)
+        }
+    </script>
+
     {{ range .Page.Invoices }}
         <table width="100%" style="margin-top: 3em;">
             <thead>
@@ -35,119 +67,133 @@
                                                            target="_blank"
                             >ACL SD</a>{{ end }}
                             <a type="button"
-                               class="btn-secondary btn-sm"
+                               class="btn btn-secondary btn-sm"
                                href="{{ link "EmployeesDownloadInvoice" "month" $month "employee" .EmployeeName }}"
                             >Invoice</a>
                         </div>
-                        <h3 style="display: inline-block">
-                            {{ .EmployeeName }}
-                        </h3>
                     </td>
                 </tr>
             </thead>
             <tbody style="{{ if not .PaymentChecksPassed }}opacity: 0.3{{end}}">
                 <tr>
                     <td width="50%">
-                        <table border="1" cellspacing="0" cellpadding="2" width="600" valign="top" class="standart">
-                            <thead style="font-weight: bold; background-color: #cacaca">
-                                <tr>
-                                    <td>Subject</td>
-                                    <td width="150">RUB</td>
-                                    <td width="150">EUR</td>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td>Salary <b>{{ .EmployeeName }}</b></td>
-                                    <td>{{ .BaseSalary }}</td>
-                                    <td></td>
-                                </tr>
-                                <tr>
-                                    <td>Bank fees</td>
-                                    <td>{{ .BankFees }}</td>
-                                    <td></td>
-                                </tr>
-                                {{ range .Corrections }}
+                        <input class="btn btn-outline-info btn-sm"
+                               type="button"
+                               title="Copy"
+                               value="📰"
+                               onclick="copyWithStyle(this.nextElementSibling, this)"
+                        >
+                        <div>
+                            <h3 style="display: inline-block">
+                                {{ .EmployeeName }}
+                            </h3>
+                            <table border="1" cellspacing="0" cellpadding="2" width="600" valign="top" class="standart">
+                                <thead style="font-weight: bold; background-color: #cacaca">
                                     <tr>
-                                        <td title="{{ .LongComment }}">{{ .LongComment }}</td>
-                                        <td>{{ .TotalCorrectionRub }}</td>
+                                        <td>Subject</td>
+                                        <td width="150">RUB</td>
+                                        <td width="150">EUR</td>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>Salary <b>{{ .EmployeeName }}</b> {{ $month }}</td>
+                                        <td>{{ .BaseSalary }}</td>
                                         <td></td>
                                     </tr>
-                                {{ end }}
-                                {{ if ne .PatentRub 0 }}
                                     <tr>
-                                        <td>Patent</td>
-                                        <td>{{ .PatentRub }}</td>
+                                        <td>Bank fees</td>
+                                        <td>{{ .BankFees }}</td>
                                         <td></td>
                                     </tr>
-                                {{ end }}
-                                {{ if ne .TaxesRub 0 }}
+                                    {{ range .Corrections }}
+                                        <tr>
+                                            <td title="{{ .LongComment }}">{{ .LongComment }}</td>
+                                            <td>{{ .TotalCorrectionRub }}</td>
+                                            <td></td>
+                                        </tr>
+                                    {{ end }}
+                                    {{ if ne .PatentRub 0 }}
+                                        <tr>
+                                            <td>Patent</td>
+                                            <td>{{ .PatentRub }}</td>
+                                            <td></td>
+                                        </tr>
+                                    {{ end }}
+                                    {{ if ne .TaxesRub 0 }}
+                                        <tr>
+                                            <td>Taxes</td>
+                                            <td>{{ .TaxesRub }}</td>
+                                            <td></td>
+                                        </tr>
+                                    {{ end }}
+                                    {{ if ne .UnpaidDay 0 }}
+                                        <tr>
+                                            <td>Unpaid day offs</td>
+                                            <td> -{{ .UnpaidDay }}</td>
+                                            <td></td>
+                                        </tr>
+                                    {{ end }}
                                     <tr>
-                                        <td>Taxes</td>
-                                        <td>{{ .TaxesRub }}</td>
+                                        <td>
+                                            <p>Currency rate variance from previous month</p>
+                                            {{ if .PrevInvoice }}
+                                                <p>
+                                                    Expected EURRUB {{ .PrevInvoice.EurRubExpected }}<br>
+                                                    Actual EURRUB {{ .PrevInvoice.EurRubActual }}
+                                                </p>
+                                            {{ end }}
+                                        </td>
+                                        <td>{{ .RateErrorPrevMon }}</td>
                                         <td></td>
                                     </tr>
-                                {{ end }}
-                                {{ if ne .UnpaidDay 0 }}
                                     <tr>
-                                        <td>Unpaid day offs</td>
-                                        <td> -{{ .UnpaidDay }}</td>
-                                        <td></td>
+                                        <td>Subtotal (EURRUB {{ .EurRubExpected }})</td>
+                                        <td>{{ .AmountRub }}</td>
+                                        <td>{{ .RequestedSubtotalEur }}</td>
                                     </tr>
-                                {{ end }}
-                                <tr>
-                                    <td>
-                                        <p>Currency rate variance from previous month</p>
-                                        {{ if .PrevInvoice }}
-                                            <p>
-                                                Expected EURRUB {{ .PrevInvoice.EurRubExpected }}<br>
-                                                Actual EURRUB {{ .PrevInvoice.EurRubActual }}
-                                            </p>
-                                        {{ end }}
-                                    </td>
-                                    <td>{{ .RateErrorPrevMon }}</td>
-                                    <td></td>
-                                </tr>
-                                <tr>
-                                    <td>Subtotal (EURRUB {{ .EurRubExpected }})</td>
-                                    <td>{{ .AmountRub }}</td>
-                                    <td>{{ .RequestedSubtotalEur }}</td>
-                                </tr>
-                                <tr>
-                                    <td>Rounding in previous month</td>
-                                    <td></td>
-                                    <td> -{{ .RoundingPrevMonEur }}</td>
-                                </tr>
-                                <tr>
-                                    <td>Rounding</td>
-                                    <td></td>
-                                    <td>{{ .Rounding }}</td>
-                                </tr>
-                                <tr>
-                                    <td>Total</td>
-                                    <td></td>
-                                    <td>{{ .AmountRequestedEur }}</td>
-                                </tr>
-                            </tbody>
-                        </table>
+                                    <tr>
+                                        <td>Rounding in previous month</td>
+                                        <td></td>
+                                        <td> -{{ .RoundingPrevMonEur }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Rounding</td>
+                                        <td></td>
+                                        <td>{{ .Rounding }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Total</td>
+                                        <td></td>
+                                        <td>{{ .AmountRequestedEur }}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
                     </td>
                     <td>
-                        <p>Invoice for {{ .FullMonthName }}</p>
-                        <div class="code">
-                            <pre>
-Full Name of the vendor/provider: {{ .Employee.EnglishFullName }}
-Amount and currency: EUR {{ .AmountRequestedEur }}
-Date of invoice: {{ .DateFull }}
-Date of payment: {{ .DatePayment }}
-Specify if it's a one-time payment or recurring: recurring
-Bank details of the supplier (if this info is not included on the invoice): included in the invoice
-Attach the invoice/agreement that relates to the payment request: attached
-</pre>
+                        <input class="btn btn-outline-info btn-sm"
+                               type="button"
+                               title="Copy"
+                               value="📰"
+                               onclick="copyWithStyle(this.nextElementSibling, this)"
+                        >
+                        <div>
+                            <p>Invoice for {{ .FullMonthName }}</p>
+                            <div class="code" style="background-color: #fbf9f5; border: 1px solid #b3b3b3; font-size:12px; font-family: monospace;">
+                                Full Name of the vendor/provider: {{ .Employee.EnglishFullName }}<br>
+                                Amount and currency: EUR {{ .AmountRequestedEur }}<br>
+                                Date of invoice: {{ .DateFull }}<br>
+                                Date of payment: {{ .DatePayment }}<br>
+                                Specify if it's a one-time payment or recurring: recurring<br>
+                                Bank details of the supplier (if this info is not included on the invoice): included in the invoice<br>
+                                Attach the invoice/agreement that relates to the payment request: attached<br>
+                            </div>
+                            {{ if .Employee.GeneralSdLink }}
+                                <p></p>
+                                <p><a href="{{ .Employee.GeneralSdLink }}">Calculation details</a></p>
+                            {{ end }}
                         </div>
-                        {{ if .Employee.GeneralSdLink }}
-                            <p></p>
-                            <p><a href="{{ .Employee.GeneralSdLink }}">Calculation details</a></p>
-                        {{ end }}
                     </td>
                 </tr>
             </tbody>
