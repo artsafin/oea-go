@@ -11,6 +11,7 @@ assets:
 	test -f resources/bootstrap.min.css || curl -s https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css -o resources/bootstrap.min.css
 
 build-image:
+	echo "package common; func MustAsset(a string) []byte { return []byte{} }" > common/bindata.go
 	docker build -f docker/Dockerfile-build -t oea-go-builder .
 
 build: assets
