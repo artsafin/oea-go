@@ -1,4 +1,4 @@
-FROM scratch
+FROM alpine
 
 ADD ca-certificates.crt /etc/ssl/certs/
 ADD passwd /etc/passwd
