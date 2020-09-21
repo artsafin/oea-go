@@ -55,7 +55,7 @@ func (requests *Requests) GetLastInvoice() (string, error) {
 	lastInvoice, err := requests.Client.GetFormula(requests.DocId, dto.Ids.CodaFormulas.LastInvoice)
 
 	if err != nil {
-		panic(err)
+		return "", err
 	}
 	if lastInvoice.Formula.Value == "" {
 		return "", errors.New("Last invoice not found")
@@ -64,7 +64,7 @@ func (requests *Requests) GetLastInvoice() (string, error) {
 	str, ok := lastInvoice.Formula.Value.(string)
 
 	if !ok {
-		panic("Last invoice is not a string")
+		return "", errors.New("Last invoice is not a string")
 	}
 
 	return str, nil

@@ -29,11 +29,11 @@ func NewRequests(baseUri, apiTokenOf, docId string) *Requests {
 	}
 }
 
-func (requests *Requests) GetMonths() *dto.Months {
+func (requests *Requests) GetMonths() (*dto.Months, error) {
 	params := coda.ListRowsParameters{}
 	resp, err := requests.Client.ListTableRows(requests.DocId, dto.Ids.Months.Id, params)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	months := make(dto.Months, len(resp.Rows))
@@ -44,7 +44,7 @@ func (requests *Requests) GetMonths() *dto.Months {
 
 	sort.Sort(sort.Reverse(months))
 
-	return &months
+	return &months, nil
 }
 
 func (requests *Requests) GetCurrentMonth() (string, error) {
@@ -143,9 +143,12 @@ func (requests *Requests) GetInvoices(month string, with With) dto.Invoices {
 }
 
 func (requests *Requests) getMonthsData(month string) (*dto.Month, *dto.Month, error) {
-	months := requests.GetMonths()
-	var thisMonth *dto.Month
 	var err error
+	months, err := requests.GetMonths()
+	if err != nil {
+		return nil, nil, err
+	}
+	var thisMonth *dto.Month
 	if thisMonth, err = months.FindByName(month); err != nil {
 		return nil, nil, err
 	}

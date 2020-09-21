@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"html/template"
 	"net/smtp"
@@ -44,10 +45,10 @@ func sendMail(ip string, link url.URL, recipient string, cfg common.Config) erro
 	emailBuf := &bytes.Buffer{}
 	emailTpl := template.Must(template.New("email").Parse(string(common.MustAsset("resources/email.go.html"))))
 	if tplErr := emailTpl.Execute(emailBuf, emailData); tplErr != nil {
-		panic(tplErr)
+		return tplErr
 	}
 	if emailBuf.Len() == 0 {
-		panic("couldn't parse template")
+		return errors.New("couldn't parse template")
 	}
 
 	// Connect to the server, authenticate, set the sender and recipient,

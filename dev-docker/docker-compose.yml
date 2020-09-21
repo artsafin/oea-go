@@ -4,7 +4,7 @@ services:
   app:
     image: alpine
     ports:
-      - 8080:8080
+      - 8888:8080
     environment:
       MEM_PROFILE_PREFIX: '/profiling'
     volumes:

@@ -36,7 +36,7 @@ func NewHandler(cfg *common.Config) *Handler {
 }
 
 func (h Handler) getLastMonths(num int) dto.Months {
-	months := h.client.GetMonths()
+	months, _ := h.client.GetMonths() // TODO pass error
 	curMonthIndex := months.IndexOfTime(time.Now())
 
 	return (*months)[curMonthIndex-1 : curMonthIndex+num-1]

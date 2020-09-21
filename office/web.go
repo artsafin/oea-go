@@ -61,7 +61,7 @@ func loadOfficeData(req *Requests, invoiceID string) OfficeTemplateData {
 }
 
 func getMonthsN(req *empl.Requests, num int, now time.Time) emplDto.Months {
-	months := req.GetMonths()
+	months, _ := req.GetMonths() // TODO pass error
 
 	curMonthIndex := months.IndexOfTime(now)
 
