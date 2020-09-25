@@ -19,7 +19,7 @@ build: assets
 	sh -x -c '\
 		pwd && \
 		go-bindata -o "common/bindata.go" -pkg "common" resources/ resources/partials/ && \
-		go build -v -o "$(TARGET_LOCAL_PATH)" -ldflags "-X main.AppVersion=$(VERSION)" \
+		go build -v -o "$(TARGET_LOCAL_PATH)" -ldflags "-X ui.AppVersion=$(VERSION)" ./cmd/server \
 	'
 
 clean:

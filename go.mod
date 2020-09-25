@@ -4,7 +4,7 @@ go 1.14
 
 require (
 	github.com/360EntSecGroup-Skylar/excelize v1.4.1
-	github.com/artsafin/go-coda v0.0.0-20200317205303-cc43d2af31d5
+	github.com/artsafin/goda v0.0.0
 	github.com/badoux/checkmail v0.0.0-20181210160741-9661bd69e9ad
 	github.com/coreos/bbolt v1.3.2 // indirect
 	github.com/coreos/etcd v3.3.20+incompatible // indirect
@@ -12,6 +12,7 @@ require (
 	github.com/coreos/go-systemd v0.0.0-20190321100706-95778dfbb74e // indirect
 	github.com/coreos/pkg v0.0.0-20180928190104-399ea9e2e55f // indirect
 	github.com/cristalhq/jwt v1.1.1
+	github.com/deepmap/oapi-codegen v1.3.13
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible // indirect
 	github.com/divan/num2words v0.0.0-20170904212200-57dba452f942
 	github.com/go-bindata/go-bindata v3.1.2+incompatible // indirect
@@ -37,9 +38,10 @@ require (
 	go.uber.org/atomic v1.4.0 // indirect
 	go.uber.org/multierr v1.1.0 // indirect
 	go.uber.org/zap v1.10.0 // indirect
-	golang.org/x/net v0.0.0-20190522155817-f3200d17e092 // indirect
-	golang.org/x/text v0.3.0
+	golang.org/x/text v0.3.2
 	golang.org/x/time v0.0.0-20190308202827-9d24e82272b4 // indirect
 	google.golang.org/grpc v1.21.0 // indirect
 	sigs.k8s.io/yaml v1.2.0 // indirect
 )
+
+replace github.com/artsafin/goda => ./goda
