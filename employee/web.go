@@ -39,7 +39,17 @@ func (h Handler) getLastMonths(num int) dto.Months {
 	months, _ := h.client.GetMonths() // TODO pass error
 	curMonthIndex := months.IndexOfTime(time.Now())
 
-	return (*months)[curMonthIndex-1 : curMonthIndex+num-1]
+	from := curMonthIndex-1
+	to := curMonthIndex+num-1
+
+	if from < 0 {
+		from = 0
+	}
+	if to > len(*months) {
+		to = len(*months)
+	}
+
+	return (*months)[from:to]
 }
 
 func (h Handler) Home(vars map[string]string, req *http.Request) interface{} {

@@ -33,6 +33,7 @@ func (requests *Requests) GetMonths() (*dto.Months, error) {
 	params := coda.ListRowsParameters{}
 	resp, err := requests.Client.ListTableRows(requests.DocId, dto.Ids.Months.Id, params)
 	if err != nil {
+		log.Printf("ListTableRows error: %v\n", err)
 		return nil, err
 	}
 
