@@ -44,6 +44,7 @@ func main() {
 		GET.HandleFunc("/employees", router.page(employeesHandler.Home, "employees")).Name("EmployeesHome")
 		GET.HandleFunc("/employee/{month}", router.page(employeesHandler.Month, "employees", "employees_month")).Name("EmployeesMonth")
 		GET.HandleFunc("/employee/{month}/invoices", employeesHandler.DownloadAllInvoices).Name("EmployeesDownloadAllInvoices")
+		GET.HandleFunc("/employee/{month}/payrollreport", employeesHandler.DownloadPayrollReport).Name("EmployeesDownloadPayrollReport")
 		GET.HandleFunc("/employee/{month}/{employee}/invoice", employeesHandler.DownloadInvoice).Name("EmployeesDownloadInvoice")
 
 		GET.HandleFunc("/", router.page(nilTemplateData, "index"))

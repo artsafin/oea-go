@@ -14,7 +14,6 @@ const (
 	CatTaxes             = "Taxes"
 	CatPatents           = "Patents"
 	CatPaymentService    = "Payment services"
-	CatDayoff            = "Day offs"
 	CatGeneralCorrection = "Correction"
 )
 
@@ -47,7 +46,7 @@ func (cats *EmployeesMonthlyReport) addItemsFromInvoice(invoice *emplDto.Invoice
 		Name:     invoice.EmployeeName,
 	}
 
-	cats.addItem(CatSalaries, payment.WithAmount(invoice.BaseSalary))
+	cats.addItem(CatSalaries, payment.WithAmount(invoice.BaseSalaryRub))
 	cats.addItem(CatPaymentService, payment.WithAmount(invoice.BankFees))
 
 	for _, corr := range invoice.Corrections {
@@ -61,10 +60,6 @@ func (cats *EmployeesMonthlyReport) addItemsFromInvoice(invoice *emplDto.Invoice
 
 	if invoice.TaxesRub > 0 {
 		cats.addItem(CatTaxes, payment.WithAmount(invoice.TaxesRub))
-	}
-
-	if invoice.UnpaidDay > 0 {
-		cats.addItem(CatDayoff, payment.WithAmount(invoice.UnpaidDay))
 	}
 }
 

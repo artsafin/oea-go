@@ -3,7 +3,7 @@ module oea-go
 go 1.14
 
 require (
-	github.com/360EntSecGroup-Skylar/excelize v1.4.1
+	github.com/360EntSecGroup-Skylar/excelize/v2 v2.3.2
 	github.com/artsafin/go-coda v0.0.0-20200317205303-cc43d2af31d5
 	github.com/badoux/checkmail v0.0.0-20181210160741-9661bd69e9ad
 	github.com/coreos/bbolt v1.3.2 // indirect
@@ -14,7 +14,6 @@ require (
 	github.com/cristalhq/jwt v1.1.1
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible // indirect
 	github.com/divan/num2words v0.0.0-20170904212200-57dba452f942
-	github.com/go-bindata/go-bindata v3.1.2+incompatible // indirect
 	github.com/gogo/protobuf v1.2.1 // indirect
 	github.com/golang/groupcache v0.0.0-20190129154638-5b532d6fd5ef // indirect
 	github.com/google/btree v1.0.0 // indirect
@@ -37,8 +36,7 @@ require (
 	go.uber.org/atomic v1.4.0 // indirect
 	go.uber.org/multierr v1.1.0 // indirect
 	go.uber.org/zap v1.10.0 // indirect
-	golang.org/x/net v0.0.0-20190522155817-f3200d17e092 // indirect
-	golang.org/x/text v0.3.0
+	golang.org/x/text v0.3.3
 	golang.org/x/time v0.0.0-20190308202827-9d24e82272b4 // indirect
 	google.golang.org/grpc v1.21.0 // indirect
 	sigs.k8s.io/yaml v1.2.0 // indirect

@@ -16,7 +16,7 @@ type InvoicesColumns struct {
 	Month                string
 	Employee             string
 	PreviousInvoice      string
-	AmountRub            string
+	RequestedSubtotalRub string
 	EurRubExpected       string
 	RequestedSubtotalEur string
 	RoundingPrevMonEur   string
@@ -29,7 +29,6 @@ type InvoicesColumns struct {
 	CostOfDay            string
 	BankTotalFees        string
 	OpeningDateIp        string
-	UnpaidDay            string
 	CorrectionRefs       string
 	CorrectionRub        string
 	SalaryRub            string
@@ -37,8 +36,8 @@ type InvoicesColumns struct {
 	TaxesRub             string
 	PatentRefs           string
 	TaxesRefs            string
-	UnpaidDayRefs        string
-	BaseSalary           string
+	BaseSalaryRub        string
+	BaseSalaryEur        string
 	BankFees             string
 	RateErrorPrevMon     string
 	PaymentChecksPassed  string
@@ -188,7 +187,7 @@ func init() {
 				Month:                "c-wR0IONcxGH",
 				Employee:             "c-bbHUhqlbfN",
 				PreviousInvoice:      "c-FQ7rKmbXr6",
-				AmountRub:            "c-ygtGw9Kilw",
+				RequestedSubtotalRub: "c-WLMdyl4WqI",
 				EurRubExpected:       "c-tvtGu9juVL",
 				RequestedSubtotalEur: "c-9rnJJZ6gA7",
 				RoundingPrevMonEur:   "c-hLrmDsk89g",
@@ -201,15 +200,14 @@ func init() {
 				CostOfDay:            "c-yJnq9stsgi",
 				BankTotalFees:        "c-IYFe5lD4td",
 				OpeningDateIp:        "c-hI1iZG3xzY",
-				UnpaidDay:            "c-23E3m2Yk_O",
 				CorrectionRefs:       "c-tpeCMU21_I",
 				CorrectionRub:        "c-jNcl4nZe_h",
 				PatentRub:            "c-qA_pPM9kuZ",
 				TaxesRub:             "c-ug709va8_K",
 				PatentRefs:           "c-bkVlencAZt",
 				TaxesRefs:            "c-aYkpi97eXt",
-				UnpaidDayRefs:        "c-IvUKXU4063",
-				BaseSalary:           "c-wqNhZf9EQY",
+				BaseSalaryRub:        "c-wqNhZf9EQY",
+				BaseSalaryEur:        "c-B0nU6ZI_Z4",
 				BankFees:             "c-sRGR6jYC7g",
 				RateErrorPrevMon:     "c-_9tuuG4RIN",
 				PaymentChecksPassed:  "c-DRPGK3XTmD",

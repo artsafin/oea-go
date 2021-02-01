@@ -10,6 +10,7 @@ import (
 	"oea-go/common"
 	empl "oea-go/employee"
 	emplDto "oea-go/employee/dto"
+	"oea-go/excel"
 	"oea-go/office/dto"
 	"sort"
 	"sync"
@@ -171,6 +172,7 @@ func (h handler) DownloadInvoice(resp http.ResponseWriter, req *http.Request) {
 	officeClient := NewRequests(h.config.BaseUri, h.config.ApiTokenOf, h.config.DocIdOf)
 	data := loadOfficeData(officeClient, vars["invoice"])
 
+	resp.Header().Add("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
 	resp.Header().Add("Content-Disposition", fmt.Sprintf("attachment; filename=\"%s.xlsx\"", data.Invoice.Filename()))
 
 	if err := h.etcd.Connect(); err != nil {
@@ -179,7 +181,7 @@ func (h handler) DownloadInvoice(resp http.ResponseWriter, req *http.Request) {
 	defer h.etcd.Close()
 	templateSource := h.etcd.MustGetBytes("files/invoice_template.xlsx")
 
-	err := common.RenderExcelTemplate(resp, templateSource, &data.Invoice)
+	err := excel.RenderInvoice(resp, templateSource, &data.Invoice)
 	if err != nil {
 		resp.Header().Del("Content-Disposition")
 		resp.WriteHeader(http.StatusInternalServerError)

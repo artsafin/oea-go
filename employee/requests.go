@@ -140,6 +140,8 @@ func (requests *Requests) GetInvoices(month string, with With) dto.Invoices {
 		invoices[i].MonthData = thisMonth
 	}
 
+	sort.Sort(invoices)
+
 	return invoices
 }
 

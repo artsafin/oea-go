@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"oea-go/common"
 	"oea-go/employee/dto"
+	"oea-go/excel"
 	"time"
 )
 
@@ -89,12 +90,35 @@ func (h Handler) DownloadInvoice(resp http.ResponseWriter, request *http.Request
 
 	invoice := h.client.GetInvoiceForMonthAndEmployee(month, employee)
 
+	resp.Header().Add("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
 	resp.Header().Add("Content-Disposition", fmt.Sprintf("attachment; filename=\"%s\"", invoice.Filename()))
-	err := common.RenderExcelTemplate(resp, common.MustAsset("resources/invoice_template_empl.xlsx"), invoice)
+	err := excel.RenderInvoice(resp, common.MustAsset("resources/invoice_template_empl.xlsx"), invoice)
 	if err != nil {
+		resp.Header().Del("Content-Type")
 		resp.Header().Del("Content-Disposition")
 		resp.WriteHeader(http.StatusInternalServerError)
 		fmt.Fprint(resp, err)
+	}
+}
+
+func (h Handler) DownloadPayrollReport(resp http.ResponseWriter, request *http.Request) {
+	vars := mux.Vars(request)
+	month, containsMonth := vars["month"]
+	if !containsMonth {
+		resp.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	invoices := h.client.GetInvoices(month, With{Employees: true, PrevInvoice: true, Corrections: true})
+
+	resp.Header().Add("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+	resp.Header().Add("Content-Disposition", fmt.Sprintf("attachment; filename=\"payroll_report_%s.xlsx\"", month))
+
+	renderErr := excel.RenderPayrollReport(resp, invoices)
+	if renderErr != nil {
+		resp.Header().Del("Content-Type")
+		resp.Header().Del("Content-Disposition")
+		resp.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprint(resp, renderErr)
 	}
 }
 
@@ -128,7 +152,7 @@ func (h Handler) DownloadAllInvoices(resp http.ResponseWriter, request *http.Req
 			return
 		}
 
-		renderErr := common.RenderExcelTemplate(zipFileWriter, invoiceTpl, invoice)
+		renderErr := excel.RenderInvoice(zipFileWriter, invoiceTpl, invoice)
 
 		if renderErr != nil {
 			log.Printf("skipping %s: %v", name, renderErr)

@@ -29,6 +29,7 @@
                     <nav class="nav nav-pills flex-column">
                         {{ template "sidebar" .}}
                     </nav>
+                    {{block "sidebar_custom" .}}{{end}}
                 </div>
                 <div class="col">
                     {{ template "content" .}}

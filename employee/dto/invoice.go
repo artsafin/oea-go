@@ -37,9 +37,10 @@ type Invoice struct {
 	InvoiceNo            string
 	Month                string
 	EmployeeName         string
+	EmployeeNameSlug     string
 	Employee             *Employee
 	PreviousInvoiceId    string
-	AmountRub            common.MoneyRub
+	RequestedSubtotalRub common.MoneyRub
 	EurRubExpected       common.MoneyRub
 	RequestedSubtotalEur common.MoneyEur
 	RoundingPrevMonEur   common.MoneyEur
@@ -52,11 +53,11 @@ type Invoice struct {
 	CostOfDay            common.MoneyRub
 	BankTotalFees        common.MoneyRub
 	OpeningDateIp        *time.Time
-	UnpaidDay            common.MoneyRub
 	CorrectionRub        common.MoneyRub
 	PatentRub            common.MoneyRub
 	TaxesRub             common.MoneyRub
-	BaseSalary           common.MoneyRub
+	BaseSalaryRub        common.MoneyRub
+	BaseSalaryEur        common.MoneyEur
 	BankFees             common.MoneyRub
 	RateErrorPrevMon     common.MoneyRub
 	Corrections          []*Correction
@@ -173,11 +174,13 @@ func NewInvoiceFromRow(row *coda.Row) *Invoice {
 	}
 	if invoice.EmployeeName, err = common.ToString(Ids.Invoices.Cols.Employee, row); err != nil {
 		errs = append(errs, *err)
+	} else {
+		invoice.EmployeeNameSlug = strings.ReplaceAll(strings.ToLower(strings.TrimSpace(invoice.EmployeeName)), " ", "-")
 	}
 	if invoice.PreviousInvoiceId, err = common.ToString(Ids.Invoices.Cols.PreviousInvoice, row); err != nil {
 		errs = append(errs, *err)
 	}
-	if invoice.AmountRub, err = common.ToRub(Ids.Invoices.Cols.AmountRub, row); err != nil {
+	if invoice.RequestedSubtotalRub, err = common.ToRub(Ids.Invoices.Cols.RequestedSubtotalRub, row); err != nil {
 		errs = append(errs, *err)
 	}
 	if invoice.EurRubExpected, err = common.ToRub(Ids.Invoices.Cols.EurRubExpected, row); err != nil {
@@ -216,9 +219,6 @@ func NewInvoiceFromRow(row *coda.Row) *Invoice {
 	if invoice.OpeningDateIp, err = common.ToDate(Ids.Invoices.Cols.OpeningDateIp, row); err != nil {
 		errs = append(errs, *err)
 	}
-	if invoice.UnpaidDay, err = common.ToRub(Ids.Invoices.Cols.UnpaidDay, row); err != nil {
-		errs = append(errs, *err)
-	}
 	if invoice.CorrectionRub, err = common.ToRub(Ids.Invoices.Cols.CorrectionRub, row); err != nil {
 		errs = append(errs, *err)
 	}
@@ -228,7 +228,10 @@ func NewInvoiceFromRow(row *coda.Row) *Invoice {
 	if invoice.TaxesRub, err = common.ToRub(Ids.Invoices.Cols.TaxesRub, row); err != nil {
 		errs = append(errs, *err)
 	}
-	if invoice.BaseSalary, err = common.ToRub(Ids.Invoices.Cols.BaseSalary, row); err != nil {
+	if invoice.BaseSalaryRub, err = common.ToRub(Ids.Invoices.Cols.BaseSalaryRub, row); err != nil {
+		errs = append(errs, *err)
+	}
+	if invoice.BaseSalaryEur, err = common.ToEur(Ids.Invoices.Cols.BaseSalaryEur, row); err != nil {
 		errs = append(errs, *err)
 	}
 	if invoice.BankFees, err = common.ToRub(Ids.Invoices.Cols.BankFees, row); err != nil {
