@@ -187,7 +187,7 @@ func RenderPayrollReport(wr io.Writer, invoices dto.Invoices) error {
 	)
 
 	wrapTextStyleID, _ := sheet.file.NewStyle(`{"alignment":{"wrap_text":true}}`)
-	f.SetCellStyle(payrollReportSheetName, "B1", fmt.Sprintf("E%d", rowNum), wrapTextStyleID)
+	f.SetCellStyle(payrollReportSheetName, "B2", fmt.Sprintf("E%d", rowNum), wrapTextStyleID)
 
 	if writeErr := f.Write(wr); writeErr != nil {
 		return writeErr
