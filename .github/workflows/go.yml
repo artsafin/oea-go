@@ -39,7 +39,7 @@ jobs:
         repository: artsafin/oea-go/oea-go
         tag_with_ref: true
         path: docker
-        dockerfile: docker/Dockerfile
+        dockerfile: Dockerfile
         add_git_labels: true
 
     - name: Notify in telegram
