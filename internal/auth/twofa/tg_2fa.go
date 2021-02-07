@@ -9,12 +9,12 @@ import (
 	"time"
 )
 
-var bots *tgBotSupervisor
+var bots *tgBot
 
 type tgUserReplyMeta struct {
 	chatID   int64
-	userID   int64
-	username string
+	userID   int
+	username common.Username
 }
 
 func (r *tgUserReplyMeta) validate(expectedChatID int64, expectedAcc common.Account) error {
@@ -58,7 +58,7 @@ func NewTelegramTwoFactorAuth(etcd *common.EtcdService, cfg *common.Config) TwoF
 }
 
 func (a *telegram2FA) Authenticate(authResult chan AuthResult, account common.Account, info common.AuthInfo) error {
-	sess, beginErr := bots.beginAuthSession(account)
+	sess, beginErr := bots.BeginAuthSession(account)
 	if beginErr != nil {
 		return beginErr
 	}
@@ -79,12 +79,14 @@ func (a *telegram2FA) Authenticate(authResult chan AuthResult, account common.Ac
 		}
 
 		select {
-		case buttonReply := <-sess.allowButtonChan:
-			if validationErr := buttonReply.validate(chatID, account); validationErr != nil {
+		case <-sess.declineButtonChan:
+			authResult <- AuthResult{Err: errors.New("user denied")}
+		case allowReply := <-sess.allowButtonChan:
+			if validationErr := allowReply.validate(chatID, account); validationErr != nil {
 				authResult <- AuthResult{Err: validationErr}
 				break
 			}
-			fp, fpErr := buttonReply.fingerprint(a.cfg.SecretKey)
+			fp, fpErr := allowReply.fingerprint(a.cfg.SecretKey)
 			if fpErr != nil {
 				authResult <- AuthResult{Err: errors.New("fingerprint encryption failed")}
 				break
@@ -119,7 +121,7 @@ func (a *telegram2FA) obtainChatIdFromUserStartReply(account common.Account, ses
 	}
 }
 
-func (a *telegram2FA) obtainChatIdFromEtcd(email string) (chatID int64, err error) {
+func (a *telegram2FA) obtainChatIdFromEtcd(email common.Email) (chatID int64, err error) {
 	etcd, etcdConnErr := a.etcd.ConnectAndPing()
 
 	if etcdConnErr != nil {

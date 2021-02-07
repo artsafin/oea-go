@@ -2,9 +2,12 @@ package common
 
 import "strings"
 
+type Email string
+type Username string
+
 type Account struct {
-	Email            string
-	ExternalUsername string
+	Email            Email
+	ExternalUsername Username
 }
 
 type Accounts []Account
@@ -15,7 +18,7 @@ func (a Accounts) HasEmail(email string) bool {
 
 func (a Accounts) Get(email string) *Account {
 	for _, acc := range a {
-		if acc.Email == email {
+		if acc.Email == Email(email) {
 			return &acc
 		}
 	}
@@ -25,7 +28,7 @@ func (a Accounts) Get(email string) *Account {
 func (a Accounts) String() string {
 	emails := make([]string, 0, len(a))
 	for _, acc := range a {
-		emails = append(emails, acc.Email)
+		emails = append(emails, string(acc.Email))
 	}
 
 	return "Accounts{" + strings.Join(emails, ", ") + "}"
@@ -37,7 +40,7 @@ func (a Accounts) String() string {
 		Account{Email: "test@example.com", ExternalUsername: "username"},
 		Account{Email: "test2@example.com", ExternalUsername: "foo"},
 	}
- */
+*/
 func newAccountsFromConfig(authAccounts string) Accounts {
 	accountDefs := strings.Split(authAccounts, ",")
 	accounts := make(Accounts, 0, len(accountDefs))
@@ -51,8 +54,8 @@ func newAccountsFromConfig(authAccounts string) Accounts {
 		accounts = append(
 			accounts,
 			Account{
-				Email:            strings.TrimSpace(accFields[0]),
-				ExternalUsername: strings.TrimSpace(accFields[1]),
+				Email:            Email(strings.TrimSpace(accFields[0])),
+				ExternalUsername: Username(strings.TrimSpace(accFields[1])),
 			},
 		)
 	}

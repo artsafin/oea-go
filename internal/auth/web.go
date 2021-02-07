@@ -108,7 +108,7 @@ func (ctl Controller) HandleBegin2FA(resp http.ResponseWriter, req *http.Request
 	twoFa := twofa.NewTelegramTwoFactorAuth(ctl.etcd, ctl.config)
 
 	authResultChan := make(chan twofa.AuthResult)
-	twoFAErr := twoFa.Authenticate(authResultChan, account, newAuthInfo(req))
+	twoFAErr := twoFa.Authenticate(authResultChan, *account, newAuthInfo(req))
 	if twoFAErr != nil {
 		logger.Println("HandleBegin2FA: Authenticate:", twoFAErr)
 		authErrorRedirect(resp, "cannot initialize 2fa")

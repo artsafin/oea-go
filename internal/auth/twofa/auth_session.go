@@ -9,29 +9,39 @@ import (
 
 const (
 	sessionTimeout = time.Second * 30
+	allowText      = "🔑 Allow"
+	denyText       = "⛔ Deny"
+	startText      = "/start"
 )
 
 type tgAuthSession struct {
 	startChan         chan tgUserReplyMeta
 	allowButtonChan   chan tgUserReplyMeta
 	declineButtonChan chan tgUserReplyMeta
-	timeoutChan       chan int64
+	timeoutChan       chan struct{}
 	bot               *tgbotapi.BotAPI
-	ts                time.Time
+	account           common.Account
 }
 
-func newAuthSession(api *tgbotapi.BotAPI) *tgAuthSession {
+func newAuthSession(account common.Account, api *tgbotapi.BotAPI) *tgAuthSession {
 	return &tgAuthSession{
+		account:           account,
 		startChan:         make(chan tgUserReplyMeta),
 		allowButtonChan:   make(chan tgUserReplyMeta),
 		declineButtonChan: make(chan tgUserReplyMeta),
-		timeoutChan:       make(chan int64),
+		timeoutChan:       make(chan struct{}),
 		bot:               api,
-		ts:                time.Now(),
 	}
 }
 
-func (s tgAuthSession) sendPrompt(chatID int64, info common.AuthInfo) (err error) {
+func (s *tgAuthSession) runExpirationTimer(expirationsC expirationsChannel) {
+	<-time.After(sessionTimeout)
+
+	s.timeoutChan <- struct{}{}
+	expirationsC <- s.account
+}
+
+func (s *tgAuthSession) sendPrompt(chatID int64, info common.AuthInfo) (err error) {
 	text := fmt.Sprintf(
 		"OEA authentication has been requested on %v from IP %v.\n"+
 			"- To allow access please press 🔑 `Allow`\n"+
@@ -42,8 +52,8 @@ func (s tgAuthSession) sendPrompt(chatID int64, info common.AuthInfo) (err error
 	msgConfig := tgbotapi.NewMessage(chatID, text)
 	kb := tgbotapi.NewReplyKeyboard(
 		[]tgbotapi.KeyboardButton{
-			tgbotapi.NewKeyboardButtonContact("🔑 Allow"),
-			tgbotapi.NewKeyboardButtonContact("⛔ Deny"),
+			tgbotapi.NewKeyboardButton(allowText),
+			tgbotapi.NewKeyboardButton(denyText),
 		},
 	)
 	kb.OneTimeKeyboard = true
@@ -53,4 +63,11 @@ func (s tgAuthSession) sendPrompt(chatID int64, info common.AuthInfo) (err error
 	_, err = s.bot.Send(msgConfig)
 
 	return
+}
+
+func (s *tgAuthSession) terminate() {
+	close(s.startChan)
+	close(s.declineButtonChan)
+	close(s.allowButtonChan)
+	close(s.timeoutChan)
 }
