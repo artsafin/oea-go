@@ -5,8 +5,6 @@ WORKDIR /app
 
 RUN ["go", "mod", "download"]
 RUN go get -u github.com/go-bindata/go-bindata/go-bindata
-#    echo "package common; func MustAsset(a string) []byte { return []byte{} }" > common/bindata.go && \
-#    go build -v .
 
 
 
@@ -18,7 +16,7 @@ ARG VERSION
 ADD . /app
 WORKDIR /app
 
-RUN go-bindata -o "common/bindata.go" -pkg "common" resources/ resources/partials/ && \
+RUN go-bindata -o "internal/common/bindata.go" -pkg "common" resources/ resources/partials/ && \
     go build -ldflags "-X main.AppVersion=$VERSION" -o "/tmp/oea-go" . && \
     chmod a+x /tmp/oea-go
 
