@@ -5,6 +5,7 @@ import (
 	"github.com/badoux/checkmail"
 	"go.uber.org/zap"
 	"net/http"
+	"oea-go/internal/auth/authtoken"
 	"oea-go/internal/auth/twofa"
 	"oea-go/internal/common"
 	"oea-go/internal/web"
@@ -84,7 +85,7 @@ func (ctl Controller) HandleBegin2FA(resp http.ResponseWriter, req *http.Request
 	returnUrl := sanitizeReturnUrl(req.URL.Query().Get("return"))
 	tokenSource := req.URL.Query().Get("t")
 
-	token, logErr := validatedTokenFromSource(ctl.config.AppVersion, ctl.config.SecretKey, tokenSource)
+	token, logErr := authtoken.CreateFromSourceAndValidate(ctl.config.AppVersion, ctl.config.SecretKey, tokenSource)
 	if logErr != nil {
 		logger.Errorf("HandleBegin2FA: token parse error: %v", logErr)
 		authErrorRedirect(resp, "incorrect login link")
@@ -132,7 +133,7 @@ func (ctl Controller) HandleBegin2FA(resp http.ResponseWriter, req *http.Request
 			return
 		}
 
-		newToken, newTokenErr := GenerateTokenSecondFactor(token, authRes.Fingerprint, ctl.config.SecretKey)
+		newToken, newTokenErr := authtoken.GenerateTokenSecondFactor(token, authRes.Fingerprint, ctl.config.SecretKey)
 
 		if newTokenErr != nil {
 			logger.Errorf("HandleBegin2FA: GenerateTokenSecondFactor: %v", newTokenErr)
@@ -162,7 +163,7 @@ func (ctl Controller) HandleTokenSet(resp http.ResponseWriter, req *http.Request
 		return
 	}
 
-	tok, tokErr := tokenFromSource(ctl.config.AppVersion, ctl.config.SecretKey, token)
+	tok, tokErr := authtoken.FromSource(ctl.config.AppVersion, ctl.config.SecretKey, token)
 	if tokErr != nil {
 		logger.Errorf("Token set: token is invalid: %v", tokErr)
 		authErrorRedirect(resp, "your login link has expired")
@@ -225,7 +226,7 @@ func (ctl Controller) HandleAuthStart(resp http.ResponseWriter, req *http.Reques
 		return
 	}
 
-	newToken, tokErr := GenerateTokenFirstFactor(ctl.config.AppVersion, recipient, ctl.config.SecretKey)
+	newToken, tokErr := authtoken.GenerateTokenFirstFactor(ctl.config.AppVersion, recipient, ctl.config.SecretKey)
 
 	if tokErr != nil {
 		data.Error = fmt.Sprintf("error generating token: %v", tokErr)

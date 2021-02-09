@@ -24,7 +24,7 @@ type emailData struct {
 	Timestamp string
 }
 
-func sendMail(inf authInfo, link url.URL, recipient string, cfg *common.Config) error {
+func sendMail(inf common.AuthInfo, link url.URL, recipient string, cfg *common.Config) error {
 	// Set up authentication information.
 	auth := smtp.PlainAuth(
 		"",
@@ -37,8 +37,8 @@ func sendMail(inf authInfo, link url.URL, recipient string, cfg *common.Config) 
 		Subject:   SubjectLine,
 		From:      cfg.SmtpUser,
 		To:        recipient,
-		IP:        inf.ip,
-		Timestamp: inf.ts.Format(time.UnixDate),
+		IP:        inf.IP,
+		Timestamp: inf.TS.Format(time.UnixDate),
 		Link:      link.String(),
 	}
 

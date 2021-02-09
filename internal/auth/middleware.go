@@ -5,6 +5,7 @@ import (
 	"go.uber.org/zap"
 	"net/http"
 	"net/url"
+	"oea-go/internal/auth/authtoken"
 	"oea-go/internal/common"
 	"oea-go/internal/web"
 )
@@ -23,7 +24,7 @@ func (auth *Middleware) doAuth(r *http.Request) error {
 		return fmt.Errorf("missing cookie: %s", cookieErr)
 	}
 
-	token, tokenErr := validatedTokenFromSource(auth.Config.AppVersion, auth.Config.SecretKey, authCookie.Value)
+	token, tokenErr := authtoken.CreateFromSourceAndValidate(auth.Config.AppVersion, auth.Config.SecretKey, authCookie.Value)
 
 	if tokenErr != nil {
 		return tokenErr

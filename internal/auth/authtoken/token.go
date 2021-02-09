@@ -1,4 +1,4 @@
-package auth
+package authtoken
 
 import (
 	"encoding/json"
@@ -51,7 +51,7 @@ func (tok *Token) String() string {
 	return fmt.Sprintf("[%+v]", tok.Claims)
 }
 
-func tokenFromSource(appVersion string, authKey []byte, source string) (*Token, error) {
+func FromSource(appVersion string, authKey []byte, source string) (*Token, error) {
 	if source == "" {
 		return nil, errors.New("token is empty")
 	}
@@ -139,8 +139,8 @@ func newJwtSigner(authKey []byte) jwt.Signer {
 	return signer
 }
 
-func validatedTokenFromSource(appVersion string, authKey []byte, source string) (token *Token, err error) {
-	tok, tokErr := tokenFromSource(appVersion, authKey, source)
+func CreateFromSourceAndValidate(appVersion string, authKey []byte, source string) (token *Token, err error) {
+	tok, tokErr := FromSource(appVersion, authKey, source)
 	if tokErr != nil {
 		return nil, errors.Wrapf(tokErr, "token is invalid")
 	}

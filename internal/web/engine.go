@@ -8,7 +8,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-	"oea-go/internal/auth"
+	"oea-go/internal/auth/authtoken"
 	"oea-go/internal/common"
 	"time"
 )
@@ -19,7 +19,7 @@ const (
 
 type Engine struct {
 	*mux.Router
-	AuthToken *auth.Token
+	AuthToken *authtoken.Token
 }
 
 // Writes Location header to response writer and sets specified status
@@ -28,13 +28,13 @@ func HttpRedirect(resp http.ResponseWriter, url string, status int) {
 	resp.WriteHeader(status)
 }
 
-func (router *Engine) createFuncMap() template.FuncMap {
+func (e *Engine) createFuncMap() template.FuncMap {
 	return template.FuncMap{
 		"link": func(routeName string, args ...string) string {
 			var route *mux.Route
 			var u *url.URL
 			var err error
-			if route = router.Get(routeName); route == nil {
+			if route = e.Get(routeName); route == nil {
 				return ""
 			}
 			if u, err = route.URL(args...); err != nil {
@@ -45,17 +45,17 @@ func (router *Engine) createFuncMap() template.FuncMap {
 		"styles": func() template.CSS {
 			return template.CSS(common.MustAsset("resources/bootstrap.min.css"))
 		},
-		"authToken": func() *auth.Token {
-			return router.AuthToken
+		"authToken": func() *authtoken.Token {
+			return e.AuthToken
 		},
 	}
 }
 
-func (router *Engine) parseLayout() *template.Template {
+func (e *Engine) parseLayout() *template.Template {
 	return template.Must(
 		template.
 			New("layout").
-			Funcs(router.createFuncMap()).
+			Funcs(e.createFuncMap()).
 			Parse(string(common.MustAsset("resources/layout.go.html"))))
 }
 
@@ -75,8 +75,8 @@ func NewPartialData(data interface{}, r *http.Request) *PartialData {
 	}
 }
 
-func (router *Engine) CreatePartial(names ...string) Partial {
-	tpl := router.parseLayout()
+func (e *Engine) CreatePartial(names ...string) Partial {
+	tpl := e.parseLayout()
 	for _, name := range names {
 		tpl = template.Must(tpl.Parse(string(common.MustAsset(fmt.Sprintf("resources/partials/%s.go.html", name)))))
 	}
@@ -90,8 +90,8 @@ func (partial Partial) MustRenderWithData(wr io.Writer, data *PartialData) {
 	}
 }
 
-func (router *Engine) Page(templateDataFn func(map[string]string, *http.Request) interface{}, names ...string) func(http.ResponseWriter, *http.Request) {
-	tpl := router.CreatePartial(names...)
+func (e *Engine) Page(templateDataFn func(map[string]string, *http.Request) interface{}, names ...string) func(http.ResponseWriter, *http.Request) {
+	tpl := e.CreatePartial(names...)
 
 	return func(resp http.ResponseWriter, req *http.Request) {
 		data := NewPartialData(templateDataFn(mux.Vars(req), req), req)

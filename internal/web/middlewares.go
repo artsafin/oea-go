@@ -37,7 +37,7 @@ type loggerMiddleware struct {
 	logger *zap.SugaredLogger
 }
 
-func (m *loggerMiddleware) MiddlewareFunc(next http.Handler) http.Handler {
+func (m loggerMiddleware) MiddlewareFunc(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(writer http.ResponseWriter, r *http.Request) {
 		logger := common.NewRequestLogger(r, m.logger)
 		logger.Infof("Request: %v %v %v %v", r.Method, r.RequestURI, r.RemoteAddr, r.UserAgent())
