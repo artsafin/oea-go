@@ -4,7 +4,7 @@ import (
 	"archive/zip"
 	"fmt"
 	"github.com/gorilla/mux"
-	"log"
+	"go.uber.org/zap"
 	"net/http"
 	"oea-go/internal/common"
 	"oea-go/internal/employee/dto"
@@ -18,6 +18,11 @@ type Page struct {
 	SelectedMonth string
 	Months        dto.Months
 	Invoices      dto.Invoices
+	Error         error
+}
+
+func NewErrorPage(err error) Page {
+	return Page{Error: err}
 }
 
 func (p Page) IsMonthSelected(mon dto.Month) bool {
@@ -27,12 +32,14 @@ func (p Page) IsMonthSelected(mon dto.Month) bool {
 type Handler struct {
 	config *common.Config
 	client *Requests
+	logger *zap.SugaredLogger
 }
 
-func NewHandler(cfg *common.Config) *Handler {
+func NewHandler(cfg *common.Config, logger *zap.SugaredLogger) *Handler {
 	return &Handler{
 		config: cfg,
 		client: NewRequests(cfg.BaseUri, cfg.ApiTokenEm, cfg.DocIdEm),
+		logger: logger,
 	}
 }
 
@@ -40,8 +47,8 @@ func (h Handler) getLastMonths(num int) dto.Months {
 	months, _ := h.client.GetMonths() // TODO pass error
 	curMonthIndex := months.IndexOfTime(time.Now())
 
-	from := curMonthIndex-1
-	to := curMonthIndex+num-1
+	from := curMonthIndex - 1
+	to := curMonthIndex + num - 1
 
 	if from < 0 {
 		from = 0
@@ -66,7 +73,10 @@ func (h Handler) Month(vars map[string]string, req *http.Request) interface{} {
 		return h.Home(vars, req)
 	}
 
-	invoices := h.client.GetInvoices(month, With{Corrections: true, PrevInvoice: true, Employees: true})
+	invoices, err := h.client.GetInvoices(month, With{Corrections: true, PrevInvoice: true, Employees: true})
+	if err != nil {
+		return NewErrorPage(err)
+	}
 
 	return Page{
 		SelectedMonth: month,
@@ -80,19 +90,26 @@ func (h Handler) DownloadInvoice(resp http.ResponseWriter, request *http.Request
 	month, containsMonth := vars["month"]
 	if !containsMonth {
 		resp.WriteHeader(http.StatusBadRequest)
+		fmt.Fprint(resp, "no month provided")
 		return
 	}
 	employee, containsEmployee := vars["employee"]
 	if !containsEmployee {
 		resp.WriteHeader(http.StatusBadRequest)
+		fmt.Fprint(resp, "no employee provided")
 		return
 	}
 
-	invoice := h.client.GetInvoiceForMonthAndEmployee(month, employee)
+	invoice, err := h.client.GetInvoiceForMonthAndEmployee(month, employee)
+	if err != nil {
+		resp.WriteHeader(http.StatusBadRequest)
+		fmt.Fprint(resp, err)
+		return
+	}
 
 	resp.Header().Add("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
 	resp.Header().Add("Content-Disposition", fmt.Sprintf("attachment; filename=\"%s\"", invoice.Filename()))
-	err := excel.RenderInvoice(resp, common.MustAsset("resources/invoice_template_empl.xlsx"), invoice)
+	err = excel.RenderInvoice(resp, common.MustAsset("resources/invoice_template_empl.xlsx"), invoice)
 	if err != nil {
 		resp.Header().Del("Content-Type")
 		resp.Header().Del("Content-Disposition")
@@ -106,9 +123,15 @@ func (h Handler) DownloadPayrollReport(resp http.ResponseWriter, request *http.R
 	month, containsMonth := vars["month"]
 	if !containsMonth {
 		resp.WriteHeader(http.StatusBadRequest)
+		fmt.Fprint(resp, "no month provided")
 		return
 	}
-	invoices := h.client.GetInvoices(month, With{Employees: true, PrevInvoice: true, Corrections: true})
+	invoices, err := h.client.GetInvoices(month, With{Employees: true, PrevInvoice: true, Corrections: true})
+	if err != nil {
+		resp.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprint(resp, err)
+		return
+	}
 
 	resp.Header().Add("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
 	resp.Header().Add("Content-Disposition", fmt.Sprintf("attachment; filename=\"payroll_report_%s.xlsx\"", month))
@@ -127,12 +150,18 @@ func (h Handler) DownloadAllInvoices(resp http.ResponseWriter, request *http.Req
 	month, containsMonth := vars["month"]
 	if !containsMonth {
 		resp.WriteHeader(http.StatusBadRequest)
+		fmt.Fprint(resp, "no month provided")
 		return
 	}
 
 	common.WriteMemProfile("before_getinvoices")
 
-	invoices := h.client.GetInvoices(month, With{Employees: true})
+	invoices, err := h.client.GetInvoices(month, With{Employees: true})
+	if err != nil {
+		resp.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprint(resp, err)
+		return
+	}
 
 	common.WriteMemProfile("after_getinvoices")
 
@@ -148,14 +177,14 @@ func (h Handler) DownloadAllInvoices(resp http.ResponseWriter, request *http.Req
 
 		zipFileWriter, zipErr := zipWriter.Create(name)
 		if zipErr != nil {
-			log.Printf("skipping %s: %v", name, zipErr)
+			h.logger.Warnf("skipping %s: %v", name, zipErr)
 			return
 		}
 
 		renderErr := excel.RenderInvoice(zipFileWriter, invoiceTpl, invoice)
 
 		if renderErr != nil {
-			log.Printf("skipping %s: %v", name, renderErr)
+			h.logger.Warnf("skipping %s: %v", name, renderErr)
 			return
 		}
 	}

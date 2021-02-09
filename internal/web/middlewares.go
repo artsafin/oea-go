@@ -3,6 +3,7 @@ package web
 import (
 	"context"
 	"github.com/google/uuid"
+	"go.uber.org/zap"
 	"net/http"
 	"oea-go/internal/common"
 	"strings"
@@ -32,10 +33,14 @@ func cssMapRejectorMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-func loggerMiddleware(next http.Handler) http.Handler {
+type loggerMiddleware struct {
+	logger *zap.SugaredLogger
+}
+
+func (m *loggerMiddleware) MiddlewareFunc(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(writer http.ResponseWriter, r *http.Request) {
-		logger := common.NewRequestLogger(r)
-		logger.Println("Request:", r.Method, r.RequestURI, r.RemoteAddr, r.UserAgent())
+		logger := common.NewRequestLogger(r, m.logger)
+		logger.Infof("Request: %v %v %v %v", r.Method, r.RequestURI, r.RemoteAddr, r.UserAgent())
 
 		next.ServeHTTP(writer, r)
 	})

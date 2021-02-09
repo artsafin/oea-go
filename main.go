@@ -2,7 +2,7 @@ package main
 
 import (
 	"flag"
-	"log"
+	"go.uber.org/zap"
 	"net/http"
 	"oea-go/internal/auth"
 	"oea-go/internal/common"
@@ -24,28 +24,32 @@ func main() {
 		flag.Usage()
 		os.Exit(1)
 	}
-	cfg := common.NewConfig(AppVersion)
-	etcd := common.NewEtcdService(strings.Split(*etcdAddr, ","))
-	configErr := common.FillConfigFromEtcd(&cfg, etcd)
+	baseLogger, _ := zap.NewDevelopment()
+	logger := baseLogger.Sugar()
+	cfg := common.NewConfig(AppVersion, logger)
+	etcd := common.NewEtcdService(strings.Split(*etcdAddr, ","), logger)
+	configErr := common.FillConfigFromEtcd(&cfg, etcd, logger)
 	if configErr != nil {
-		log.Fatalf("error loading config: %v\n", configErr)
+		logger.Fatalw("error loading config", "error", configErr)
+		os.Exit(1)
 	}
 
 	if *verbose {
 		cfg.DumpNonSecretParameters(os.Stdout)
 	}
 
-	officeHandler := office.NewHandler(&cfg, etcd)
-	employeesHandler := employee.NewHandler(&cfg)
-	web.ListenAndServe(cfg, func(router *web.Engine) {
+	officeHandler := office.NewHandler(&cfg, etcd, logger)
+	employeesHandler := employee.NewHandler(&cfg, logger)
+	web.ListenAndServe(cfg, logger, func(router *web.Engine) {
 		if cfg.UseAuth {
 			authWare := &auth.Middleware{
 				Router: router,
 				Config: cfg,
+				Logger: logger,
 			}
 			router.Use(authWare.MiddlewareFunc)
 
-			authHandler := auth.NewHandler(&cfg, router.CreatePartial("auth"), etcd)
+			authHandler := auth.NewHandler(&cfg, router.CreatePartial("auth"), etcd, logger)
 			router.HandleFunc("/auth/success", authHandler.HandleSendSuccess)
 			//router.HandleFunc("/auth/set", authHandler.HandleTokenSet)
 			router.HandleFunc("/auth/set", authHandler.HandleBegin2FA)

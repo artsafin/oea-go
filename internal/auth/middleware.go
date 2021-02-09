@@ -2,6 +2,7 @@ package auth
 
 import (
 	"fmt"
+	"go.uber.org/zap"
 	"net/http"
 	"net/url"
 	"oea-go/internal/common"
@@ -11,6 +12,7 @@ import (
 type Middleware struct {
 	Router *web.Engine
 	Config common.Config
+	Logger *zap.SugaredLogger
 }
 
 func (auth *Middleware) doAuth(r *http.Request) error {
@@ -44,7 +46,7 @@ func isAnonymousAccessAllowed(path string) bool {
 
 func (auth *Middleware) MiddlewareFunc(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		logger := common.NewRequestLogger(r)
+		logger := common.NewRequestLogger(r, auth.Logger)
 		// Do actual authentication of request
 		authErr := auth.doAuth(r)
 
@@ -52,7 +54,7 @@ func (auth *Middleware) MiddlewareFunc(next http.Handler) http.Handler {
 		if isAnonymousAccessAllowed(r.URL.Path) {
 			// User is actually authenticated but he is on /auth page => redirect to /
 			if authErr == nil {
-				logger.Println("Redirecting already authenticated user from", r.RequestURI)
+				logger.Infof("Redirecting already authenticated user from %v", r.RequestURI)
 				returnUrl := sanitizeReturnUrl(r.URL.Query().Get("return"))
 				web.HttpRedirect(w, returnUrl, http.StatusFound)
 				return
@@ -67,7 +69,7 @@ func (auth *Middleware) MiddlewareFunc(next http.Handler) http.Handler {
 			return
 		}
 
-		logger.Println("Forbidden:", authErr)
+		logger.Errorf("Forbidden: %v", authErr)
 
 		// If page was requested with GET, redirect to /auth page with ability to return back after successful auth
 		if r.Method == http.MethodGet {
@@ -79,4 +81,3 @@ func (auth *Middleware) MiddlewareFunc(next http.Handler) http.Handler {
 		auth.Router.Page(web.NilTemplateData, "403")(w, r)
 	})
 }
-

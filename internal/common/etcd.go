@@ -5,8 +5,8 @@ import (
 	"errors"
 	"fmt"
 	etcd "go.etcd.io/etcd/clientv3"
+	"go.uber.org/zap"
 	"google.golang.org/grpc/connectivity"
-	"log"
 	"time"
 )
 
@@ -18,14 +18,16 @@ const (
 type EtcdService struct {
 	dialContext context.Context
 	endpoints   []string
+	logger      *zap.SugaredLogger
 }
 
-func NewEtcdService(addrs []string) *EtcdService {
+func NewEtcdService(addrs []string, logger *zap.SugaredLogger) *EtcdService {
 	dialContext, _ := context.WithTimeout(context.Background(), connectTimeout)
 
 	return &EtcdService{
 		endpoints:   addrs,
 		dialContext: dialContext,
+		logger:      logger,
 	}
 }
 
@@ -41,23 +43,19 @@ func (e *EtcdService) ConnectAndPing() (conn *EtcdConnection, err error) {
 		return nil, connErr
 	}
 
-	log.Printf("Waiting for etcd at %v for %v...\n", conn.client.Endpoints(), connectTimeout)
+	e.logger.Infow("Waiting for etcd...", "endpoints", conn.client.Endpoints(), "timeout", connectTimeout)
 
 	membersList, membersErr := conn.MemberList()
 	if membersErr != nil {
 		conn.Close()
 		return nil, membersErr
 	}
-	log.Printf("Connected to etcd: %+v\n", membersList.Members)
+	e.logger.Infow("Connected to etcd", "etcd members", membersList.Members)
 
 	return conn, nil
 }
 
 func (e *EtcdService) connect() (conn *EtcdConnection, err error) {
-	//if e.client.ActiveConnection().GetState() == connectivity.Ready {
-	//	return nil
-	//}
-
 	kv, dialErr := etcd.New(etcd.Config{
 		Endpoints:   e.endpoints,
 		DialTimeout: connectTimeout,

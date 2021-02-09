@@ -43,7 +43,7 @@ func (s *tgAuthSession) runExpirationTimer(expirationsC expirationsChannel) {
 
 func (s *tgAuthSession) sendPrompt(chatID int64, info common.AuthInfo) (err error) {
 	text := fmt.Sprintf(
-		"OEA authentication has been requested on %v from IP %v.\n"+
+		"OEA authentication has been requested on `%v` from IP `%v`.\n\n"+
 			"- To allow access please press 🔑 `Allow`\n"+
 			"- To deny authentication please press ⛔ `Deny` or ignore this message",
 		info.TS.Format(time.UnixDate),
@@ -62,7 +62,7 @@ func (s *tgAuthSession) sendPrompt(chatID int64, info common.AuthInfo) (err erro
 
 	_, err = s.bot.Send(msgConfig)
 
-	return
+	return err
 }
 
 func (s *tgAuthSession) terminate() {

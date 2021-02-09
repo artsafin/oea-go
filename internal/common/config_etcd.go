@@ -1,7 +1,7 @@
 package common
 
 import (
-	"log"
+	"go.uber.org/zap"
 )
 
 func boolStr(val bool, trueVal, falseVal string) string {
@@ -11,7 +11,7 @@ func boolStr(val bool, trueVal, falseVal string) string {
 	return falseVal
 }
 
-func FillConfigFromEtcd(cfg *Config, etcd *EtcdService) error {
+func FillConfigFromEtcd(cfg *Config, etcd *EtcdService, logger *zap.SugaredLogger) error {
 	conn, connErr := etcd.ConnectAndPing()
 	if connErr != nil {
 		return connErr
@@ -21,7 +21,7 @@ func FillConfigFromEtcd(cfg *Config, etcd *EtcdService) error {
 	cfg.ForeachKey(func(name string, val interface{}, tags ConfigTags) (interface{}, bool) {
 		keyResp, keyErr := conn.GetNotEmpty(tags.Name)
 		if keyErr != nil {
-			log.Printf("config: (%v) %v: %v\n", boolStr(tags.IsMandatory, "mandatory", "optional"), tags.Name, keyErr)
+			logger.Errorw("config field error", "mandatory", boolStr(tags.IsMandatory, "mandatory", "optional"), "tag", tags.Name, "error", keyErr)
 			return nil, !tags.IsMandatory
 		}
 

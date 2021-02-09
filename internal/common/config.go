@@ -2,8 +2,8 @@ package common
 
 import (
 	"fmt"
+	"go.uber.org/zap"
 	"io"
-	"log"
 	"reflect"
 	"strconv"
 	"strings"
@@ -49,9 +49,10 @@ type Config struct {
 	Accounts           Accounts
 	AppVersion         string
 	BotToken           string
+	logger             *zap.SugaredLogger
 }
 
-func NewConfig(appVersion string) Config {
+func NewConfig(appVersion string, logger *zap.SugaredLogger) Config {
 	return Config{
 		BaseUri:      "https://coda.io/apis/v1beta1",
 		SecurePort:   8443,
@@ -59,6 +60,7 @@ func NewConfig(appVersion string) Config {
 		SmtpPort:     25,
 		UseAuth:      true,
 		AppVersion:   appVersion,
+		logger:       logger,
 	}
 }
 
@@ -140,12 +142,12 @@ func (c *Config) ForeachKey(mapFn func(name string, val interface{}, configTags 
 
 		if newVal != nil {
 			if !fieldVal.CanSet() {
-				log.Printf("config: %v: field is not settable. Skipping\n", fieldType.Name)
+				c.logger.Warnw("config: field is not settable, skipping", "field", fieldType.Name)
 				continue
 			}
 			reflNewVal := reflect.ValueOf(newVal)
 			if fieldVal.Type() != reflNewVal.Type() {
-				log.Printf("config: %v: type mismatch: %v is not assignable to %v. Skipping\n", fieldType.Name, reflNewVal.Kind(), fieldVal.Kind())
+				c.logger.Warnw("config: type mismatch, skipping", "field", fieldType.Name, "new value", reflNewVal.Kind(), "old value", fieldVal.Kind())
 				continue
 			}
 

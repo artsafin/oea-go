@@ -3,6 +3,7 @@ package twofa
 import (
 	"fmt"
 	"github.com/pkg/errors"
+	"go.uber.org/zap"
 	"oea-go/internal/auth/enc"
 	"oea-go/internal/common"
 	"strconv"
@@ -49,9 +50,9 @@ type telegram2FA struct {
 	chatIdWaitChan chan int64
 }
 
-func NewTelegramTwoFactorAuth(etcd *common.EtcdService, cfg *common.Config) TwoFactorAuthRoutine {
+func NewTelegramTwoFactorAuth(etcd *common.EtcdService, cfg *common.Config, logger *zap.SugaredLogger) TwoFactorAuthRoutine {
 	if bots == nil {
-		bots = newBotSupervisor(cfg.BotToken)
+		bots = newBotSupervisor(cfg.BotToken, logger)
 	}
 
 	return &telegram2FA{etcd: etcd, cfg: cfg}

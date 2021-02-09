@@ -3,9 +3,9 @@ package web
 import (
 	"fmt"
 	"github.com/gorilla/mux"
+	"go.uber.org/zap"
 	"html/template"
 	"io"
-	"log"
 	"net/http"
 	"net/url"
 	"oea-go/internal/auth"
@@ -100,10 +100,10 @@ func (router *Engine) Page(templateDataFn func(map[string]string, *http.Request)
 	}
 }
 
-func ListenAndServe(cfg common.Config, routerConfigurer func(*Engine)) {
+func ListenAndServe(cfg common.Config, logger *zap.SugaredLogger, routerConfigurer func(*Engine)) {
 	router := &Engine{Router: mux.NewRouter()}
 	router.Use(requestIdMiddleware)
-	router.Use(loggerMiddleware)
+	router.Use(loggerMiddleware{logger: logger}.MiddlewareFunc)
 	router.NotFoundHandler = http.HandlerFunc(router.Page(NilTemplateData, "404"))
 
 	routerConfigurer(router)
@@ -119,13 +119,13 @@ func ListenAndServe(cfg common.Config, routerConfigurer func(*Engine)) {
 	if cfg.IsTLS() {
 		server.Addr = fmt.Sprintf(":%d", cfg.SecurePort)
 
-		log.Printf("Server started at %s (secure)\n", server.Addr)
+		logger.Infof("Server started at %s (secure)\n", server.Addr)
 		listenErr = server.ListenAndServeTLS(cfg.TlsCert, cfg.TlsKey)
 	} else {
-		log.Printf("Server started at %s (insecure)\n", server.Addr)
+		logger.Infof("Server started at %s (insecure)\n", server.Addr)
 		listenErr = server.ListenAndServe()
 	}
-	log.Fatalf("Server shutdown: %v\n", listenErr)
+	logger.Fatalf("Server shutdown: %v\n", listenErr)
 }
 
 func NilTemplateData(vars map[string]string, req *http.Request) interface{} {

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/gorilla/mux"
+	"go.uber.org/zap"
 	"html/template"
 	"log"
 	"net/http"
@@ -73,7 +74,7 @@ func getMonthsN(req *empl.Requests, num int, now time.Time) emplDto.Months {
 	return (*months)[curMonthIndex : curMonthIndex+num+1]
 }
 
-func loadTodayAndPastInvoices(req *empl.Requests, numPastInvoices int, today time.Time) dto.EmployeesHistoricReport {
+func (h handler) loadTodayAndPastInvoices(req *empl.Requests, numPastInvoices int, today time.Time) dto.EmployeesHistoricReport {
 	months := getMonthsN(req, numPastInvoices, today)
 	numMonths := len(months)
 
@@ -81,14 +82,18 @@ func loadTodayAndPastInvoices(req *empl.Requests, numPastInvoices int, today tim
 
 	for _, month := range months {
 		go func(month *emplDto.Month) {
-			log.Println("started loading invoices for month", month.ID)
-			invoices := req.GetInvoices(month.ID, empl.With{Corrections: true, Employees: true})
+			h.logger.Infof("started loading invoices for month %v", month.ID)
+			invoices, err := req.GetInvoices(month.ID, empl.With{Corrections: true, Employees: true})
+			if err != nil {
+				h.logger.Errorf("error during mass loading of invoices for month %v: %v", month.ID, err)
+				return
+			}
 			sort.Sort(invoices)
 			monthlyInvoices <- emplDto.InvoicesPerMonth{
 				Invoices: invoices,
 				Month:    month,
 			}
-			log.Println("finished loading invoices for month", month.ID)
+			h.logger.Infof("finished loading invoices for month %v", month.ID)
 		}(month)
 	}
 
@@ -139,10 +144,11 @@ type Page struct {
 type handler struct {
 	config *common.Config
 	etcd   *common.EtcdService
+	logger *zap.SugaredLogger
 }
 
-func NewHandler(cfg *common.Config, etcd *common.EtcdService) *handler {
-	return &handler{config: cfg, etcd: etcd}
+func NewHandler(cfg *common.Config, etcd *common.EtcdService, logger *zap.SugaredLogger) *handler {
+	return &handler{config: cfg, etcd: etcd, logger: logger}
 }
 
 func (h handler) Home(vars map[string]string, req *http.Request) interface{} {
@@ -157,7 +163,7 @@ func (h handler) ShowInvoiceData(vars map[string]string, req *http.Request) inte
 	officeData := loadOfficeData(officeClient, vars["invoice"])
 
 	emplClient := empl.NewRequests(h.config.BaseUri, h.config.ApiTokenEm, h.config.DocIdEm)
-	employeesData := loadTodayAndPastInvoices(emplClient, 5, time.Now())
+	employeesData := h.loadTodayAndPastInvoices(emplClient, 5, time.Now())
 
 	html := buildApprovalRequestHtml(officeData, employeesData)
 

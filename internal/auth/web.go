@@ -3,6 +3,7 @@ package auth
 import (
 	"fmt"
 	"github.com/badoux/checkmail"
+	"go.uber.org/zap"
 	"net/http"
 	"oea-go/internal/auth/twofa"
 	"oea-go/internal/common"
@@ -29,14 +30,15 @@ func authErrorRedirect(resp http.ResponseWriter, err string) {
 	authErrorRedirect(resp, err)
 }
 
-func NewHandler(cfg *common.Config, partial web.Partial, etcd *common.EtcdService) *Controller {
-	return &Controller{config: cfg, etcd: etcd, partial: partial}
+func NewHandler(cfg *common.Config, partial web.Partial, etcd *common.EtcdService, logger *zap.SugaredLogger) *Controller {
+	return &Controller{config: cfg, etcd: etcd, partial: partial, logger: logger}
 }
 
 type Controller struct {
 	config  *common.Config
 	partial web.Partial
 	etcd    *common.EtcdService
+	logger  *zap.SugaredLogger
 }
 
 type authControllerData struct {
@@ -77,14 +79,14 @@ func (ctl Controller) HandleSendSuccess(resp http.ResponseWriter, req *http.Requ
 }
 
 func (ctl Controller) HandleBegin2FA(resp http.ResponseWriter, req *http.Request) {
-	logger := common.NewRequestLogger(req)
+	logger := common.NewRequestLogger(req, ctl.logger)
 
 	returnUrl := sanitizeReturnUrl(req.URL.Query().Get("return"))
 	tokenSource := req.URL.Query().Get("t")
 
 	token, logErr := validatedTokenFromSource(ctl.config.AppVersion, ctl.config.SecretKey, tokenSource)
 	if logErr != nil {
-		logger.Printf("HandleBegin2FA: token parse error: %v\n", logErr)
+		logger.Errorf("HandleBegin2FA: token parse error: %v", logErr)
 		authErrorRedirect(resp, "incorrect login link")
 
 		return
@@ -92,25 +94,25 @@ func (ctl Controller) HandleBegin2FA(resp http.ResponseWriter, req *http.Request
 
 	email, tokenEmailErr := token.Email()
 	if tokenEmailErr != nil {
-		logger.Printf("HandleBegin2FA: email retrieve: %v\n", tokenEmailErr)
+		logger.Errorf("HandleBegin2FA: email retrieve: %v", tokenEmailErr)
 		authErrorRedirect(resp, "incorrect login link")
 
 		return
 	}
 	account := ctl.config.Accounts.Get(email)
 	if account == nil {
-		logger.Printf("HandleBegin2FA: account not found\n")
+		logger.Errorf("HandleBegin2FA: account not found")
 		authErrorRedirect(resp, "incorrect login link")
 
 		return
 	}
 
-	twoFa := twofa.NewTelegramTwoFactorAuth(ctl.etcd, ctl.config)
+	twoFa := twofa.NewTelegramTwoFactorAuth(ctl.etcd, ctl.config, ctl.logger)
 
 	authResultChan := make(chan twofa.AuthResult)
 	twoFAErr := twoFa.Authenticate(authResultChan, *account, newAuthInfo(req))
 	if twoFAErr != nil {
-		logger.Println("HandleBegin2FA: Authenticate:", twoFAErr)
+		logger.Errorf("HandleBegin2FA: Authenticate: %v", twoFAErr)
 		authErrorRedirect(resp, "cannot initialize 2fa")
 		return
 	}
@@ -120,12 +122,12 @@ func (ctl Controller) HandleBegin2FA(resp http.ResponseWriter, req *http.Request
 	select {
 	case authRes, authChanOpen := <-authResultChan:
 		if !authChanOpen {
-			logger.Println("HandleBegin2FA: 2fa channel closed")
+			logger.Errorf("HandleBegin2FA: 2fa channel closed")
 			authErrorRedirect(resp, "2fa error")
 			return
 		}
 		if authRes.Err != nil {
-			logger.Println("HandleBegin2FA: 2fa error %v", authRes.Err)
+			logger.Errorf("HandleBegin2FA: 2fa error %v", authRes.Err)
 			authErrorRedirect(resp, "2fa error")
 			return
 		}
@@ -133,17 +135,17 @@ func (ctl Controller) HandleBegin2FA(resp http.ResponseWriter, req *http.Request
 		newToken, newTokenErr := GenerateTokenSecondFactor(token, authRes.Fingerprint, ctl.config.SecretKey)
 
 		if newTokenErr != nil {
-			logger.Println("HandleBegin2FA: GenerateTokenSecondFactor: %v", newTokenErr)
+			logger.Errorf("HandleBegin2FA: GenerateTokenSecondFactor: %v", newTokenErr)
 			authErrorRedirect(resp, "2fa error")
 			return
 		}
 
 		authCookie := newAuthCookie(newToken.InsecureString(), req.Host, token.ExpiresAt())
-		logger.Println("Token set: auth cookie set:", authCookie)
+		logger.Errorf("Token set: auth cookie set: %v", authCookie)
 		http.SetCookie(resp, authCookie)
 		web.HttpRedirect(resp, returnUrl, http.StatusFound)
 	case <-timeoutChan:
-		logger.Println("HandleBegin2FA: timeout waiting for auth result")
+		logger.Errorf("HandleBegin2FA: timeout waiting for auth result")
 		authErrorRedirect(resp, "2fa timeout")
 	}
 }
@@ -152,41 +154,41 @@ func (ctl Controller) HandleTokenSet(resp http.ResponseWriter, req *http.Request
 	returnUrl := sanitizeReturnUrl(req.URL.Query().Get("return"))
 	token := req.URL.Query().Get("t")
 
-	logger := common.NewRequestLogger(req)
+	logger := common.NewRequestLogger(req, ctl.logger)
 
 	if token == "" {
-		logger.Println("Token set: token is empty")
+		logger.Errorf("Token set: token is empty")
 		web.HttpRedirect(resp, "/auth", http.StatusFound)
 		return
 	}
 
 	tok, tokErr := tokenFromSource(ctl.config.AppVersion, ctl.config.SecretKey, token)
 	if tokErr != nil {
-		logger.Println("Token set: token is invalid:", tokErr)
+		logger.Errorf("Token set: token is invalid: %v", tokErr)
 		authErrorRedirect(resp, "your login link has expired")
 		return
 	}
 
 	validationErr := tok.ValidateClaims()
 	if validationErr != nil {
-		logger.Printf("Token set: token is invalid: %s, token %v\n", validationErr, tok)
+		logger.Errorf("Token set: token is invalid: %s, token %v\n", validationErr, tok)
 		authErrorRedirect(resp, "your login link has expired")
 		return
 	}
 
 	authCookie := newAuthCookie(token, req.Host, tok.Claims.ExpiresAt.Time())
-	logger.Println("Token set: auth cookie set:", authCookie)
+	logger.Infof("Token set: auth cookie set: %v", authCookie)
 	http.SetCookie(resp, authCookie)
 	web.HttpRedirect(resp, returnUrl, http.StatusFound)
 }
 
 func (ctl Controller) HandleLogout(resp http.ResponseWriter, req *http.Request) {
-	logger := common.NewRequestLogger(req)
+	logger := common.NewRequestLogger(req, ctl.logger)
 	returnUrl := sanitizeReturnUrl(req.URL.Query().Get("return"))
 
 	authCookie := newAuthCookie("0", req.Host, time.Unix(0, 0))
 
-	logger.Printf("Logout authCookie: %+v", authCookie)
+	logger.Infof("Logout authCookie: %+v", authCookie)
 
 	http.SetCookie(resp, authCookie)
 	web.HttpRedirect(resp, returnUrl, http.StatusFound)

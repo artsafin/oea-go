@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/artsafin/go-coda"
-	"log"
 	"oea-go/internal/common"
 	"oea-go/internal/employee/dto"
 	"sort"
@@ -33,7 +32,6 @@ func (requests *Requests) GetMonths() (*dto.Months, error) {
 	params := coda.ListRowsParameters{}
 	resp, err := requests.Client.ListTableRows(requests.DocId, dto.Ids.Months.Id, params)
 	if err != nil {
-		log.Printf("ListTableRows error: %v\n", err)
 		return nil, err
 	}
 
@@ -77,52 +75,63 @@ func uniqueInvoiceById(invoices dto.Invoices) map[string]*dto.Invoice {
 	return result
 }
 
-func (requests *Requests) GetInvoiceForMonthAndEmployee(month, employee string) *dto.Invoice {
-	invoices := requests.GetInvoices(month, With{Employees: true})
+func (requests *Requests) GetInvoiceForMonthAndEmployee(month, employee string) (*dto.Invoice, error) {
+	invoices, err := requests.GetInvoices(month, With{Employees: true})
+	if err != nil {
+		return nil, err
+	}
 
 	for _, invoice := range invoices {
 		if invoice.EmployeeName == employee {
-			return invoice
+			return invoice, nil
 		}
 	}
 
-	return nil
+	return nil, nil
 }
 
-func (requests *Requests) GetInvoices(month string, with With) dto.Invoices {
+func (requests *Requests) GetInvoices(month string, with With) (invoices dto.Invoices, err error) {
 	params := coda.ListRowsParameters{
 		Query: fmt.Sprintf("%s:\"%s\"", dto.Ids.Invoices.Cols.Month, month),
 	}
 	resp, err := requests.Client.ListTableRows(requests.DocId, dto.Ids.Invoices.Id, params)
 
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
-	invoices := make(dto.Invoices, len(resp.Rows))
+	invoices = make(dto.Invoices, len(resp.Rows))
 
 	var corrs map[string][]*dto.Correction
 	var employees map[string]*dto.Employee
 
 	if len(invoices) > 0 && with.Corrections {
-		corrs = requests.getCorrectionsIndexedByInvoice(month)
+		corrs, err = requests.getCorrectionsIndexedByInvoice(month)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	if len(invoices) > 0 && with.Employees {
-		employees = requests.GetAllEmployees()
+		employees, err = requests.GetAllEmployees()
+		if err != nil {
+			return nil, err
+		}
 	}
 
-	thisMonth, prevMonth, monthErr := requests.getMonthsData(month)
-	if monthErr != nil {
-		log.Println(err)
+	thisMonth, prevMonth, err := requests.getMonthsData(month)
+	if err != nil {
+		return nil, err
 	}
 
 	var prevInvoices map[string]*dto.Invoice
 
 	if len(invoices) > 0 && with.PrevInvoice {
-		if monthErr == nil {
-			prevInvoices = uniqueInvoiceById(requests.GetInvoices(prevMonth.ID, With{}))
+		prevInvoicesList, err := requests.GetInvoices(prevMonth.ID, With{})
+		if err != nil {
+			return nil, err
 		}
+		prevInvoices = uniqueInvoiceById(prevInvoicesList)
 	}
 
 	for i, row := range resp.Rows {
@@ -142,7 +151,7 @@ func (requests *Requests) GetInvoices(month string, with With) dto.Invoices {
 
 	sort.Sort(invoices)
 
-	return invoices
+	return invoices, nil
 }
 
 func (requests *Requests) getMonthsData(month string) (*dto.Month, *dto.Month, error) {
@@ -166,11 +175,11 @@ func (requests *Requests) getMonthsData(month string) (*dto.Month, *dto.Month, e
 	return thisMonth, prevMonth, nil
 }
 
-func (requests *Requests) getCorrectionsIndexedByInvoice(month string) map[string][]*dto.Correction {
+func (requests *Requests) getCorrectionsIndexedByInvoice(month string) (map[string][]*dto.Correction, error) {
 	resp, err := requests.Client.ListTableRows(requests.DocId, dto.Ids.Corrections.Id, coda.ListRowsParameters{})
 
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	result := make(map[string][]*dto.Correction)
@@ -182,14 +191,14 @@ func (requests *Requests) getCorrectionsIndexedByInvoice(month string) map[strin
 		}
 	}
 
-	return result
+	return result, nil
 }
 
-func (requests *Requests) GetAllEmployees() map[string]*dto.Employee {
+func (requests *Requests) GetAllEmployees() (map[string]*dto.Employee, error) {
 	resp, err := requests.Client.ListTableRows(requests.DocId, dto.Ids.Employees.Id, coda.ListRowsParameters{})
 
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	result := make(map[string]*dto.Employee)
@@ -199,5 +208,5 @@ func (requests *Requests) GetAllEmployees() map[string]*dto.Employee {
 		result[empl.Name] = empl
 	}
 
-	return result
+	return result, nil
 }
