@@ -7,12 +7,13 @@ import (
 	"net/url"
 	"oea-go/internal/auth/authtoken"
 	"oea-go/internal/common"
+	"oea-go/internal/common/config"
 	"oea-go/internal/web"
 )
 
 type Middleware struct {
 	Router *web.Engine
-	Config common.Config
+	Config config.Config
 	Logger *zap.SugaredLogger
 }
 

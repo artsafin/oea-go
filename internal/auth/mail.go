@@ -8,6 +8,7 @@ import (
 	"net/smtp"
 	"net/url"
 	"oea-go/internal/common"
+	"oea-go/internal/common/config"
 	"time"
 )
 
@@ -24,7 +25,7 @@ type emailData struct {
 	Timestamp string
 }
 
-func sendMail(inf common.AuthInfo, link url.URL, recipient string, cfg *common.Config) error {
+func sendMail(inf common.AuthInfo, link url.URL, recipient string, cfg *config.Config) error {
 	// Set up authentication information.
 	auth := smtp.PlainAuth(
 		"",

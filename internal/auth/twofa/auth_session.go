@@ -4,6 +4,7 @@ import (
 	"fmt"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
 	"oea-go/internal/common"
+	"oea-go/internal/common/config"
 	"time"
 )
 
@@ -20,10 +21,10 @@ type tgAuthSession struct {
 	declineButtonChan chan tgUserReplyMeta
 	timeoutChan       chan struct{}
 	bot               *tgbotapi.BotAPI
-	account           common.Account
+	account           config.Account
 }
 
-func newAuthSession(account common.Account, api *tgbotapi.BotAPI) *tgAuthSession {
+func newAuthSession(account config.Account, api *tgbotapi.BotAPI) *tgAuthSession {
 	return &tgAuthSession{
 		account:           account,
 		startChan:         make(chan tgUserReplyMeta),

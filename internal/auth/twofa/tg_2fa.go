@@ -6,7 +6,7 @@ import (
 	"go.uber.org/zap"
 	"oea-go/internal/auth/enc"
 	"oea-go/internal/common"
-	"strconv"
+	"oea-go/internal/common/config"
 	"time"
 )
 
@@ -15,10 +15,10 @@ var bots *tgBot
 type tgUserReplyMeta struct {
 	chatID   int64
 	userID   int
-	username common.Username
+	username config.Username
 }
 
-func (r *tgUserReplyMeta) validate(expectedChatID int64, expectedAcc common.Account) error {
+func (r *tgUserReplyMeta) validate(expectedChatID int64, expectedAcc config.Account) error {
 	if r.username == "" || r.username != expectedAcc.ExternalUsername {
 		return errors.New("username mismatch")
 	}
@@ -45,20 +45,19 @@ func (r *tgUserReplyMeta) fingerprint(encSecretKey []byte) (string, error) {
 }
 
 type telegram2FA struct {
-	etcd           *common.EtcdService
-	cfg            *common.Config
+	cfg            *config.Config
 	chatIdWaitChan chan int64
 }
 
-func NewTelegramTwoFactorAuth(etcd *common.EtcdService, cfg *common.Config, logger *zap.SugaredLogger) TwoFactorAuthRoutine {
+func NewTelegramTwoFactorAuth(cfg *config.Config, logger *zap.SugaredLogger) TwoFactorAuthRoutine {
 	if bots == nil {
 		bots = newBotSupervisor(cfg.BotToken, logger)
 	}
 
-	return &telegram2FA{etcd: etcd, cfg: cfg}
+	return &telegram2FA{cfg: cfg}
 }
 
-func (a *telegram2FA) Authenticate(authResult chan AuthResult, account common.Account, info common.AuthInfo) error {
+func (a *telegram2FA) Authenticate(authResult chan AuthResult, account config.Account, info common.AuthInfo) error {
 	sess, beginErr := bots.BeginAuthSession(account)
 	if beginErr != nil {
 		return beginErr
@@ -101,8 +100,8 @@ func (a *telegram2FA) Authenticate(authResult chan AuthResult, account common.Ac
 	return nil
 }
 
-func (a *telegram2FA) obtainChatId(account common.Account, sess *tgAuthSession) (chatID int64, err error) {
-	chatID, err = a.obtainChatIdFromEtcd(account.Email)
+func (a *telegram2FA) obtainChatId(account config.Account, sess *tgAuthSession) (chatID int64, err error) {
+	chatID, err = a.obtainChatIdFromCache(account.Email)
 	if err == nil {
 		return chatID, nil
 	}
@@ -110,7 +109,7 @@ func (a *telegram2FA) obtainChatId(account common.Account, sess *tgAuthSession) 
 	return a.obtainChatIdFromUserStartReply(account, sess)
 }
 
-func (a *telegram2FA) obtainChatIdFromUserStartReply(account common.Account, sess *tgAuthSession) (chatID int64, err error) {
+func (a *telegram2FA) obtainChatIdFromUserStartReply(account config.Account, sess *tgAuthSession) (chatID int64, err error) {
 	select {
 	case startReply := <-sess.startChan:
 		if err = startReply.validate(0, account); err != nil {
@@ -122,32 +121,6 @@ func (a *telegram2FA) obtainChatIdFromUserStartReply(account common.Account, ses
 	}
 }
 
-func (a *telegram2FA) obtainChatIdFromEtcd(email common.Email) (chatID int64, err error) {
-	etcd, etcdConnErr := a.etcd.ConnectAndPing()
-
-	if etcdConnErr != nil {
-		return 0, etcdConnErr
-	}
-	defer etcd.Close()
-
-	key := fmt.Sprintf("chat_%s", email)
-
-	keyResp, keyErr := etcd.GetNotEmpty(key)
-	if keyErr != nil {
-		return 0, keyErr
-	}
-	if len(keyResp.Kvs) == 0 {
-		return 0, errors.New("empty value for key " + key)
-	}
-
-	intVal, intConvErr := strconv.ParseInt(string(keyResp.Kvs[0].Value), 10, 64)
-	if intConvErr != nil {
-		return 0, intConvErr
-	}
-
-	if intVal == 0 {
-		return 0, errors.New("empty value for key " + key)
-	}
-
-	return intVal, nil
+func (a *telegram2FA) obtainChatIdFromCache(email config.Email) (chatID int64, err error) {
+	return 0, errors.New("not implemented")
 }

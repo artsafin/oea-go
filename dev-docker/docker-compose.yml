@@ -5,51 +5,9 @@ services:
     image: oea-go:latest
     ports:
       - 8888:8080
-#    environment:
-#      MEM_PROFILE_PREFIX: '/profiling'
-#    volumes:
-#      - ./pr:/profiling
+    env_file:
+      - .env
+    volumes:
+      - ../oea_etcd_private/files:${OEA_FILES}
     command:
       - "-v"
-      - "-etcd"
-      - "etcd:2379"
-    networks:
-      - oea-go-dev-network
-  etcd_loader:
-    image: quay.io/coreos/etcd:latest
-    environment:
-      ETCDCTL_API: 3
-      ETCDCTL_ENDPOINTS: 'http://etcd:2379'
-    networks:
-      - oea-go-dev-network
-    volumes:
-      - ./.etcd:/etcd-config
-      - ../oea_etcd_private/files:/files
-    entrypoint: ""
-    command: >-
-      /bin/sh -c 'echo "Waiting for 2 seconds hoping etcd will initialize" && sleep 2 &&
-      cat /etcd-config | xargs -n2 etcdctl put &&
-      etcdctl put "files/invoice_template.xlsx" < /files/invoice_template.xlsx &&
-      echo "Done initialization"'
-  etcd:
-    image: quay.io/coreos/etcd:latest
-    volumes:
-      - etcd_data:/etcd-data
-    command:
-      - "etcd"
-      - "--data-dir=/etcd-data"
-      - "--name=node1"
-      - "--initial-advertise-peer-urls=http://etcd:2380,http://127.0.0.1:2380"
-      - "--listen-peer-urls=http://0.0.0.0:2380"
-      - "--advertise-client-urls=http://etcd:2379,http://127.0.0.1:2379"
-      - "--listen-client-urls=http://0.0.0.0:2379"
-      - "--initial-cluster=node1=http://127.0.0.1:2380,node1=http://etcd:2380"
-    networks:
-      - oea-go-dev-network
-
-volumes:
-  etcd_data:
-
-networks:
-  oea-go-dev-network:
-    external: true

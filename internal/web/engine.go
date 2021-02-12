@@ -10,6 +10,7 @@ import (
 	"net/url"
 	"oea-go/internal/auth/authtoken"
 	"oea-go/internal/common"
+	"oea-go/internal/common/config"
 	"time"
 )
 
@@ -100,7 +101,7 @@ func (e *Engine) Page(templateDataFn func(map[string]string, *http.Request) inte
 	}
 }
 
-func ListenAndServe(cfg common.Config, logger *zap.SugaredLogger, routerConfigurer func(*Engine)) {
+func ListenAndServe(cfg config.Config, logger *zap.SugaredLogger, routerConfigurer func(*Engine)) {
 	router := &Engine{Router: mux.NewRouter()}
 	router.Use(requestIdMiddleware)
 	router.Use(loggerMiddleware{logger: logger}.MiddlewareFunc)

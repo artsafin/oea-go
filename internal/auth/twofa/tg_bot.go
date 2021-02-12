@@ -3,17 +3,17 @@ package twofa
 import (
 	"github.com/go-telegram-bot-api/telegram-bot-api"
 	"go.uber.org/zap"
-	"oea-go/internal/common"
+	"oea-go/internal/common/config"
 	"sync"
 )
 
-type expirationsChannel chan common.Account
+type expirationsChannel chan config.Account
 
 type tgBot struct {
 	token           string
 	bot             *tgbotapi.BotAPI
 	updChan         tgbotapi.UpdatesChannel
-	sessions        map[common.Username]*tgAuthSession
+	sessions        map[config.Username]*tgAuthSession
 	expirationsChan expirationsChannel
 	shutdownChan    chan bool
 	mut             sync.Mutex
@@ -25,7 +25,7 @@ func newBotSupervisor(token string, logger *zap.SugaredLogger) *tgBot {
 		bot:          nil,
 		updChan:      nil,
 		token:        token,
-		sessions:     make(map[common.Username]*tgAuthSession),
+		sessions:     make(map[config.Username]*tgAuthSession),
 		logger:       logger,
 		shutdownChan: make(chan bool),
 	}
@@ -66,7 +66,7 @@ func (b *tgBot) resurrect() error {
 	return nil
 }
 
-func (b *tgBot) cleanupAccount(expiredAcc common.Account) (shouldTerminate bool) {
+func (b *tgBot) cleanupAccount(expiredAcc config.Account) (shouldTerminate bool) {
 	b.mut.Lock()
 	defer b.mut.Unlock()
 
@@ -118,7 +118,7 @@ func (b *tgBot) ListenUpdates() {
 				continue
 			}
 
-			userName := common.Username(update.Message.From.UserName)
+			userName := config.Username(update.Message.From.UserName)
 			if userName == "" {
 				continue
 			}
@@ -164,7 +164,7 @@ func (b *tgBot) stop() {
 	b.logger.Infof("stop: stopped bot")
 }
 
-func (b *tgBot) BeginAuthSession(account common.Account) (*tgAuthSession, error) {
+func (b *tgBot) BeginAuthSession(account config.Account) (*tgAuthSession, error) {
 	b.mut.Lock()
 	defer b.mut.Unlock()
 

@@ -18,6 +18,7 @@ dev-env:
 	@echo 'export COMPOSE_PROJECT_NAME=oea-go-dev; export COMPOSE_FILE=$(DEV_COMPOSE_FILE)'
 
 run-dev: build
-	docker-compose -p oea-go-dev -f $(DEV_COMPOSE_FILE) down
-	docker-compose -p oea-go-dev -f $(DEV_COMPOSE_FILE) up -d --remove-orphans
-	docker-compose -p oea-go-dev -f $(DEV_COMPOSE_FILE) logs -f --tail=50
+	cd dev-docker && \
+	docker-compose -p oea-go-dev down && \
+	docker-compose -p oea-go-dev up -d --remove-orphans && \
+	docker-compose -p oea-go-dev logs -f --tail=50

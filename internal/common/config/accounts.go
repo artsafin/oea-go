@@ -1,6 +1,8 @@
-package common
+package config
 
-import "strings"
+import (
+	"strings"
+)
 
 type Email string
 type Username string
@@ -55,7 +57,7 @@ func newAccountsFromConfig(authAccounts string) Accounts {
 			accounts,
 			Account{
 				Email:            Email(strings.TrimSpace(accFields[0])),
-				ExternalUsername: Username(strings.TrimSpace(accFields[1])),
+				ExternalUsername: Username(strings.TrimLeft(strings.TrimSpace(accFields[1]), "@")),
 			},
 		)
 	}

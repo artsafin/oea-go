@@ -5,12 +5,11 @@ import (
 	"go.uber.org/zap"
 	"net/http"
 	"oea-go/internal/auth"
-	"oea-go/internal/common"
+	"oea-go/internal/common/config"
 	"oea-go/internal/employee"
 	"oea-go/internal/office"
 	"oea-go/internal/web"
 	"os"
-	"strings"
 )
 
 // Populated by -ldflags "-X main.AppVersion=..."
@@ -18,27 +17,22 @@ var AppVersion string
 
 func main() {
 	verbose := flag.Bool("v", false, "Be more verbose")
-	etcdAddr := flag.String("etcd", "", "Addresses of etcd cluster, separater by comma")
 	flag.Parse()
-	if *etcdAddr == "" {
-		flag.Usage()
-		os.Exit(1)
-	}
-	baseLogger, _ := zap.NewDevelopment()
+
+	baseLogger, _ := zap.NewDevelopment(zap.WithCaller(false))
 	logger := baseLogger.Sugar()
-	cfg := common.NewConfig(AppVersion, logger)
-	etcd := common.NewEtcdService(strings.Split(*etcdAddr, ","), logger)
-	configErr := common.FillConfigFromEtcd(&cfg, etcd, logger)
+	cfg := config.NewDefaultConfig(AppVersion)
+
+	configErr := cfg.LoadFromEnvAndValidate()
 	if configErr != nil {
-		logger.Fatalw("error loading config", "error", configErr)
-		os.Exit(1)
+		logger.Fatalf("error loading config: %v", configErr)
 	}
 
 	if *verbose {
 		cfg.DumpNonSecretParameters(os.Stdout)
 	}
 
-	officeHandler := office.NewHandler(&cfg, etcd, logger)
+	officeHandler := office.NewHandler(&cfg, logger)
 	employeesHandler := employee.NewHandler(&cfg, logger)
 	web.ListenAndServe(cfg, logger, func(router *web.Engine) {
 		if cfg.UseAuth {
@@ -49,7 +43,7 @@ func main() {
 			}
 			router.Use(authWare.MiddlewareFunc)
 
-			authHandler := auth.NewHandler(&cfg, router.CreatePartial("auth"), etcd, logger)
+			authHandler := auth.NewHandler(&cfg, router.CreatePartial("auth"), logger)
 			router.HandleFunc("/auth/success", authHandler.HandleSendSuccess)
 			//router.HandleFunc("/auth/set", authHandler.HandleTokenSet)
 			router.HandleFunc("/auth/set", authHandler.HandleBegin2FA)

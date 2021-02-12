@@ -5,9 +5,11 @@ import (
 	"github.com/badoux/checkmail"
 	"go.uber.org/zap"
 	"net/http"
+	"net/url"
 	"oea-go/internal/auth/authtoken"
 	"oea-go/internal/auth/twofa"
 	"oea-go/internal/common"
+	"oea-go/internal/common/config"
 	"oea-go/internal/web"
 	"strings"
 	"time"
@@ -28,17 +30,16 @@ func newAuthInfo(req *http.Request) common.AuthInfo {
 }
 
 func authErrorRedirect(resp http.ResponseWriter, err string) {
-	authErrorRedirect(resp, err)
+	web.HttpRedirect(resp, "/auth?err="+url.QueryEscape(err), http.StatusFound)
 }
 
-func NewHandler(cfg *common.Config, partial web.Partial, etcd *common.EtcdService, logger *zap.SugaredLogger) *Controller {
-	return &Controller{config: cfg, etcd: etcd, partial: partial, logger: logger}
+func NewHandler(cfg *config.Config, partial web.Partial, logger *zap.SugaredLogger) *Controller {
+	return &Controller{config: cfg, partial: partial, logger: logger}
 }
 
 type Controller struct {
-	config  *common.Config
+	config  *config.Config
 	partial web.Partial
-	etcd    *common.EtcdService
 	logger  *zap.SugaredLogger
 }
 
@@ -108,7 +109,7 @@ func (ctl Controller) HandleBegin2FA(resp http.ResponseWriter, req *http.Request
 		return
 	}
 
-	twoFa := twofa.NewTelegramTwoFactorAuth(ctl.etcd, ctl.config, ctl.logger)
+	twoFa := twofa.NewTelegramTwoFactorAuth(ctl.config, ctl.logger)
 
 	authResultChan := make(chan twofa.AuthResult)
 	twoFAErr := twoFa.Authenticate(authResultChan, *account, newAuthInfo(req))
@@ -245,10 +246,17 @@ func (ctl Controller) HandleAuthStart(resp http.ResponseWriter, req *http.Reques
 	queryString.Set("t", newToken.InsecureString())
 	link.RawQuery = queryString.Encode()
 
-	if err := sendMail(newAuthInfo(req), link, recipient, ctl.config); err != nil {
-		data.Error = err.Error()
-		ctl.partial.MustRenderWithData(resp, web.NewPartialData(data, req))
-		return
+	authInfo := newAuthInfo(req)
+
+	if ctl.config.IsEmailsEnabled() {
+		if err := sendMail(authInfo, link, recipient, ctl.config); err != nil {
+			data.Error = err.Error()
+			ctl.partial.MustRenderWithData(resp, web.NewPartialData(data, req))
+			return
+		}
+	} else {
+		// For debug
+		ctl.logger.Infow("Login", "link", link.String(), "authInfo", authInfo)
 	}
 
 	web.HttpRedirect(resp, "/auth/success", http.StatusSeeOther)

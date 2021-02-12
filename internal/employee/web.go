@@ -7,6 +7,7 @@ import (
 	"go.uber.org/zap"
 	"net/http"
 	"oea-go/internal/common"
+	"oea-go/internal/common/config"
 	"oea-go/internal/employee/dto"
 	"oea-go/internal/excel"
 	"time"
@@ -30,12 +31,12 @@ func (p Page) IsMonthSelected(mon dto.Month) bool {
 }
 
 type Handler struct {
-	config *common.Config
+	config *config.Config
 	client *Requests
 	logger *zap.SugaredLogger
 }
 
-func NewHandler(cfg *common.Config, logger *zap.SugaredLogger) *Handler {
+func NewHandler(cfg *config.Config, logger *zap.SugaredLogger) *Handler {
 	return &Handler{
 		config: cfg,
 		client: NewRequests(cfg.BaseUri, cfg.ApiTokenEm, cfg.DocIdEm),

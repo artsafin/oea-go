@@ -6,9 +6,11 @@ import (
 	"github.com/gorilla/mux"
 	"go.uber.org/zap"
 	"html/template"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"oea-go/internal/common"
+	"oea-go/internal/common/config"
 	empl "oea-go/internal/employee"
 	emplDto "oea-go/internal/employee/dto"
 	"oea-go/internal/excel"
@@ -142,13 +144,12 @@ type Page struct {
 }
 
 type handler struct {
-	config *common.Config
-	etcd   *common.EtcdService
+	config *config.Config
 	logger *zap.SugaredLogger
 }
 
-func NewHandler(cfg *common.Config, etcd *common.EtcdService, logger *zap.SugaredLogger) *handler {
-	return &handler{config: cfg, etcd: etcd, logger: logger}
+func NewHandler(cfg *config.Config, logger *zap.SugaredLogger) *handler {
+	return &handler{config: cfg, logger: logger}
 }
 
 func (h handler) Home(vars map[string]string, req *http.Request) interface{} {
@@ -181,16 +182,19 @@ func (h handler) DownloadInvoice(resp http.ResponseWriter, req *http.Request) {
 	resp.Header().Add("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
 	resp.Header().Add("Content-Disposition", fmt.Sprintf("attachment; filename=\"%s.xlsx\"", data.Invoice.Filename()))
 
-	var etcdConn *common.EtcdConnection
-	var err error
-	if etcdConn, err = h.etcd.ConnectAndPing(); err != nil {
-		panic(err)
+	templateSource, readErr := ioutil.ReadFile(h.config.FilesDir + "/invoice_template.xlsx")
+	if readErr != nil {
+		resp.Header().Del("Content-Type")
+		resp.Header().Del("Content-Disposition")
+		resp.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprint(resp, readErr)
+		return
 	}
-	defer etcdConn.Close()
-	templateSource := etcdConn.MustGetBytes("files/invoice_template.xlsx")
 
 	excelErr := excel.RenderInvoice(resp, templateSource, &data.Invoice)
+
 	if excelErr != nil {
+		resp.Header().Del("Content-Type")
 		resp.Header().Del("Content-Disposition")
 		resp.WriteHeader(http.StatusInternalServerError)
 		fmt.Fprint(resp, excelErr)
