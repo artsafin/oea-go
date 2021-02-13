@@ -1,13 +1,15 @@
 package auth
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/badoux/checkmail"
+	"github.com/pkg/errors"
 	"go.uber.org/zap"
 	"net/http"
 	"net/url"
 	"oea-go/internal/auth/authtoken"
-	"oea-go/internal/auth/twofa"
+	"oea-go/internal/auth/twofa/tg2fa"
 	"oea-go/internal/common"
 	"oea-go/internal/common/config"
 	"oea-go/internal/web"
@@ -21,7 +23,7 @@ const (
 
 var anonUrls = []string{
 	"/auth",
-	"/auth/success",
+	"/auth/sent",
 	"/auth/set",
 }
 
@@ -41,13 +43,6 @@ type Controller struct {
 	config  *config.Config
 	partial web.Partial
 	logger  *zap.SugaredLogger
-}
-
-type authControllerData struct {
-	ReturnUrl string
-	Error     string
-	PrevEmail string
-	IsSent    bool
 }
 
 func newAuthCookie(value string, cookieDomain string, expiration time.Time) *http.Cookie {
@@ -76,79 +71,99 @@ func sanitizeReturnUrl(returnUrl string) string {
 	return returnUrl
 }
 
-func (ctl Controller) HandleSendSuccess(resp http.ResponseWriter, req *http.Request) {
-	ctl.partial.MustRenderWithData(resp, web.NewPartialData(authControllerData{IsSent: true}, req))
+func (ctl Controller) HandleFirstFactorSendSuccess(resp http.ResponseWriter, req *http.Request) {
+	ctl.partial.MustRenderWithData(resp, web.NewPartialData(authControllerData{}.WithFirstFactor(), req))
 }
 
-func (ctl Controller) HandleBegin2FA(resp http.ResponseWriter, req *http.Request) {
-	logger := common.NewRequestLogger(req, ctl.logger)
-
-	returnUrl := sanitizeReturnUrl(req.URL.Query().Get("return"))
+func extractAccountFromJWT(req *http.Request, config *config.Config) (account *config.Account, token *authtoken.Token, err error) {
 	tokenSource := req.URL.Query().Get("t")
 
-	token, logErr := authtoken.CreateFromSourceAndValidate(ctl.config.AppVersion, ctl.config.SecretKey, tokenSource)
-	if logErr != nil {
-		logger.Errorf("HandleBegin2FA: token parse error: %v", logErr)
-		authErrorRedirect(resp, "incorrect login link")
-
-		return
+	token, err = authtoken.CreateFromSourceAndValidate(config.AppVersion, config.SecretKey, tokenSource)
+	if err != nil {
+		return nil, nil, errors.Wrap(err, "HandleBeginSecondFactor: token parse error")
 	}
 
-	email, tokenEmailErr := token.Email()
-	if tokenEmailErr != nil {
-		logger.Errorf("HandleBegin2FA: email retrieve: %v", tokenEmailErr)
-		authErrorRedirect(resp, "incorrect login link")
-
-		return
+	email, err := token.Email()
+	if err != nil {
+		return nil, nil, errors.Wrap(err, "HandleBeginSecondFactor: email retrieve")
 	}
-	account := ctl.config.Accounts.Get(email)
+	account = config.Accounts.Get(email)
 	if account == nil {
-		logger.Errorf("HandleBegin2FA: account not found")
-		authErrorRedirect(resp, "incorrect login link")
+		return nil, nil, errors.New("HandleBeginSecondFactor: account not found")
+	}
 
+	return account, token, nil
+}
+
+func (ctl Controller) HandleBeginSecondFactor(resp http.ResponseWriter, req *http.Request) {
+	logger := common.NewRequestLogger(req, ctl.logger)
+
+	account, token, accountFetchErr := extractAccountFromJWT(req, ctl.config)
+	if accountFetchErr != nil {
+		logger.Errorf("HandleBeginSecondFactor: %v", accountFetchErr)
+		authErrorRedirect(resp, "incorrect login link")
 		return
 	}
 
-	twoFa := twofa.NewTelegramTwoFactorAuth(ctl.config, ctl.logger)
-
-	authResultChan := make(chan twofa.AuthResult)
-	twoFAErr := twoFa.Authenticate(authResultChan, *account, newAuthInfo(req))
+	twoFa := tg2fa.NewTelegramTwoFactorAuth(ctl.config, ctl.logger)
+	isNewSession, twoFAErr := twoFa.StartAuthFlow(*account, newAuthInfo(req))
 	if twoFAErr != nil {
-		logger.Errorf("HandleBegin2FA: Authenticate: %v", twoFAErr)
+		logger.Errorf("HandleBeginSecondFactor: StartAuthFlow: %v", twoFAErr)
 		authErrorRedirect(resp, "cannot initialize 2fa")
 		return
 	}
 
-	timeoutChan := time.After(time.Minute * 10)
+	data := newAuthControllerDataFromRequest(req)
+	ctl.partial.MustRenderWithData(resp, web.NewPartialData(data.WithSecondFactor(isNewSession, token), req))
+}
 
+func (ctl Controller) HandleCheckSecondFactor(resp http.ResponseWriter, req *http.Request) {
+	logger := common.NewRequestLogger(req, ctl.logger)
+
+	respondWithError := func(err error, repeatRequest bool) {
+		resp.WriteHeader(http.StatusBadRequest)
+		if err := json.NewEncoder(resp).Encode(authTwoFactorAuthResult{Error: err.Error(), Repeat: repeatRequest}); err != nil {
+			logger.Errorf("response error: %v", err)
+		}
+	}
+
+	account, token, accountFetchErr := extractAccountFromJWT(req, ctl.config)
+	if accountFetchErr != nil {
+		logger.Errorf("HandleCheckSecondFactor: %v", accountFetchErr)
+		respondWithError(accountFetchErr, false)
+		return
+	}
+
+	twoFa := tg2fa.NewTelegramTwoFactorAuth(ctl.config, ctl.logger)
+	sess, sessErr := twoFa.GetSession(*account)
+	if sessErr != nil {
+		logger.Errorf("HandleCheckSecondFactor: GetSession: %v", sessErr)
+		respondWithError(accountFetchErr, false)
+		return
+	}
+
+	timeout := time.After(time.Second * 5)
 	select {
-	case authRes, authChanOpen := <-authResultChan:
-		if !authChanOpen {
-			logger.Errorf("HandleBegin2FA: 2fa channel closed")
-			authErrorRedirect(resp, "2fa error")
-			return
-		}
+	case <-timeout:
+		respondWithError(errors.New("timeout"), true)
+		return
+	case authRes := <-sess.ResultChan():
 		if authRes.Err != nil {
-			logger.Errorf("HandleBegin2FA: 2fa error %v", authRes.Err)
-			authErrorRedirect(resp, "2fa error")
+			respondWithError(authRes.Err, false)
 			return
 		}
-
 		newToken, newTokenErr := authtoken.GenerateTokenSecondFactor(token, authRes.Fingerprint, ctl.config.SecretKey)
 
 		if newTokenErr != nil {
-			logger.Errorf("HandleBegin2FA: GenerateTokenSecondFactor: %v", newTokenErr)
-			authErrorRedirect(resp, "2fa error")
+			logger.Errorf("HandleCheckSecondFactor: GenerateTokenSecondFactor: %v", newTokenErr)
+			respondWithError(newTokenErr, false)
 			return
 		}
 
-		authCookie := newAuthCookie(newToken.InsecureString(), req.Host, token.ExpiresAt())
-		logger.Errorf("Token set: auth cookie set: %v", authCookie)
-		http.SetCookie(resp, authCookie)
-		web.HttpRedirect(resp, returnUrl, http.StatusFound)
-	case <-timeoutChan:
-		logger.Errorf("HandleBegin2FA: timeout waiting for auth result")
-		authErrorRedirect(resp, "2fa timeout")
+		resp.WriteHeader(http.StatusOK)
+		if err := json.NewEncoder(resp).Encode(authTwoFactorAuthResult{Token: newToken.InsecureString()}); err != nil {
+			logger.Errorf("response error: %v", err)
+		}
 	}
 }
 
@@ -197,10 +212,7 @@ func (ctl Controller) HandleLogout(resp http.ResponseWriter, req *http.Request) 
 }
 
 func (ctl Controller) HandleAuthStart(resp http.ResponseWriter, req *http.Request) {
-	data := authControllerData{
-		ReturnUrl: sanitizeReturnUrl(req.URL.Query().Get("return")),
-		Error:     req.URL.Query().Get("err"),
-	}
+	data := newAuthControllerDataFromRequest(req)
 
 	if req.Method == http.MethodGet {
 		ctl.partial.MustRenderWithData(resp, web.NewPartialData(data, req))
@@ -211,27 +223,28 @@ func (ctl Controller) HandleAuthStart(resp http.ResponseWriter, req *http.Reques
 	data.PrevEmail = recipient
 
 	if !ctl.config.IsAuthAllowed(recipient) {
-		data.Error = "specified email is not permitted"
-		ctl.partial.MustRenderWithData(resp, web.NewPartialData(data, req))
+		ctl.partial.MustRenderWithData(resp, web.NewPartialData(data.WithError("specified email is not permitted"), req))
 		return
 	}
 
 	if emailValidErr := checkmail.ValidateFormat(recipient); emailValidErr != nil {
-		data.Error = fmt.Sprintf("submitted email is incorrect: %s", emailValidErr)
-		ctl.partial.MustRenderWithData(resp, web.NewPartialData(data, req))
+		ctl.partial.MustRenderWithData(resp, web.NewPartialData(data.WithError(fmt.Sprintf("submitted email is incorrect: %s", emailValidErr)), req))
 		return
 	}
 	if emailValidErr := checkmail.ValidateHost(recipient); emailValidErr != nil {
-		data.Error = fmt.Sprintf("submitted email is incorrect: %s", emailValidErr)
-		ctl.partial.MustRenderWithData(resp, web.NewPartialData(data, req))
+		ctl.partial.MustRenderWithData(resp, web.NewPartialData(data.WithError(fmt.Sprintf("submitted email is incorrect: %s", emailValidErr)), req))
 		return
 	}
 
-	newToken, tokErr := authtoken.GenerateTokenFirstFactor(ctl.config.AppVersion, recipient, ctl.config.SecretKey)
+	newToken, tokErr := authtoken.GenerateTokenFirstFactor(
+		ctl.config.AppVersion,
+		recipient,
+		ctl.config.SecretKey,
+		sanitizeReturnUrl(req.URL.Query().Get("return")),
+	)
 
 	if tokErr != nil {
-		data.Error = fmt.Sprintf("error generating token: %v", tokErr)
-		ctl.partial.MustRenderWithData(resp, web.NewPartialData(data, req))
+		ctl.partial.MustRenderWithData(resp, web.NewPartialData(data.WithError(fmt.Sprintf("error generating token: %v", tokErr)), req))
 		return
 	}
 
@@ -244,14 +257,14 @@ func (ctl Controller) HandleAuthStart(resp http.ResponseWriter, req *http.Reques
 	link.Path = "/auth/set"
 	queryString := link.Query()
 	queryString.Set("t", newToken.InsecureString())
+	queryString.Del("return")
 	link.RawQuery = queryString.Encode()
 
 	authInfo := newAuthInfo(req)
 
 	if ctl.config.IsEmailsEnabled() {
 		if err := sendMail(authInfo, link, recipient, ctl.config); err != nil {
-			data.Error = err.Error()
-			ctl.partial.MustRenderWithData(resp, web.NewPartialData(data, req))
+			ctl.partial.MustRenderWithData(resp, web.NewPartialData(data.WithError(err.Error()), req))
 			return
 		}
 	} else {
@@ -259,5 +272,5 @@ func (ctl Controller) HandleAuthStart(resp http.ResponseWriter, req *http.Reques
 		ctl.logger.Infow("Login", "link", link.String(), "authInfo", authInfo)
 	}
 
-	web.HttpRedirect(resp, "/auth/success", http.StatusSeeOther)
+	web.HttpRedirect(resp, "/auth/sent", http.StatusSeeOther)
 }

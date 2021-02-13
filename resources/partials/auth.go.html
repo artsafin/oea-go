@@ -1,29 +1,57 @@
 {{ define "title"}}Auth{{end}}
 {{ define "sidebar"}}{{end}}
 {{ define "content"}}
-    {{ if .Page.Error }}
+    {{ if .Page.IsNew }}
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-sm-6">
+                <form method="POST" autocomplete="on">
+                    <label for="email">Email:</label>
+                    <div class="input-group mb-3">
+                        <input type="email" autocomplete="on" class="form-control" id="email" name="email" value="{{ .Page.PrevEmail }}" >
+                    </div>
+                    <input type="hidden" name="return" value="{{ .Page.ReturnUrl }}" />
+                    <button type="submit" class="btn btn-primary">Send auth link</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    {{ end }}
+    {{ if .Page.IsError }}
         <div class="alert alert-danger" role="alert">
             Authentication failed: {{ .Page.Error }}
         </div>
     {{ end }}
-    {{ if .Page.IsSent }}
+    {{ if .Page.IsFirstFactorSent }}
         <div class="alert alert-success" role="alert">
             The email has been sent with the further instructions
         </div>
-    {{ else }}
-        <div class="container-fluid">
-            <div class="row">
-                <div class="col-sm-6">
-                    <form method="POST" autocomplete="on">
-                        <label for="email">Email:</label>
-                        <div class="input-group mb-3">
-                            <input type="email" autocomplete="on" class="form-control" id="email" name="email" value="{{ .Page.PrevEmail }}" >
-                        </div>
-                        <input type="hidden" name="returnUrl" value="{{ .Page.ReturnUrl }}" />
-                        <button type="submit" class="btn btn-primary">Send auth link</button>
-                    </form>
-                </div>
-            </div>
+    {{ end }}
+    {{ if .Page.IsSecondFactorNewSession }}
+        <div class="alert alert-success" role="alert">
+            <p>This service uses a two-factor authentication in Telegram.</p>
+            <ol>
+                <li>Please open <a href="https://t.me/oea_auth_bot">OEA Auth Bot</a> in Telegram</li>
+                <li>Press <code>Start</code> button or send a <code>/start</code> command</li>
+                <li>Press 🔑 Allow button</li>
+            </ol>
         </div>
+    {{ end }}
+    {{ if .Page.IsSecondFactorCached }}
+        <div class="alert alert-success" role="alert">
+            <p>This service uses a two-factor authentication in Telegram.</p>
+            <ol>
+                <li><a href="https://t.me/oea_auth_bot">OEA Auth Bot</a> has sent you a message</li>
+                <li>Press 🔑 Allow button</li>
+            </ol>
+        </div>
+    {{ end }}
+
+    {{ if .Page.IsSecondFactor }}
+        <script type="application/javascript">
+            window.setTimeout(function(){
+
+            }, 800)
+        </script>
     {{ end }}
 {{end}}

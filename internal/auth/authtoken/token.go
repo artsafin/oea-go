@@ -34,6 +34,7 @@ func newValidator(appVersion string) *jwt.Validator {
 type JwtClaims struct {
 	jwt.StandardClaims
 
+	ReturnUrl                string `json:"ret,omitempty"`
 	Version                  string `json:"ver,omitempty"`
 	TwoFactorAuthFingerprint string `json:"tff,omitempty"`
 }
@@ -75,12 +76,13 @@ func FromSource(appVersion string, authKey []byte, source string) (*Token, error
 	}, nil
 }
 
-func GenerateTokenFirstFactor(appVersion string, audience string, authKey []byte) (*jwt.Token, error) {
+func GenerateTokenFirstFactor(appVersion string, audience string, authKey []byte, returnUrl string) (*jwt.Token, error) {
 	return buildToken(
 		appVersion,
 		audience,
 		authKey,
 		time.Now().Add(time.Hour*1).Unix(),
+		returnUrl,
 		"",
 	)
 }
@@ -96,11 +98,12 @@ func GenerateTokenSecondFactor(firstFactorToken *Token, secondFactorFingerprint 
 		audience,
 		authKey,
 		firstFactorToken.ExpiresAt().Unix(),
+		firstFactorToken.Claims.ReturnUrl,
 		secondFactorFingerprint,
 	)
 }
 
-func buildToken(appVersion string, audience string, authKey []byte, expiresAtTs int64, fingerprint string) (*jwt.Token, error) {
+func buildToken(appVersion string, audience string, authKey []byte, expiresAtTs int64, returnUrl string, fingerprint string) (*jwt.Token, error) {
 	signer := newJwtSigner(authKey)
 
 	claims := JwtClaims{
@@ -110,6 +113,7 @@ func buildToken(appVersion string, audience string, authKey []byte, expiresAtTs 
 			ExpiresAt: jwt.Timestamp(expiresAtTs),
 			Audience:  []string{audience},
 		},
+		ReturnUrl:                returnUrl,
 		Version:                  appVersion,
 		TwoFactorAuthFingerprint: fingerprint,
 	}

@@ -12,6 +12,10 @@ type Account struct {
 	ExternalUsername Username
 }
 
+func (a Account) String() string {
+	return string(a.Email)
+}
+
 type Accounts []Account
 
 func (a Accounts) HasEmail(email string) bool {
@@ -30,7 +34,7 @@ func (a Accounts) Get(email string) *Account {
 func (a Accounts) String() string {
 	emails := make([]string, 0, len(a))
 	for _, acc := range a {
-		emails = append(emails, string(acc.Email))
+		emails = append(emails, acc.String())
 	}
 
 	return "Accounts{" + strings.Join(emails, ", ") + "}"

@@ -5,11 +5,16 @@ import (
 	"oea-go/internal/common/config"
 )
 
-type AuthResult struct {
+type Flow interface {
+	StartAuthFlow(account config.Account, info common.AuthInfo) (isNewSession bool, err error)
+	GetSession(account config.Account) (session Session, err error)
+}
+
+type Result struct {
 	Err         error
 	Fingerprint string
 }
 
-type TwoFactorAuthRoutine interface {
-	Authenticate(authResult chan AuthResult, account config.Account, info common.AuthInfo) error
+type Session interface {
+	ResultChan() <-chan Result
 }

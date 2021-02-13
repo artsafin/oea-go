@@ -44,9 +44,10 @@ func main() {
 			router.Use(authWare.MiddlewareFunc)
 
 			authHandler := auth.NewHandler(&cfg, router.CreatePartial("auth"), logger)
-			router.HandleFunc("/auth/success", authHandler.HandleSendSuccess)
+			router.HandleFunc("/auth/sent", authHandler.HandleFirstFactorSendSuccess)
 			//router.HandleFunc("/auth/set", authHandler.HandleTokenSet)
-			router.HandleFunc("/auth/set", authHandler.HandleBegin2FA)
+			router.HandleFunc("/auth/twofa", authHandler.HandleCheckSecondFactor)
+			router.HandleFunc("/auth/set", authHandler.HandleBeginSecondFactor)
 			router.HandleFunc("/auth/logout", authHandler.HandleLogout).Methods(http.MethodPost).Name("Logout")
 			router.HandleFunc("/auth", authHandler.HandleAuthStart)
 		}
