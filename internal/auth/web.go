@@ -114,7 +114,8 @@ func (ctl Controller) HandleBeginSecondFactor(resp http.ResponseWriter, req *htt
 	}
 
 	data := newAuthControllerDataFromRequest(req)
-	ctl.partial.MustRenderWithData(resp, web.NewPartialData(data.WithSecondFactor(isNewSession, token), req))
+	partialData := data.WithSecondFactor(isNewSession, token.Source, token.ExpiresAt())
+	ctl.partial.MustRenderWithData(resp, web.NewPartialData(partialData, req))
 }
 
 func (ctl Controller) HandleCheckSecondFactor(resp http.ResponseWriter, req *http.Request) {

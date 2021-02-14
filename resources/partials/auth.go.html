@@ -49,6 +49,8 @@
 
     {{ if .Page.IsSecondFactor }}
         <script type="application/javascript">
+            console.log("Token2FA", {{ .Page.Token2FA | js }});
+            console.log("Token2FA ts", {{ .Page.Token2FAExp | js }});
             window.setTimeout(function(){
 
             }, 800)

@@ -18,7 +18,7 @@ ADD . /app
 WORKDIR /app
 
 RUN go-bindata -o "internal/common/bindata.go" -pkg "common" resources/ resources/partials/ && \
-    go build -race -ldflags "-X main.AppVersion=$VERSION" -o "/tmp/oea-go" . && \
+    go build -ldflags "-X main.AppVersion=$VERSION" -o "/tmp/oea-go" . && \
     chmod a+x /tmp/oea-go
 
 

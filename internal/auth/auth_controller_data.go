@@ -2,7 +2,7 @@ package auth
 
 import (
 	"net/http"
-	"oea-go/internal/auth/authtoken"
+	"time"
 )
 
 type Status uint8
@@ -16,11 +16,12 @@ const (
 )
 
 type authControllerData struct {
-	ReturnUrl string
-	Error     string
-	PrevEmail string
-	Status    Status
-	Token     string
+	ReturnUrl   string
+	Error       string
+	PrevEmail   string
+	Status      Status
+	Token2FA    string
+	Token2FAExp int64
 }
 
 func (d authControllerData) IsNew() bool {
@@ -79,7 +80,7 @@ func (d authControllerData) WithFirstFactor() authControllerData {
 	}
 }
 
-func (d authControllerData) WithSecondFactor(isNewSession bool, token *authtoken.Token) authControllerData {
+func (d authControllerData) WithSecondFactor(isNewSession bool, token string, tokenExp time.Time) authControllerData {
 	status := StatusSecondFactorNewSession
 
 	if !isNewSession {
@@ -87,10 +88,11 @@ func (d authControllerData) WithSecondFactor(isNewSession bool, token *authtoken
 	}
 
 	return authControllerData{
-		ReturnUrl: d.ReturnUrl,
-		Error:     "",
-		PrevEmail: d.PrevEmail,
-		Status:    status,
-		Token:     token.String(),
+		ReturnUrl:   d.ReturnUrl,
+		Error:       "",
+		PrevEmail:   d.PrevEmail,
+		Status:      status,
+		Token2FA:    token,
+		Token2FAExp: tokenExp.Unix(),
 	}
 }

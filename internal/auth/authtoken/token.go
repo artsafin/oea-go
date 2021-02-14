@@ -46,6 +46,7 @@ func (c JwtClaims) MarshalBinary() (data []byte, err error) {
 type Token struct {
 	Claims    JwtClaims
 	validator *jwt.Validator
+	Source    string
 }
 
 func (tok *Token) String() string {
@@ -71,6 +72,7 @@ func FromSource(appVersion string, authKey []byte, source string) (*Token, error
 	}
 
 	return &Token{
+		Source:    source,
 		Claims:    *claims,
 		validator: newValidator(appVersion),
 	}, nil

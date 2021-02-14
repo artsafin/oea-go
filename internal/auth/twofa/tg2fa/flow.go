@@ -40,7 +40,7 @@ func (a *telegramFlow) StartAuthFlow(account config.Account, info common.AuthInf
 		a.logger.Warnf("auth flow: obtainChatIdFromCache: %v", err)
 	}
 
-	go sess.flow(chatID)
+	go sess.Flow(chatID)
 
 	return chatID == 0, nil
 }

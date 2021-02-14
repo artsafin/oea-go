@@ -10,24 +10,22 @@ import (
 type accountChannel chan config.Account
 
 type botServer struct {
-	token            string
-	bot              *tgbotapi.BotAPI
-	updChan          tgbotapi.UpdatesChannel
-	sessions         map[config.Username]*authSession
-	unregisteredChan accountChannel
-	shutdownChan     chan bool
-	mut              sync.Mutex
-	logger           *zap.SugaredLogger
+	unregisterChan accountChannel
+	shutdownChan   chan bool
+
+	token    string
+	bot      *tgbotapi.BotAPI
+	updChan  tgbotapi.UpdatesChannel
+	sessions map[config.Username]*authSession
+	mut      sync.Mutex
+	logger   *zap.SugaredLogger
 }
 
 func newBotServer(token string, logger *zap.SugaredLogger) *botServer {
 	return &botServer{
-		bot:          nil,
-		updChan:      nil,
-		token:        token,
-		sessions:     make(map[config.Username]*authSession),
-		logger:       logger,
-		shutdownChan: make(chan bool),
+		token:    token,
+		sessions: make(map[config.Username]*authSession),
+		logger:   logger,
 	}
 }
 
@@ -36,7 +34,7 @@ func (b *botServer) resurrect() (*tgbotapi.BotAPI, error) {
 	defer b.logger.Infof("resurrect: finish")
 
 	if b.updChan != nil {
-		b.logger.Infof("\t↳resurrect: botsrv is alive, no need for resurrection")
+		b.logger.Infof("resurrect: botsrv is alive, no need for resurrection")
 		return b.bot, nil
 	}
 
@@ -58,7 +56,8 @@ func (b *botServer) resurrect() (*tgbotapi.BotAPI, error) {
 		b.bot = nil
 		return nil, err
 	}
-	b.unregisteredChan = make(accountChannel)
+	b.shutdownChan = make(chan bool)
+	b.unregisterChan = make(accountChannel)
 
 	go b.CleanupExpiredSessions()
 	go b.ListenUpdates()
@@ -72,17 +71,15 @@ func (b *botServer) CleanupExpiredSessions() {
 
 	for {
 		select {
-		case expiredAcc := <-b.unregisteredChan:
-			b.unregisterSession(expiredAcc)
+		case unregAcc := <-b.unregisterChan:
+			b.logger.Infof("cleanup: start check for %v", unregAcc)
+			b.unregisterSession(unregAcc)
 
-			b.mut.Lock()
-			if len(b.sessions) == 0 {
-				b.logger.Infof("cleanup: no active sessions left, stopping botsrv")
-				b.stop()
-				b.mut.Unlock()
+			wasShutDown := b.checkIfNeedToShutdown()
+
+			if wasShutDown {
 				return
 			}
-			b.mut.Unlock()
 		}
 	}
 }
@@ -105,36 +102,52 @@ func (b *botServer) ListenUpdates() {
 				continue
 			}
 
-			b.mut.Lock()
-
-			sess, sessFound := b.sessions[userName]
-			if !sessFound {
-				continue
-			}
-
-			userReply := userReplyMeta{
-				chatID:   update.Message.Chat.ID,
-				userID:   update.Message.From.ID,
-				username: userName,
-			}
-
-			switch {
-			case update.Message.Text == startText:
-				sess.startChan <- userReply
-			case update.Message.Text == allowText:
-				sess.allowButtonChan <- userReply
-			case update.Message.Text == denyText:
-				sess.declineButtonChan <- userReply
-			}
-
-			b.mut.Unlock()
+			b.processUpdateForUsername(update.Message, userName)
 		}
 	}
 }
 
-func (b *botServer) stop() {
-	b.logger.Infof("stop: stopping botsrv")
-	defer b.logger.Infof("stop: stopped botsrv")
+func (b *botServer) processUpdateForUsername(msg *tgbotapi.Message, userName config.Username) {
+	b.mut.Lock()
+	defer b.mut.Unlock()
+
+	sess, sessFound := b.sessions[userName]
+	if !sessFound {
+		return
+	}
+
+	if !sess.isMessageAcceptable(msg) {
+		b.logger.Infof("Skipping past message %v", msg.MessageID)
+		return
+	}
+
+	userReply := userReplyMeta{
+		chatID:   msg.Chat.ID,
+		userID:   msg.From.ID,
+		username: userName,
+	}
+
+	switch {
+	case msg.Text == startText:
+		sess.startChan <- userReply
+	case msg.Text == allowText:
+		sess.allowButtonChan <- userReply
+	case msg.Text == denyText:
+		sess.declineButtonChan <- userReply
+	}
+}
+
+func (b *botServer) checkIfNeedToShutdown() bool {
+	b.mut.Lock()
+	defer b.mut.Unlock()
+
+	if len(b.sessions) != 0 {
+		b.logger.Debugf("shutdown: %v session(s) still active, not stopping", len(b.sessions))
+		return false
+	}
+
+	b.logger.Infof("shutdown: no active sessions left, stopping botsrv")
+	defer b.logger.Infof("shutdown: stopped botsrv")
 
 	b.shutdownChan <- true
 	b.bot.StopReceivingUpdates()
@@ -142,14 +155,20 @@ func (b *botServer) stop() {
 	b.bot.Client.CloseIdleConnections()
 	b.bot = nil
 	b.updChan = nil
-	close(b.unregisteredChan)
+	close(b.unregisterChan)
+	close(b.shutdownChan)
+
+	return true
 }
 
 func (b *botServer) registerSession(sess *authSession) error {
 	b.mut.Lock()
 	defer b.mut.Unlock()
 
-	go sess.expireAfterTimeout(b.unregisteredChan)
+	b.logger.Debugf("registerSession: start after lock!")
+	defer b.logger.Debugf("registerSession: finish")
+
+	go sess.WaitForShutdown(b.unregisterChan)
 
 	b.sessions[sess.account.ExternalUsername] = sess
 
@@ -163,10 +182,14 @@ func (b *botServer) unregisterSession(expiredAcc config.Account) {
 	b.logger.Infof("unregister: %+v has expired, cleaning up...", expiredAcc)
 
 	u := expiredAcc.ExternalUsername
-	_, found := b.sessions[u]
+	sess, found := b.sessions[u]
 	if !found {
 		b.logger.Infof("unregister: %v not found in sessions", expiredAcc.ExternalUsername)
 		return
 	}
+
+	sess.Close()
+
 	delete(b.sessions, u)
+	b.logger.Debugf("unregister: %+v cleanup finish", expiredAcc)
 }
