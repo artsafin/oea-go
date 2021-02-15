@@ -189,7 +189,7 @@ func (s *authSession) sendPrompt(info common.AuthInfo) (message tgbotapi.Message
 func (s *authSession) sendBotReply(replyTo tgbotapi.Message, err string) error {
 	msgConfig := tgbotapi.NewMessage(s.chatID, err)
 	msgConfig.ReplyToMessageID = replyTo.MessageID
-	msgConfig.ReplyMarkup = tgbotapi.NewHideKeyboard(true)
+	msgConfig.ReplyMarkup = tgbotapi.NewRemoveKeyboard(true)
 
 	_, sendErr := s.bot.Send(msgConfig)
 

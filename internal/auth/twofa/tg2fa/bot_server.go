@@ -108,16 +108,20 @@ func (b *botServer) ListenUpdates() {
 }
 
 func (b *botServer) processUpdateForUsername(msg *tgbotapi.Message, userName config.Username) {
+	b.logger.Debugf("update: processing update %v", userName)
+	defer b.logger.Debugf("update: finished processing update %v", userName)
+
 	b.mut.Lock()
 	defer b.mut.Unlock()
 
 	sess, sessFound := b.sessions[userName]
 	if !sessFound {
+		b.logger.Debugf("update: no session for %v", userName)
 		return
 	}
 
 	if !sess.isMessageAcceptable(msg) {
-		b.logger.Infof("Skipping past message %v", msg.MessageID)
+		b.logger.Debugf("update: skipping past message %v for %v", msg.MessageID, userName)
 		return
 	}
 
