@@ -22,6 +22,7 @@ type authControllerData struct {
 	Status      Status
 	Token2FA    string
 	Token2FAExp int64
+	CheckUrl    string
 }
 
 func (d authControllerData) IsNew() bool {

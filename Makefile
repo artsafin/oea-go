@@ -19,6 +19,6 @@ dev-env:
 
 run-dev: build
 	cd dev-docker && \
-	docker-compose -p oea-go-dev down && \
+	docker-compose -p oea-go-dev down -v && \
 	docker-compose -p oea-go-dev up -d --remove-orphans && \
 	docker-compose -p oea-go-dev logs -f --tail=50

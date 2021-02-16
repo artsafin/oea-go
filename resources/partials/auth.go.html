@@ -27,33 +27,105 @@
             The email has been sent with the further instructions
         </div>
     {{ end }}
-    {{ if .Page.IsSecondFactorNewSession }}
+
+    {{ if .Page.IsSecondFactor }}
+        <div id="error" class="alert alert-danger" role="alert" style="display: none"></div>
+
         <div class="alert alert-success" role="alert">
             <p>This service uses a two-factor authentication in Telegram.</p>
+            {{ if .Page.IsSecondFactorCached }}
             <ol>
-                <li>Please open <a href="https://t.me/oea_auth_bot">OEA Auth Bot</a> in Telegram</li>
+                <li><a href="https://t.me/oea_auth_bot" target="_blank">OEA Auth Bot</a> has sent you a message</li>
+                <li>Press 🔑 Allow button</li>
+            </ol>
+            {{ end }}
+            {{ if .Page.IsSecondFactorNewSession }}
+            <ol>
+                <li>Please open <a href="https://t.me/oea_auth_bot?start">OEA Auth Bot</a> in Telegram</li>
                 <li>Press <code>Start</code> button or send a <code>/start</code> command</li>
                 <li>Press 🔑 Allow button</li>
             </ol>
-        </div>
-    {{ end }}
-    {{ if .Page.IsSecondFactorCached }}
-        <div class="alert alert-success" role="alert">
-            <p>This service uses a two-factor authentication in Telegram.</p>
-            <ol>
-                <li><a href="https://t.me/oea_auth_bot">OEA Auth Bot</a> has sent you a message</li>
-                <li>Press 🔑 Allow button</li>
-            </ol>
-        </div>
-    {{ end }}
+            {{ end }}
 
-    {{ if .Page.IsSecondFactor }}
+            <p>Session expires in:
+                <span class="badge bg-primary" style="color: white">
+                    <span id="hour">--</span>:<span id="minute">--</span>
+                </span>
+            </p>
+        </div>
         <script type="application/javascript">
-            console.log("Token2FA", {{ .Page.Token2FA | js }});
-            console.log("Token2FA ts", {{ .Page.Token2FAExp | js }});
-            window.setTimeout(function(){
+            const token = {{ .Page.Token2FA | js }};
+            const tokenExpTs = parseInt({{ .Page.Token2FAExp | js }});
+            const url = {{ .Page.CheckUrl | js }};
 
-            }, 800)
+            const setCounter = (diffSec) => {
+                diffSec = Math.max(0, diffSec);
+                const m = Math.floor(diffSec/60);
+                const s = diffSec - m * 60;
+
+                document.getElementById("hour").innerHTML = String(100+m).substr(-2, 2)
+                document.getElementById("minute").innerHTML = String(100+s).substr(-2, 2)
+            }
+
+            const setError = (err) => {
+                const errEl = document.getElementById("error");
+
+                if (err) {
+                    errEl.style.display = "block";
+                    errEl.innerHTML = "Error: " + err;
+                } else {
+                    errEl.style.display = "none";
+                    errEl.innerHTML = "";
+                }
+            }
+
+            console.log("Token2FA", token, tokenExpTs, url);
+            const interval = window.setInterval(function(){
+                const diffSec = tokenExpTs - Math.floor(new Date().getTime()/1000);
+
+                setCounter(diffSec);
+
+                if (diffSec <= -2) {
+                    clearInterval(interval);
+                    return;
+                }
+
+                fetch(url, {
+                    method: "POST",
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token,
+                    },
+                }).then(response => {
+                    if (response.status >= 500) {
+                        throw new Error('response was not ok');
+                    }
+                    return response.json()
+                }).then(result => {
+                    // repeat error token
+
+                    setError(null);
+
+                    if (!result.repeat || !result.error) {
+                        clearInterval(interval);
+                    }
+
+                    if (result.error) {
+                        if (!result.repeat) {
+                            setError(result.error);
+                        }
+                        return;
+                    }
+
+                    const ret = result.return || '/';
+
+                    console.log('result token', ret, result.token.substring(0, 10) + '...');
+                    document.cookie = "a="+result.token+"; SameSite=Strict; path=/";
+                    document.location.href = ret;
+                }).catch(error => {
+                    console.error('There has been a problem with a fetch operation:', error);
+                });
+            }, 1000);
         </script>
     {{ end }}
 {{end}}

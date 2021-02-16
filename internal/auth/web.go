@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/badoux/checkmail"
+	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 	"net/http"
@@ -25,6 +26,7 @@ var anonUrls = []string{
 	"/auth",
 	"/auth/sent",
 	"/auth/set",
+	"/auth/twofa",
 }
 
 func newAuthInfo(req *http.Request) common.AuthInfo {
@@ -35,14 +37,20 @@ func authErrorRedirect(resp http.ResponseWriter, err string) {
 	web.HttpRedirect(resp, "/auth?err="+url.QueryEscape(err), http.StatusFound)
 }
 
-func NewHandler(cfg *config.Config, partial web.Partial, logger *zap.SugaredLogger) *Controller {
-	return &Controller{config: cfg, partial: partial, logger: logger}
+func NewHandler(cfg *config.Config, partial web.Partial, logger *zap.SugaredLogger, router *mux.Router) *Controller {
+	return &Controller{
+		config:  cfg,
+		partial: partial,
+		logger:  logger,
+		router:  router,
+	}
 }
 
 type Controller struct {
 	config  *config.Config
 	partial web.Partial
 	logger  *zap.SugaredLogger
+	router  *mux.Router
 }
 
 func newAuthCookie(value string, cookieDomain string, expiration time.Time) *http.Cookie {
@@ -78,6 +86,10 @@ func (ctl Controller) HandleFirstFactorSendSuccess(resp http.ResponseWriter, req
 func extractAccountFromJWT(req *http.Request, config *config.Config) (account *config.Account, token *authtoken.Token, err error) {
 	tokenSource := req.URL.Query().Get("t")
 
+	if tokenSource == "" {
+		tokenSource = strings.Replace(req.Header.Get("Authorization"), "Bearer ", "", 1)
+	}
+
 	token, err = authtoken.CreateFromSourceAndValidate(config.AppVersion, config.SecretKey, tokenSource)
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "HandleBeginSecondFactor: token parse error")
@@ -106,7 +118,7 @@ func (ctl Controller) HandleBeginSecondFactor(resp http.ResponseWriter, req *htt
 	}
 
 	twoFa := tg2fa.NewTelegramTwoFactorAuth(ctl.config, ctl.logger)
-	isNewSession, twoFAErr := twoFa.StartAuthFlow(*account, newAuthInfo(req))
+	isNewSession, sessExpTs, twoFAErr := twoFa.StartAuthFlow(*account, newAuthInfo(req))
 	if twoFAErr != nil {
 		logger.Errorf("HandleBeginSecondFactor: StartAuthFlow: %v", twoFAErr)
 		authErrorRedirect(resp, "cannot initialize 2fa")
@@ -114,7 +126,16 @@ func (ctl Controller) HandleBeginSecondFactor(resp http.ResponseWriter, req *htt
 	}
 
 	data := newAuthControllerDataFromRequest(req)
-	partialData := data.WithSecondFactor(isNewSession, token.Source, token.ExpiresAt())
+	partialData := data.WithSecondFactor(isNewSession, token.Source, sessExpTs)
+	if route := ctl.router.Get("AuthCheck2FA"); route != nil {
+		routeUrl, err := route.URL()
+		if err != nil {
+			partialData.Error = err.Error()
+		} else {
+			partialData.CheckUrl = routeUrl.String()
+		}
+	}
+
 	ctl.partial.MustRenderWithData(resp, web.NewPartialData(partialData, req))
 }
 
@@ -122,8 +143,10 @@ func (ctl Controller) HandleCheckSecondFactor(resp http.ResponseWriter, req *htt
 	logger := common.NewRequestLogger(req, ctl.logger)
 
 	respondWithError := func(err error, repeatRequest bool) {
+		data := new2FaError(err, repeatRequest)
+
 		resp.WriteHeader(http.StatusBadRequest)
-		if err := json.NewEncoder(resp).Encode(authTwoFactorAuthResult{Error: err.Error(), Repeat: repeatRequest}); err != nil {
+		if err := json.NewEncoder(resp).Encode(data); err != nil {
 			logger.Errorf("response error: %v", err)
 		}
 	}
@@ -139,11 +162,11 @@ func (ctl Controller) HandleCheckSecondFactor(resp http.ResponseWriter, req *htt
 	sess, sessErr := twoFa.GetSession(*account)
 	if sessErr != nil {
 		logger.Errorf("HandleCheckSecondFactor: GetSession: %v", sessErr)
-		respondWithError(accountFetchErr, false)
+		respondWithError(sessErr, false)
 		return
 	}
 
-	timeout := time.After(time.Second * 5)
+	timeout := time.After(time.Millisecond * 500)
 	select {
 	case <-timeout:
 		respondWithError(errors.New("timeout"), true)
@@ -162,42 +185,11 @@ func (ctl Controller) HandleCheckSecondFactor(resp http.ResponseWriter, req *htt
 		}
 
 		resp.WriteHeader(http.StatusOK)
-		if err := json.NewEncoder(resp).Encode(authTwoFactorAuthResult{Token: newToken.InsecureString()}); err != nil {
+		data := new2FaSuccess(newToken.InsecureString(), token.Claims.ReturnUrl)
+		if err := json.NewEncoder(resp).Encode(data); err != nil {
 			logger.Errorf("response error: %v", err)
 		}
 	}
-}
-
-func (ctl Controller) HandleTokenSet(resp http.ResponseWriter, req *http.Request) {
-	returnUrl := sanitizeReturnUrl(req.URL.Query().Get("return"))
-	token := req.URL.Query().Get("t")
-
-	logger := common.NewRequestLogger(req, ctl.logger)
-
-	if token == "" {
-		logger.Errorf("Token set: token is empty")
-		web.HttpRedirect(resp, "/auth", http.StatusFound)
-		return
-	}
-
-	tok, tokErr := authtoken.FromSource(ctl.config.AppVersion, ctl.config.SecretKey, token)
-	if tokErr != nil {
-		logger.Errorf("Token set: token is invalid: %v", tokErr)
-		authErrorRedirect(resp, "your login link has expired")
-		return
-	}
-
-	validationErr := tok.ValidateClaims()
-	if validationErr != nil {
-		logger.Errorf("Token set: token is invalid: %s, token %v\n", validationErr, tok)
-		authErrorRedirect(resp, "your login link has expired")
-		return
-	}
-
-	authCookie := newAuthCookie(token, req.Host, tok.Claims.ExpiresAt.Time())
-	logger.Infof("Token set: auth cookie set: %v", authCookie)
-	http.SetCookie(resp, authCookie)
-	web.HttpRedirect(resp, returnUrl, http.StatusFound)
 }
 
 func (ctl Controller) HandleLogout(resp http.ResponseWriter, req *http.Request) {

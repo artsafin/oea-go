@@ -16,7 +16,7 @@ type userReplyMeta struct {
 
 func (r *userReplyMeta) validate(expectedChatID int64, expectedAcc config.Account) error {
 	if r.username == "" || r.username != expectedAcc.ExternalUsername {
-		return errors.New("username mismatch")
+		return errors.Errorf("username mismatch: %v != %v", r.username, expectedAcc.ExternalUsername)
 	}
 	if expectedChatID != 0 && r.chatID != expectedChatID {
 		return errors.New("chat ID mismatch")

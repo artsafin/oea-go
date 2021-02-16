@@ -2,6 +2,7 @@ package auth
 
 import (
 	"fmt"
+	"github.com/pkg/errors"
 	"go.uber.org/zap"
 	"net/http"
 	"net/url"
@@ -29,6 +30,20 @@ func (auth *Middleware) doAuth(r *http.Request) error {
 
 	if tokenErr != nil {
 		return tokenErr
+	}
+
+	email, err := token.Email()
+	if err != nil {
+		return err
+	}
+
+	acc := auth.Config.Accounts.Get(email)
+	if acc == nil {
+		return errors.New("account not found")
+	}
+
+	if err2fa := token.Validate2FA(auth.Config.SecretKey, *acc); err2fa != nil {
+		return err2fa
 	}
 
 	auth.Router.AuthToken = token

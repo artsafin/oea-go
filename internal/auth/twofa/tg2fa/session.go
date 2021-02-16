@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	sessionTimeout = time.Second * 30
+	sessionTimeout = time.Second * 40
 	allowText      = "🔑 Allow"
 	denyText       = "⛔ Deny"
 	startText      = "/start"
@@ -60,6 +60,10 @@ func newAuthSession(account config.Account, info common.AuthInfo, api *tgbotapi.
 		encKey:            encKey,
 		startTs:           time.Now(),
 	}
+}
+
+func (s *authSession) GetExpTs() time.Time {
+	return s.startTs.Add(sessionTimeout)
 }
 
 func (s *authSession) ResultChan() <-chan twofa.Result {
@@ -125,7 +129,10 @@ func (s *authSession) Flow(cachedChatID int64) {
 
 func (s *authSession) waitForChatIdFromUserStartReply(account config.Account) (chatID int64, err error) {
 	select {
-	case startReply := <-s.startChan:
+	case startReply, ok := <-s.startChan:
+		if !ok {
+			return 0, errors.New("start channel closed")
+		}
 		if err = startReply.validate(0, account); err != nil {
 			return 0, err
 		}
@@ -139,8 +146,10 @@ func (s *authSession) waitForExpire() {
 	s.logger.Debugf("sess expire: begin waiting")
 	defer s.logger.Debugf("sess expire: finish")
 
+	timer := time.NewTimer(s.GetExpTs().Sub(time.Now()))
+
 	select {
-	case <-time.After(sessionTimeout):
+	case <-timer.C:
 		s.logger.Debugf("sess expire: timeout of session")
 		s.timeoutChan <- true
 	case <-s.timerCancelChan:
@@ -154,13 +163,12 @@ func (s *authSession) WaitForShutdown(unregisterChan accountChannel) {
 	go s.waitForExpire()
 
 	<-s.shutdownChan
-	s.logger.Debugf("WaitForShutdown: shutdown signal receved")
-
 	s.timerCancelChan <- true
-	s.logger.Debugf("WaitForShutdown: timer canceled")
+
+	// Wait 5 seconds more before disposal in order for the client to be able to receive the last update on session status
+	<-time.After(time.Second * 5)
 
 	unregisterChan <- s.account
-	s.logger.Debugf("WaitForShutdown: unreg signal sent")
 }
 
 func (s *authSession) sendPrompt(info common.AuthInfo) (message tgbotapi.Message, err error) {

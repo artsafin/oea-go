@@ -1,16 +1,22 @@
 package authtoken
 
 import (
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"github.com/cristalhq/jwt"
 	"github.com/pkg/errors"
+	"oea-go/internal/auth/enc"
+	"oea-go/internal/common/config"
+	"strconv"
+	"strings"
 	"time"
 )
 
 const (
 	JwtIssuerName = "oea-%s" // %s is app version
 	JwtSubject    = "oea_users"
+	JwtExpiration = time.Hour * 1
 )
 
 func issuerName(appVersion string) string {
@@ -83,7 +89,7 @@ func GenerateTokenFirstFactor(appVersion string, audience string, authKey []byte
 		appVersion,
 		audience,
 		authKey,
-		time.Now().Add(time.Hour*1).Unix(),
+		time.Now().Add(JwtExpiration).Unix(),
 		returnUrl,
 		"",
 	)
@@ -137,6 +143,42 @@ func (tok *Token) Email() (string, error) {
 
 func (tok *Token) ExpiresAt() time.Time {
 	return tok.Claims.ExpiresAt.Time()
+}
+
+func (tok *Token) Validate2FA(encSecretKey []byte, acc config.Account) (err error) {
+	var key [32]byte
+	copy(key[:], encSecretKey)
+
+	//plain := fmt.Sprintf("%v:%v:%v:%v", r.userID, r.chatID, r.username, time.Now().Unix())
+
+	fpHex, err := hex.DecodeString(tok.Claims.TwoFactorAuthFingerprint)
+	if err != nil {
+		return err
+	}
+
+	plain, err := enc.Decrypt(fpHex, key)
+	if err != nil {
+		return err
+	}
+
+	parts := strings.Split(string(plain), ":")
+	if len(parts) != 4 {
+		return errors.New("incorrect tff field: len is not 4")
+	}
+
+	tffTsInt, _ := strconv.ParseInt(parts[3], 10, 64)
+	tffTs := time.Unix(tffTsInt, 0)
+	now := time.Now()
+
+	if tffTs.Before(now.Add(-JwtExpiration)) || tffTs.After(now.Add(JwtExpiration)) {
+		return errors.Errorf("incorrect tff ts: %v %v", tffTs.Unix(), now.Unix())
+	}
+
+	if parts[2] != string(acc.ExternalUsername) {
+		return errors.Errorf("incorrect tff username: %v %v", parts[2], acc.ExternalUsername)
+	}
+
+	return nil
 }
 
 func newJwtSigner(authKey []byte) jwt.Signer {
