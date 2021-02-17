@@ -1,10 +1,6 @@
 name: Go
 
-on:
-  push:
-    branches: [ master ]
-  pull_request:
-    branches: [ master ]
+on: push
 
 jobs:
 
@@ -13,10 +9,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
 
-    - name: Set up Go 1.13
+    - name: Set up Go 1.14
       uses: actions/setup-go@v1
       with:
-        go-version: 1.13
+        go-version: 1.14
       id: go
 
     - name: Check out code into the Go module directory
@@ -46,5 +42,5 @@ jobs:
       run: |
         curl -XPOST \
         --data "chat_id=${{ secrets.TG_DEPLOYBOT_CHAT }}&parse_mode=Markdown" \
-        --data "text=Build complete" \
+        --data "text=Build complete ${GITHUB_REPOSITORY} ${GITHUB_SHA}" \
         'https://api.telegram.org/bot${{ secrets.TG_DEPLOYBOT_TOKEN }}/sendMessage'
