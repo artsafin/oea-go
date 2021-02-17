@@ -73,7 +73,17 @@ func getMonthsN(req *empl.Requests, num int, now time.Time) emplDto.Months {
 		num = 0
 	}
 
-	return (*months)[curMonthIndex : curMonthIndex+num+1]
+	from := curMonthIndex
+	to := curMonthIndex + num - 1
+
+	if from < 0 {
+		from = 0
+	}
+	if to > len(*months) {
+		to = len(*months)
+	}
+
+	return (*months)[from:to]
 }
 
 func (h handler) loadTodayAndPastInvoices(req *empl.Requests, numPastInvoices int, today time.Time) dto.EmployeesHistoricReport {
@@ -82,8 +92,12 @@ func (h handler) loadTodayAndPastInvoices(req *empl.Requests, numPastInvoices in
 
 	monthlyInvoices := make(chan emplDto.InvoicesPerMonth, numMonths)
 
+	wg := sync.WaitGroup{}
+	wg.Add(numMonths)
+
 	for _, month := range months {
 		go func(month *emplDto.Month) {
+			defer wg.Done()
 			h.logger.Infof("started loading invoices for month %v", month.ID)
 			invoices, err := req.GetInvoices(month.ID, empl.With{Corrections: true, Employees: true})
 			if err != nil {
@@ -99,11 +113,12 @@ func (h handler) loadTodayAndPastInvoices(req *empl.Requests, numPastInvoices in
 		}(month)
 	}
 
+	wg.Wait()
+	close(monthlyInvoices)
+
 	hist := dto.EmployeesHistoricReport{}
 
-	for i := 0; i < numMonths; i++ {
-		invoices := <-monthlyInvoices
-
+	for invoices := range monthlyInvoices {
 		rep := dto.NewEmployeesMonthlyReport(invoices.Month.ID)
 		rep.AddItemsFromInvoices(invoices.Invoices)
 
@@ -113,8 +128,6 @@ func (h handler) loadTodayAndPastInvoices(req *empl.Requests, numPastInvoices in
 			hist.AppendHistoricReport(rep)
 		}
 	}
-
-	close(monthlyInvoices)
 
 	hist.RunPostCalculations()
 

@@ -6,14 +6,16 @@ import (
 	"oea-go/internal/auth/twofa"
 	"oea-go/internal/common"
 	"oea-go/internal/common/config"
+	"oea-go/internal/db"
 	"time"
 )
 
 var botsrv *botServer
 
 type telegramFlow struct {
-	cfg    *config.Config
-	logger *zap.SugaredLogger
+	cfg     *config.Config
+	logger  *zap.SugaredLogger
+	storage *db.Storage
 }
 
 func NewTelegramTwoFactorAuth(cfg *config.Config, logger *zap.SugaredLogger) twofa.Flow {
@@ -21,7 +23,11 @@ func NewTelegramTwoFactorAuth(cfg *config.Config, logger *zap.SugaredLogger) two
 		botsrv = newBotServer(cfg.BotToken, logger)
 	}
 
-	return &telegramFlow{cfg: cfg, logger: logger}
+	return &telegramFlow{
+		cfg:     cfg,
+		logger:  logger,
+		storage: db.NewStorage(cfg.StorageAddr),
+	}
 }
 
 func (a *telegramFlow) StartAuthFlow(account config.Account, info common.AuthInfo) (isNewSession bool, expTs time.Time, err error) {
@@ -35,7 +41,7 @@ func (a *telegramFlow) StartAuthFlow(account config.Account, info common.AuthInf
 		return false, existingSess.GetExpTs(), nil
 	}
 
-	sess := newAuthSession(account, info, botapi, a.logger, a.cfg.SecretKey)
+	sess := newAuthSession(account, info, botapi, a.logger, a.cfg.SecretKey, a.storage)
 
 	err = botsrv.registerSession(sess)
 	if err != nil {
@@ -60,5 +66,5 @@ func (a *telegramFlow) GetSession(account config.Account) (session twofa.Session
 }
 
 func (a *telegramFlow) obtainChatIdFromCache(email config.Email) (chatID int64, err error) {
-	return 0, errors.New("not implemented")
+	return a.storage.GetChatID(email)
 }

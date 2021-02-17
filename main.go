@@ -17,11 +17,12 @@ var AppVersion string
 
 func main() {
 	verbose := flag.Bool("v", false, "Be more verbose")
+	kvAddr := flag.String("s", "localhost:6379", "Storage address")
 	flag.Parse()
 
 	baseLogger, _ := zap.NewDevelopment(zap.WithCaller(false))
 	logger := baseLogger.Sugar()
-	cfg := config.NewDefaultConfig(AppVersion)
+	cfg := config.NewDefaultConfig(AppVersion, *kvAddr)
 
 	configErr := cfg.LoadFromEnvAndValidate()
 	if configErr != nil {

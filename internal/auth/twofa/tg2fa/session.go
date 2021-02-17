@@ -8,6 +8,7 @@ import (
 	"oea-go/internal/auth/twofa"
 	"oea-go/internal/common"
 	"oea-go/internal/common/config"
+	"oea-go/internal/db"
 	"time"
 )
 
@@ -40,9 +41,10 @@ type authSession struct {
 	info              common.AuthInfo
 	startTs           time.Time
 	chatID            int64
+	storage           *db.Storage
 }
 
-func newAuthSession(account config.Account, info common.AuthInfo, api *tgbotapi.BotAPI, logger *zap.SugaredLogger, encKey []byte) *authSession {
+func newAuthSession(account config.Account, info common.AuthInfo, api *tgbotapi.BotAPI, logger *zap.SugaredLogger, encKey []byte, storage *db.Storage) *authSession {
 	logger.Debugf("session: new session %+v", account)
 
 	return &authSession{
@@ -59,6 +61,7 @@ func newAuthSession(account config.Account, info common.AuthInfo, api *tgbotapi.
 		logger:            logger,
 		encKey:            encKey,
 		startTs:           time.Now(),
+		storage:           storage,
 	}
 }
 
@@ -85,6 +88,10 @@ func (s *authSession) Flow(cachedChatID int64) {
 	var err error
 	if cachedChatID == 0 {
 		s.chatID, err = s.waitForChatIdFromUserStartReply(s.account)
+		storageErr := s.storage.SetChatID(s.account.Email, s.chatID)
+		if storageErr != nil {
+			s.logger.Warnf("auth flow: error storing chatID: %v", storageErr)
+		}
 	} else {
 		s.chatID = cachedChatID
 	}
@@ -103,9 +110,9 @@ func (s *authSession) Flow(cachedChatID int64) {
 
 	select {
 	case denyReply := <-s.declineButtonChan:
-		s.logger.Debugf("auth flow: got decline")
+		s.logger.Debugf("auth flow: got decline: %v", denyReply)
 		s.sendBotReply(promptMsg, replyDeclined)
-		s.resultChan <- twofa.Result{Err: errors.Errorf("user denied: %+v", denyReply)}
+		s.resultChan <- twofa.Result{Err: errors.Errorf("user has rejected authentication")}
 	case allowReply := <-s.allowButtonChan:
 		s.logger.Debugf("auth flow: got allow %v", allowReply)
 		if validationErr := allowReply.validate(s.chatID, s.account); validationErr != nil {

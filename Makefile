@@ -1,5 +1,7 @@
 VERSION = $(shell git rev-parse --short HEAD)
+DEV_ENV_FILE=dev-docker/.env
 DEV_COMPOSE_FILE=dev-docker/docker-compose.yml
+DEV_COMPOSE_PROJ=oea-go-dev
 
 .PHONY: all
 
@@ -15,10 +17,9 @@ test:
 	go test ./...
 
 dev-env:
-	@echo 'export COMPOSE_PROJECT_NAME=oea-go-dev; export COMPOSE_FILE=$(DEV_COMPOSE_FILE)'
+	@echo 'export COMPOSE_PROJECT_NAME=$(DEV_COMPOSE_PROJ); export COMPOSE_FILE=$(DEV_COMPOSE_FILE)'
 
 run-dev: build
-	cd dev-docker && \
-	docker-compose -p oea-go-dev down -v && \
-	docker-compose -p oea-go-dev up -d --remove-orphans && \
-	docker-compose -p oea-go-dev logs -f --tail=50
+	docker-compose --env-file $(DEV_ENV_FILE) -f $(DEV_COMPOSE_FILE) -p $(DEV_COMPOSE_PROJ) down && \
+	docker-compose --env-file $(DEV_ENV_FILE) -f $(DEV_COMPOSE_FILE) -p $(DEV_COMPOSE_PROJ) up -d --remove-orphans && \
+	docker-compose --env-file $(DEV_ENV_FILE) -f $(DEV_COMPOSE_FILE) -p $(DEV_COMPOSE_PROJ) logs -f --tail=50

@@ -2,7 +2,7 @@ oea-go
 oea_etcd_private
 resources/bootstrap.min.css
 resources/invoice_template.xlsx
-common/bindata.go
+bindata.go
 .idea
 .env
 nohup.out

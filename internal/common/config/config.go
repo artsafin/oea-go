@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"github.com/kelseyhightower/envconfig"
+	"github.com/pkg/errors"
 	"io"
 	"strings"
 )
@@ -37,9 +38,10 @@ type Config struct {
 	UseAuth      bool   `envconfig:"use_auth" required:"true"`
 	BotToken     string `envconfig:"bot_token"`
 	FilesDir     string `envconfig:"files"`
+	StorageAddr  string
 }
 
-func NewDefaultConfig(appVersion string) Config {
+func NewDefaultConfig(appVersion string, storageAddr string) Config {
 	return Config{
 		BaseUri:      "https://coda.io/apis/v1beta1",
 		SecurePort:   8443,
@@ -47,11 +49,13 @@ func NewDefaultConfig(appVersion string) Config {
 		SmtpPort:     25,
 		UseAuth:      true,
 		AppVersion:   appVersion,
+		StorageAddr:  storageAddr,
 	}
 }
 
 func (c *Config) DumpNonSecretParameters(wr io.Writer) {
 	lines := []string{
+		"\033[31mStorage:\033[0m %v",
 		"\033[31mUse Auth:\033[0m %v",
 		"\033[31mTLS:\033[0m %v",
 		"\033[33mDocument IDs:\033[0m of=%v; em=%v",
@@ -60,6 +64,7 @@ func (c *Config) DumpNonSecretParameters(wr io.Writer) {
 		"",
 	}
 	params := []interface{}{
+		c.StorageAddr,
 		c.UseAuth,
 		boolStr(c.TlsCert != "", "configured", "disabled"),
 		c.DocIdOf,
@@ -87,6 +92,10 @@ func (c *Config) LoadFromEnvAndValidate() error {
 
 	if c.UseAuth && len(c.SecretKey) == 0 {
 		return fmt.Errorf("config: secret key is mandatory if using auth")
+	}
+
+	if c.StorageAddr == "" {
+		return errors.New("storage address is required")
 	}
 
 	return nil

@@ -9,5 +9,11 @@ services:
       - .env
     volumes:
       - ../oea_etcd_private/files:${OEA_FILES}
-    command:
-      - "-v"
+    command: "-v -s redis:6379"
+  redis:
+    image: redis:6-alpine
+    volumes:
+      - redis-data:/data
+
+volumes:
+  redis-data:
