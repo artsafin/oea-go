@@ -66,7 +66,7 @@ func newAuthCookie(value string, cookieDomain string, expiration time.Time) *htt
 		Domain:   cookieDomain,
 		Expires:  expiration,
 		Secure:   false,
-		HttpOnly: true,
+		HttpOnly: false,
 		SameSite: http.SameSiteStrictMode,
 	}
 }
