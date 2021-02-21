@@ -13,7 +13,7 @@ type Account struct {
 }
 
 func (a Account) String() string {
-	return string(a.Email)
+	return string(a.Email) + ":" + string(a.ExternalUsername)
 }
 
 type Accounts []Account
@@ -61,10 +61,20 @@ func newAccountsFromConfig(authAccounts string) Accounts {
 			accounts,
 			Account{
 				Email:            Email(strings.TrimSpace(accFields[0])),
-				ExternalUsername: Username(strings.TrimLeft(strings.TrimSpace(accFields[1]), "@")),
+				ExternalUsername: NewUsernameFromString(accFields[1]),
 			},
 		)
 	}
 
 	return accounts
+}
+
+func NewUsernameFromString(strUsername string) Username {
+	return Username(
+		strings.ToLower(
+			strings.TrimLeft(
+				strings.TrimSpace(strUsername),
+				"@",
+			)),
+	)
 }

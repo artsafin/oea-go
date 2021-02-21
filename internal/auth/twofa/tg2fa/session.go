@@ -45,7 +45,7 @@ type authSession struct {
 }
 
 func newAuthSession(account config.Account, info common.AuthInfo, api *tgbotapi.BotAPI, logger *zap.SugaredLogger, encKey []byte, storage *db.Storage) *authSession {
-	logger.Debugf("session: new session %+v", account)
+	logger.Debugf("session: new session %v", account)
 
 	return &authSession{
 		account:           account,
@@ -63,6 +63,10 @@ func newAuthSession(account config.Account, info common.AuthInfo, api *tgbotapi.
 		startTs:           time.Now(),
 		storage:           storage,
 	}
+}
+
+func (s *authSession) String() string {
+	return fmt.Sprintf("Session{%v Started %v}", s.account, s.startTs.Format(time.Stamp))
 }
 
 func (s *authSession) GetExpTs() time.Time {

@@ -8,7 +8,8 @@ import (
 )
 
 const (
-	commonTimeout = time.Second * 5
+	connectTimeout = time.Second * 10
+	rwTimeout      = time.Second * 5
 )
 
 type Storage struct {
@@ -23,9 +24,9 @@ func (s *Storage) conn() (redis.Conn, error) {
 	return redis.Dial(
 		"tcp",
 		s.addr,
-		redis.DialConnectTimeout(commonTimeout),
-		redis.DialReadTimeout(commonTimeout),
-		redis.DialWriteTimeout(commonTimeout),
+		redis.DialConnectTimeout(connectTimeout),
+		redis.DialReadTimeout(rwTimeout),
+		redis.DialWriteTimeout(rwTimeout),
 		redis.DialClientName("oea"),
 	)
 }
@@ -63,4 +64,22 @@ func (s *Storage) GetChatID(account config.Email) (chatID int64, err error) {
 	}
 
 	return chatID, nil
+}
+
+func (s *Storage) Keys() (keys []string, err error) {
+	rconn, err := s.conn()
+
+	if err != nil {
+		return nil, err
+	}
+
+	defer rconn.Close()
+
+	keys, err = redis.Strings(rconn.Do("KEYS", "*"))
+
+	if err != nil {
+		return nil, err
+	}
+
+	return keys, nil
 }

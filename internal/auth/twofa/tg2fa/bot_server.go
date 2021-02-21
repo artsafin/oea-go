@@ -2,12 +2,33 @@ package tg2fa
 
 import (
 	"github.com/go-telegram-bot-api/telegram-bot-api"
+	"github.com/pkg/errors"
 	"go.uber.org/zap"
 	"oea-go/internal/common/config"
+	"strings"
 	"sync"
 )
 
 type accountChannel chan config.Account
+
+type sessionsMap map[config.Username]*authSession
+
+func (sm sessionsMap) String() string {
+	v := strings.Builder{}
+	v.WriteString("Sessions{\n")
+
+	for username, sess := range sm {
+		v.WriteString("\t")
+		v.WriteString(string(username))
+		v.WriteString(" => ")
+		v.WriteString(sess.String())
+		v.WriteString("\n")
+	}
+
+	v.WriteString("}\n")
+
+	return v.String()
+}
 
 type botServer struct {
 	unregisterChan accountChannel
@@ -16,7 +37,7 @@ type botServer struct {
 	token    string
 	bot      *tgbotapi.BotAPI
 	updChan  tgbotapi.UpdatesChannel
-	sessions map[config.Username]*authSession
+	sessions sessionsMap
 	mut      sync.Mutex
 	logger   *zap.SugaredLogger
 }
@@ -24,7 +45,7 @@ type botServer struct {
 func newBotServer(token string, logger *zap.SugaredLogger) *botServer {
 	return &botServer{
 		token:    token,
-		sessions: make(map[config.Username]*authSession),
+		sessions: make(sessionsMap),
 		logger:   logger,
 	}
 }
@@ -97,17 +118,20 @@ func (b *botServer) ListenUpdates() {
 				continue
 			}
 
-			userName := config.Username(update.Message.From.UserName)
-			if userName == "" {
-				continue
-			}
+			userName := config.NewUsernameFromString(update.Message.From.UserName)
 
-			b.processUpdateForUsername(update.Message, userName)
+			if err := b.processUpdateForUsername(update.Message, userName); err != nil {
+				b.logger.Debugf("listen: %v", err)
+			}
 		}
 	}
 }
 
-func (b *botServer) processUpdateForUsername(msg *tgbotapi.Message, userName config.Username) {
+func (b *botServer) processUpdateForUsername(msg *tgbotapi.Message, userName config.Username) error {
+	if userName == "" {
+		return errors.New("update: username empty")
+	}
+
 	b.logger.Debugf("update: processing update %v", userName)
 	defer b.logger.Debugf("update: finished processing update %v", userName)
 
@@ -116,13 +140,11 @@ func (b *botServer) processUpdateForUsername(msg *tgbotapi.Message, userName con
 
 	sess, sessFound := b.sessions[userName]
 	if !sessFound {
-		b.logger.Debugf("update: no session for %v", userName)
-		return
+		return errors.Errorf("update: no session for %v. Sessions follow: %v", userName, b.sessions.String())
 	}
 
 	if !sess.isMessageAcceptable(msg) {
-		b.logger.Debugf("update: skipping past message %v for %v", msg.MessageID, userName)
-		return
+		return errors.Errorf("update: skipping message %v for %v", msg.MessageID, userName)
 	}
 
 	userReply := userReplyMeta{
@@ -133,12 +155,17 @@ func (b *botServer) processUpdateForUsername(msg *tgbotapi.Message, userName con
 
 	switch {
 	case msg.Text == startText:
+		b.logger.Debugf("update: got start from %v", userReply)
 		sess.startChan <- userReply
 	case msg.Text == allowText:
+		b.logger.Debugf("update: got allow from %v", userReply)
 		sess.allowButtonChan <- userReply
 	case msg.Text == denyText:
+		b.logger.Debugf("update: got decline from %v", userReply)
 		sess.declineButtonChan <- userReply
 	}
+
+	return nil
 }
 
 func (b *botServer) checkIfNeedToShutdown() bool {

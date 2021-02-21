@@ -25,25 +25,25 @@ type Config struct {
 	ApiTokenEm   string `envconfig:"api_token_em" required:"true"`
 	DocIdOf      string `envconfig:"doc_id_of" required:"true"`
 	DocIdEm      string `envconfig:"doc_id_em" required:"true"`
-	RawSecretKey string `envconfig:"secret_key" required:"true"`
-	RawAccounts  string `envconfig:"auth_accounts" required:"true"`
+	RawSecretKey string `envconfig:"secret_key"`
+	RawAccounts  string `envconfig:"auth_accounts"`
 	SmtpHost     string `envconfig:"smtp_host" required:"true"`
 	SmtpUser     string `envconfig:"smtp_user" required:"true"`
 	SmtpPass     string `envconfig:"smtp_pass" required:"true"`
-	SmtpPort     uint   `envconfig:"smtp_port" required:"true"`
+	SmtpPort     uint   `envconfig:"smtp_port"`
 	SecurePort   uint   `envconfig:"secure_port"`
 	InsecurePort uint   `envconfig:"insecure_port"`
 	TlsCert      string `envconfig:"tls_cert"`
 	TlsKey       string `envconfig:"tls_key"`
-	UseAuth      bool   `envconfig:"use_auth" required:"true"`
+	UseAuth      bool   `envconfig:"use_auth"`
 	BotToken     string `envconfig:"bot_token"`
-	FilesDir     string `envconfig:"files"`
+	FilesDir     string `envconfig:"files" required:"true"`
+	IsDebug      bool   `envconfig:"debug"`
 	StorageAddr  string
 }
 
 func NewDefaultConfig(appVersion string, storageAddr string) Config {
 	return Config{
-		BaseUri:      "https://coda.io/apis/v1beta1",
 		SecurePort:   8443,
 		InsecurePort: 8080,
 		SmtpPort:     25,
@@ -54,26 +54,29 @@ func NewDefaultConfig(appVersion string, storageAddr string) Config {
 }
 
 func (c *Config) DumpNonSecretParameters(wr io.Writer) {
+	yellowKV := func(header, value string) string {
+		return fmt.Sprintf("\033[33m%v:\033[0m %v", header, value)
+	}
+	redKV := func(header, value string) string {
+		return fmt.Sprintf("\033[31m%v:\033[0m %v", header, value)
+	}
+
 	lines := []string{
-		"\033[31mStorage:\033[0m %v",
-		"\033[31mUse Auth:\033[0m %v",
-		"\033[31mTLS:\033[0m %v",
-		"\033[33mDocument IDs:\033[0m of=%v; em=%v",
-		"\033[33mUser accounts:\033[0m %v",
-		"\033[33mSmtp:\033[0m %v (%v)",
+		redKV("Users", boolStr(c.UseAuth, c.Accounts.String(), "⚠ auth disabled")),
+		redKV("TLS", boolStr(c.TlsCert != "", "configured", "⚠ disabled")),
+		redKV("Debug mode", boolStr(c.IsDebug, "⚠ enabled", "disabled")),
+		yellowKV("Storage", c.StorageAddr),
+		yellowKV("Files", c.FilesDir),
+		yellowKV("Document IDs", fmt.Sprintf("of=%v; em=%v", c.DocIdOf, c.DocIdEm)),
+		yellowKV("SMTP", fmt.Sprintf(
+			"%v (%v)",
+			boolStr(c.SmtpHost != "", fmt.Sprintf("%v:%v", c.SmtpHost, c.SmtpPort), "email sending disabled"),
+			boolStr(c.SmtpPass != "", "auth enabled", "auth disabled"),
+		)),
 		"",
 	}
-	params := []interface{}{
-		c.StorageAddr,
-		c.UseAuth,
-		boolStr(c.TlsCert != "", "configured", "disabled"),
-		c.DocIdOf,
-		c.DocIdEm,
-		c.Accounts,
-		boolStr(c.SmtpHost != "", fmt.Sprintf("%v:%v", c.SmtpHost, c.SmtpPort), "email sending disabled"),
-		boolStr(c.SmtpHost != "" && c.SmtpPass != "", "auth enabled", "auth disabled"),
-	}
-	_, _ = wr.Write([]byte(fmt.Sprintf(strings.Join(lines, "\n"), params...)))
+
+	_, _ = wr.Write([]byte(strings.Join(lines, "\n")))
 }
 
 func (c *Config) IsTLS() bool {
@@ -90,11 +93,21 @@ func (c *Config) LoadFromEnvAndValidate() error {
 	c.Accounts = newAccountsFromConfig(c.RawAccounts)
 	c.SecretKey = []byte(c.RawSecretKey)
 
-	if c.UseAuth && len(c.SecretKey) == 0 {
-		return fmt.Errorf("config: secret key is mandatory if using auth")
+	if c.UseAuth {
+		if len(c.SecretKey) == 0 {
+			return fmt.Errorf("config: secret key is mandatory if using auth")
+		}
+
+		if len(c.Accounts) == 0 {
+			return fmt.Errorf("config: accounts must be preconfigured if using auth")
+		}
+
+		if len(c.BotToken) == 0 {
+			return fmt.Errorf("config: bot token must be configured if using auth")
+		}
 	}
 
-	if c.StorageAddr == "" {
+	if len(c.StorageAddr) == 0 {
 		return errors.New("storage address is required")
 	}
 

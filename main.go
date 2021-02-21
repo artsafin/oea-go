@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"oea-go/internal/auth"
 	"oea-go/internal/common/config"
+	"oea-go/internal/db"
 	"oea-go/internal/employee"
 	"oea-go/internal/office"
 	"oea-go/internal/web"
@@ -20,9 +21,10 @@ func main() {
 	kvAddr := flag.String("s", "localhost:6379", "Storage address")
 	flag.Parse()
 
+	cfg := config.NewDefaultConfig(AppVersion, *kvAddr)
+
 	baseLogger, _ := zap.NewDevelopment(zap.WithCaller(false))
 	logger := baseLogger.Sugar()
-	cfg := config.NewDefaultConfig(AppVersion, *kvAddr)
 
 	configErr := cfg.LoadFromEnvAndValidate()
 	if configErr != nil {
@@ -31,6 +33,13 @@ func main() {
 
 	if *verbose {
 		cfg.DumpNonSecretParameters(os.Stdout)
+	}
+
+	storageKeys, storageErr := db.NewStorage(cfg.StorageAddr).Keys()
+	if storageErr != nil {
+		logger.Fatalf("storage at %v is unavailable: %v", cfg.StorageAddr, storageErr)
+	} else {
+		logger.Debugf("storage is alive (%v keys)", len(storageKeys))
 	}
 
 	officeHandler := office.NewHandler(&cfg, logger)
