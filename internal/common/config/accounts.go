@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"strings"
 )
 
@@ -13,7 +14,7 @@ type Account struct {
 }
 
 func (a Account) String() string {
-	return string(a.Email) + ":" + string(a.ExternalUsername)
+	return fmt.Sprintf("<%v:%v>", a.Email, a.ExternalUsername)
 }
 
 type Accounts []Account

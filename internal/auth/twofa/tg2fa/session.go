@@ -66,7 +66,7 @@ func newAuthSession(account config.Account, info common.AuthInfo, api *tgbotapi.
 }
 
 func (s *authSession) String() string {
-	return fmt.Sprintf("Session{%v Started %v}", s.account, s.startTs.Format(time.Stamp))
+	return fmt.Sprintf("Session{%v on %v}", s.account, s.startTs.Format(time.RFC822Z))
 }
 
 func (s *authSession) GetExpTs() time.Time {
