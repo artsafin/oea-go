@@ -9,6 +9,7 @@ import (
 	"net/url"
 	"oea-go/internal/common"
 	"oea-go/internal/common/config"
+	"oea-go/resources"
 	"time"
 )
 
@@ -44,7 +45,7 @@ func sendMail(inf common.AuthInfo, link url.URL, recipient string, cfg *config.C
 	}
 
 	emailBuf := &bytes.Buffer{}
-	emailTpl := template.Must(template.New("email").Parse(string(common.MustAsset("resources/email.go.html"))))
+	emailTpl := resources.MustParseTemplate(template.New("email.go.html"), "assets/email.go.html")
 	if tplErr := emailTpl.Execute(emailBuf, emailData); tplErr != nil {
 		return tplErr
 	}

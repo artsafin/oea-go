@@ -1,8 +1,7 @@
 oea-go
 oea_etcd_private
-resources/bootstrap.min.css
-resources/invoice_template.xlsx
-bindata.go
+bootstrap.min.css
+invoice_template.xlsx
 .idea
 .env
 nohup.out

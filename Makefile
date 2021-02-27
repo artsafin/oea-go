@@ -8,7 +8,7 @@ DEV_COMPOSE_PROJ=oea-go-dev
 all: build
 
 assets:
-	test -f resources/bootstrap.min.css || curl -s https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css -o resources/bootstrap.min.css
+	test -f resources/assets/bootstrap.min.css || curl -s https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css -o resources/assets/bootstrap.min.css
 
 build: assets
 	docker build -f ./Dockerfile --build-arg "VERSION=$(VERSION)" -t oea-go:latest .

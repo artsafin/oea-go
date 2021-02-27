@@ -10,6 +10,7 @@ import (
 	"oea-go/internal/common/config"
 	"oea-go/internal/employee/dto"
 	"oea-go/internal/excel"
+	"oea-go/resources"
 	"time"
 )
 
@@ -110,7 +111,7 @@ func (h Handler) DownloadInvoice(resp http.ResponseWriter, request *http.Request
 
 	resp.Header().Add("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
 	resp.Header().Add("Content-Disposition", fmt.Sprintf("attachment; filename=\"%s\"", invoice.Filename()))
-	err = excel.RenderInvoice(resp, common.MustAsset("resources/invoice_template_empl.xlsx"), invoice)
+	err = excel.RenderInvoice(resp, resources.MustReadBytes("assets/invoice_template_empl.xlsx"), invoice)
 	if err != nil {
 		resp.Header().Del("Content-Type")
 		resp.Header().Del("Content-Disposition")
@@ -171,7 +172,7 @@ func (h Handler) DownloadAllInvoices(resp http.ResponseWriter, request *http.Req
 	zipWriter := zip.NewWriter(resp)
 	defer zipWriter.Close()
 
-	invoiceTpl := common.MustAsset("resources/invoice_template_empl.xlsx")
+	invoiceTpl := resources.MustReadBytes("assets/invoice_template_empl.xlsx")
 
 	for _, invoice := range invoices {
 		name := invoice.Filename()

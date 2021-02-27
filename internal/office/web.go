@@ -9,12 +9,12 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
-	"oea-go/internal/common"
 	"oea-go/internal/common/config"
 	empl "oea-go/internal/employee"
 	emplDto "oea-go/internal/employee/dto"
 	"oea-go/internal/excel"
 	"oea-go/internal/office/dto"
+	"oea-go/resources"
 	"sort"
 	"sync"
 	"time"
@@ -135,7 +135,7 @@ func (h handler) loadTodayAndPastInvoices(req *empl.Requests, numPastInvoices in
 }
 
 func buildApprovalRequestHtml(officeData OfficeTemplateData, employeesData dto.EmployeesHistoricReport) string {
-	tpl := template.Must(template.New("post").Parse(string(common.MustAsset("resources/post.go.html"))))
+	tpl := resources.MustParseTemplate(template.New("post.go.html"), "assets/post.go.html")
 
 	buf := &bytes.Buffer{}
 	err := tpl.Execute(buf, TemplateData{

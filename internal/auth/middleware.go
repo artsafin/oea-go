@@ -86,7 +86,7 @@ func (auth *Middleware) MiddlewareFunc(next http.Handler) http.Handler {
 			return
 		}
 
-		logger.Errorf("Forbidden: %v", authErr)
+		logger.Infof("Forbidden: %v", authErr)
 
 		// If page was requested with GET, redirect to /auth page with ability to return back after successful auth
 		if r.Method == http.MethodGet {

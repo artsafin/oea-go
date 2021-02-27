@@ -6,6 +6,7 @@ import (
 	"go.uber.org/zap"
 	"net/http"
 	"oea-go/internal/common"
+	"oea-go/resources"
 	"strings"
 )
 
@@ -14,7 +15,7 @@ func faviconMiddleware(next http.Handler) http.Handler {
 		if request.RequestURI == "/favicon.ico" {
 			writer.Header().Add("Content-Type", "image/png")
 			writer.WriteHeader(http.StatusOK)
-			writer.Write(common.MustAsset("resources/icon.png"))
+			writer.Write(resources.MustReadBytes("assets/icon.png"))
 			return
 		}
 

@@ -9,8 +9,8 @@ import (
 	"net/http"
 	"net/url"
 	"oea-go/internal/auth/authtoken"
-	"oea-go/internal/common"
 	"oea-go/internal/common/config"
+	"oea-go/resources"
 	"time"
 )
 
@@ -44,7 +44,7 @@ func (e *Engine) createFuncMap() template.FuncMap {
 			return u.String()
 		},
 		"styles": func() template.CSS {
-			return template.CSS(common.MustAsset("resources/bootstrap.min.css"))
+			return template.CSS(resources.MustReadBytes("assets/bootstrap.min.css"))
 		},
 		"authToken": func() *authtoken.Token {
 			return e.AuthToken
@@ -53,11 +53,8 @@ func (e *Engine) createFuncMap() template.FuncMap {
 }
 
 func (e *Engine) parseLayout() *template.Template {
-	return template.Must(
-		template.
-			New("layout").
-			Funcs(e.createFuncMap()).
-			Parse(string(common.MustAsset("resources/layout.go.html"))))
+	t := template.New("layout.go.html").Funcs(e.createFuncMap())
+	return resources.MustParseTemplate(t, "assets/layout.go.html")
 }
 
 type Partial struct {
@@ -79,7 +76,8 @@ func NewPartialData(data interface{}, r *http.Request) *PartialData {
 func (e *Engine) CreatePartial(names ...string) Partial {
 	tpl := e.parseLayout()
 	for _, name := range names {
-		tpl = template.Must(tpl.Parse(string(common.MustAsset(fmt.Sprintf("resources/partials/%s.go.html", name)))))
+		resPath := fmt.Sprintf("assets/partials/%s.go.html", name)
+		tpl = resources.MustParseTemplate(tpl, resPath)
 	}
 
 	return Partial{tpl}
