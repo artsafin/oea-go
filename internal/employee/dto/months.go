@@ -2,7 +2,7 @@ package dto
 
 import (
 	"errors"
-	"oea-go/internal/common"
+	"oea-go/internal/codatypes"
 	"time"
 
 	"github.com/artsafin/go-coda"
@@ -72,40 +72,33 @@ func (m Month) String() string {
 
 func NewMonthFromRow(row *coda.Row) *Month {
 	month := Month{}
-	errs := make([]common.UnexpectedFieldTypeErr, 0)
-	var err *common.UnexpectedFieldTypeErr
+	errs := codatypes.NewErrorContainer()
+	var err error
 
-	if month.ID, err = common.ToString(Ids.Months.Cols.ID, row); err != nil {
-		errs = append(errs, *err)
-	}
-
-	if month.LastMonthDay, err = common.ToDate(Ids.Months.Cols.Month, row); err != nil {
-		errs = append(errs, *err)
-	}
-	if month.WorkDays, err = common.ToUint16(Ids.Months.Cols.WorkDays, row); err != nil {
-		errs = append(errs, *err)
-	}
-	if month.Year, err = common.ToUint16(Ids.Months.Cols.Year, row); err != nil {
-		errs = append(errs, *err)
-	}
-	if month.PreviousMonthLink, err = common.ToString(Ids.Months.Cols.PreviousMonthLink, row); err != nil {
-		errs = append(errs, *err)
-	}
-	if month.PreviousMonth, err = common.ToDate(Ids.Months.Cols.PreviousMonth, row); err != nil {
-		errs = append(errs, *err)
-	}
-	if month.IsCurrent, err = common.ToBool(Ids.Months.Cols.IsCurrent, row); err != nil {
-		errs = append(errs, *err)
+	if month.ID, err = codatypes.ToString(Ids.Months.Cols.ID, row); err != nil {
+		errs.AddError(err)
 	}
 
-	if len(errs) > 0 {
-		stringErr := ""
-		for _, err := range errs {
-			stringErr += err.Error() + "; "
-		}
-
-		panic(stringErr)
+	if month.LastMonthDay, err = codatypes.ToDate(Ids.Months.Cols.Month, row); err != nil {
+		errs.AddError(err)
 	}
+	if month.WorkDays, err = codatypes.ToUint16(Ids.Months.Cols.WorkDays, row); err != nil {
+		errs.AddError(err)
+	}
+	if month.Year, err = codatypes.ToUint16(Ids.Months.Cols.Year, row); err != nil {
+		errs.AddError(err)
+	}
+	if month.PreviousMonthLink, err = codatypes.ToString(Ids.Months.Cols.PreviousMonthLink, row); err != nil {
+		errs.AddError(err)
+	}
+	if month.PreviousMonth, err = codatypes.ToDate(Ids.Months.Cols.PreviousMonth, row); err != nil {
+		errs.AddError(err)
+	}
+	if month.IsCurrent, err = codatypes.ToBool(Ids.Months.Cols.IsCurrent, row); err != nil {
+		errs.AddError(err)
+	}
+
+	errs.PanicIfError()
 
 	return &month
 }

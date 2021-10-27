@@ -1,10 +1,12 @@
 package dto
 
-import "oea-go/internal/common"
+import (
+	"oea-go/internal/codatypes"
+)
 
 type EmployeesReportCategory struct {
 	Name     string
-	Total    common.MoneyRub
+	Total    codatypes.MoneyRub
 	Payments []*EmployeeReportLine
 }
 

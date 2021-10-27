@@ -2,7 +2,7 @@ package dto
 
 import (
 	"fmt"
-	"oea-go/internal/common"
+	"oea-go/internal/codatypes"
 	"time"
 
 	"github.com/artsafin/go-coda"
@@ -14,13 +14,13 @@ type Expense struct {
 	Subject         string
 	Category        string
 	Comment         string
-	AmountRub       common.MoneyRub
-	AmountEur       common.MoneyEur
+	AmountRub       codatypes.MoneyRub
+	AmountEur       codatypes.MoneyEur
 	Status          string
-	ActuallySpent   common.MoneyRub
+	ActuallySpent   codatypes.MoneyRub
 	RejectionReason string
-	PendingSpend    common.MoneyRub
-	Balance         common.MoneyRub
+	PendingSpend    codatypes.MoneyRub
+	Balance         codatypes.MoneyRub
 	LastCashOutDate *time.Time
 }
 
@@ -35,8 +35,8 @@ func (e Expense) String() string {
 type expenseGroup struct {
 	Name     string
 	Items    []*Expense
-	TotalEur common.MoneyEur
-	TotalRub common.MoneyRub
+	TotalEur codatypes.MoneyEur
+	TotalRub codatypes.MoneyRub
 }
 
 type ExpenseGroupMap map[string]*expenseGroup
@@ -65,58 +65,51 @@ func GroupExpensesByCategory(expenses []*Expense) ExpenseGroupMap {
 
 func NewExpenseFromRow(row *coda.Row) *Expense {
 	expense := Expense{}
-	errs := make([]common.UnexpectedFieldTypeErr, 0)
-	var err *common.UnexpectedFieldTypeErr
+	errs := codatypes.NewErrorContainer()
+	var err error
 
-	if expense.ID, err = common.ToString(Ids.Expenses.Cols.ID, row); err != nil {
-		errs = append(errs, *err)
-	}
-
-	if expense.Invoice, err = common.ToString(Ids.Expenses.Cols.Invoice, row); err != nil {
-		errs = append(errs, *err)
-	}
-	if expense.Subject, err = common.ToString(Ids.Expenses.Cols.Subject, row); err != nil {
-		errs = append(errs, *err)
-	}
-	if expense.Category, err = common.ToString(Ids.Expenses.Cols.Category, row); err != nil {
-		errs = append(errs, *err)
-	}
-	if expense.Comment, err = common.ToString(Ids.Expenses.Cols.Comment, row); err != nil {
-		errs = append(errs, *err)
-	}
-	if expense.AmountRub, err = common.ToRub(Ids.Expenses.Cols.AmountRub, row); err != nil {
-		errs = append(errs, *err)
-	}
-	if expense.AmountEur, err = common.ToEur(Ids.Expenses.Cols.AmountEur, row); err != nil {
-		errs = append(errs, *err)
-	}
-	if expense.Status, err = common.ToString(Ids.Expenses.Cols.Status, row); err != nil {
-		errs = append(errs, *err)
-	}
-	if expense.ActuallySpent, err = common.ToRub(Ids.Expenses.Cols.ActuallySpent, row); err != nil {
-		errs = append(errs, *err)
-	}
-	if expense.RejectionReason, err = common.ToString(Ids.Expenses.Cols.RejectionReason, row); err != nil {
-		errs = append(errs, *err)
-	}
-	if expense.PendingSpend, err = common.ToRub(Ids.Expenses.Cols.PendingSpend, row); err != nil {
-		errs = append(errs, *err)
-	}
-	if expense.Balance, err = common.ToRub(Ids.Expenses.Cols.Balance, row); err != nil {
-		errs = append(errs, *err)
-	}
-	if expense.LastCashOutDate, err = common.ToDate(Ids.Expenses.Cols.LastCashOutDate, row); err != nil {
-		errs = append(errs, *err)
+	if expense.ID, err = codatypes.ToString(Ids.Expenses.Cols.ID, row); err != nil {
+		errs.AddError(err)
 	}
 
-	if len(errs) > 0 {
-		stringErr := ""
-		for _, err := range errs {
-			stringErr += err.Error() + "; "
-		}
-
-		panic(stringErr)
+	if expense.Invoice, err = codatypes.ToString(Ids.Expenses.Cols.Invoice, row); err != nil {
+		errs.AddError(err)
 	}
+	if expense.Subject, err = codatypes.ToString(Ids.Expenses.Cols.Subject, row); err != nil {
+		errs.AddError(err)
+	}
+	if expense.Category, err = codatypes.ToString(Ids.Expenses.Cols.Category, row); err != nil {
+		errs.AddError(err)
+	}
+	if expense.Comment, err = codatypes.ToString(Ids.Expenses.Cols.Comment, row); err != nil {
+		errs.AddError(err)
+	}
+	if expense.AmountRub, err = codatypes.ToRub(Ids.Expenses.Cols.AmountRub, row); err != nil {
+		errs.AddError(err)
+	}
+	if expense.AmountEur, err = codatypes.ToEur(Ids.Expenses.Cols.AmountEur, row); err != nil {
+		errs.AddError(err)
+	}
+	if expense.Status, err = codatypes.ToString(Ids.Expenses.Cols.Status, row); err != nil {
+		errs.AddError(err)
+	}
+	if expense.ActuallySpent, err = codatypes.ToRub(Ids.Expenses.Cols.ActuallySpent, row); err != nil {
+		errs.AddError(err)
+	}
+	if expense.RejectionReason, err = codatypes.ToString(Ids.Expenses.Cols.RejectionReason, row); err != nil {
+		errs.AddError(err)
+	}
+	if expense.PendingSpend, err = codatypes.ToRub(Ids.Expenses.Cols.PendingSpend, row); err != nil {
+		errs.AddError(err)
+	}
+	if expense.Balance, err = codatypes.ToRub(Ids.Expenses.Cols.Balance, row); err != nil {
+		errs.AddError(err)
+	}
+	if expense.LastCashOutDate, err = codatypes.ToDate(Ids.Expenses.Cols.LastCashOutDate, row); err != nil {
+		errs.AddError(err)
+	}
+
+	errs.PanicIfError()
 
 	return &expense
 }

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/360EntSecGroup-Skylar/excelize/v2"
 	"io"
-	"oea-go/internal/common"
+	"oea-go/internal/codatypes"
 	"oea-go/internal/employee/dto"
 )
 
@@ -80,8 +80,8 @@ func RenderPayrollReport(wr io.Writer, invoices dto.Invoices) error {
 	f.SetColWidth(payrollReportSheetName, "E", "E", 50)
 	f.SetPanes(payrollReportSheetName, `{"freeze":true,"split":false,"x_split":1,"y_split":0,"top_left_cell":"B1","active_pane":"topRight","panes":[{"sqref":"B1","active_cell":"B1","pane":"topRight"}]}`)
 
-	var grandTotalRub common.MoneyRub
-	var grandTotalEur common.MoneyEur
+	var grandTotalRub codatypes.MoneyRub
+	var grandTotalEur codatypes.MoneyEur
 	rowNum := 1
 
 	for _, invoice := range invoices {

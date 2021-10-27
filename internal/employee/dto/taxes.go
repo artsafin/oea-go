@@ -1,7 +1,7 @@
 package dto
 
 import (
-	"oea-go/internal/common"
+	"oea-go/internal/codatypes"
 	"time"
 )
 
@@ -11,8 +11,8 @@ type TaxCalculation struct {
 	PeriodStart        *time.Time
 	PeriodEnd          *time.Time
 	AmountIpDays       uint16
-	MedicalFund        common.MoneyRub
-	PensionFundFixed   common.MoneyRub
-	PensionFundPercent common.MoneyRub
-	Amount             common.MoneyRub
+	MedicalFund        codatypes.MoneyRub
+	PensionFundFixed   codatypes.MoneyRub
+	PensionFundPercent codatypes.MoneyRub
+	Amount             codatypes.MoneyRub
 }

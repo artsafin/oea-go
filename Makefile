@@ -8,16 +8,16 @@ DEV_COMPOSE_PROJ=oea-go-dev
 all: build
 
 assets:
-	test -f resources/assets/bootstrap.min.css || curl -s https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css -o resources/assets/bootstrap.min.css
+	test -f resources/assets/bootstrap.min.css || curl -s https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css -o resources/assets/bootstrap.min.css
 
 build: assets
-	docker build -f ./Dockerfile --build-arg "VERSION=$(VERSION)" -t oea-go:latest .
+	docker build -f ./Dockerfile --build-arg "VERSION=$(VERSION)" -t oea-go:local .
 
 test:
 	go test ./...
 
 dev-env:
-	@echo 'export COMPOSE_PROJECT_NAME=$(DEV_COMPOSE_PROJ); export COMPOSE_FILE=$(DEV_COMPOSE_FILE)'
+	@echo 'export COMPOSE_PROJECT_NAME=$(DEV_COMPOSE_PROJ); export COMPOSE_FILE=$(DEV_COMPOSE_FILE); alias ddc="docker-compose --env-file $(DEV_ENV_FILE) -f $(DEV_COMPOSE_FILE) -p $(DEV_COMPOSE_PROJ)"'
 
 run-dev: build
 	docker-compose --env-file $(DEV_ENV_FILE) -f $(DEV_COMPOSE_FILE) -p $(DEV_COMPOSE_PROJ) down && \

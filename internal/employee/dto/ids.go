@@ -41,6 +41,7 @@ type InvoicesColumns struct {
 	BankFees             string
 	RateErrorPrevMon     string
 	PaymentChecksPassed  string
+	BankDetails          string
 }
 
 type CorrectionsColumns struct {
@@ -120,6 +121,23 @@ type EmployeesColumns struct {
 	ContractNumber          string
 }
 
+type BankDetailsColumns struct {
+	ID              string
+	Account         string
+	Address1        string
+	Address2        string
+	BeneficiaryBank string
+}
+
+type BeneficiaryBankColumns struct {
+	Name              string
+	Address1          string
+	Address2          string
+	Address3          string
+	BeneficiarySWIFT  string
+	IntermediarySWIFT string
+}
+
 type IdOnly struct {
 	Id string
 }
@@ -154,6 +172,16 @@ type EmployeesDecl struct {
 	Cols EmployeesColumns
 }
 
+type BankDetailsDecl struct {
+	IdOnly
+	Cols BankDetailsColumns
+}
+
+type BeneficiaryBankDecl struct {
+	IdOnly
+	Cols BeneficiaryBankColumns
+}
+
 type CodaFormulasDecl struct {
 	CurrentMonth string
 }
@@ -166,13 +194,15 @@ type CodaViewsDecl struct {
 }
 
 type IdStruct struct {
-	Invoices     InvoicesDecl
-	Corrections  CorrectionsDecl
-	Taxes        TaxesDecl
-	Patent       PatentDecl
-	Months       MonthsDecl
-	Employees    EmployeesDecl
-	CodaFormulas CodaFormulasDecl
+	Invoices        InvoicesDecl
+	Corrections     CorrectionsDecl
+	Taxes           TaxesDecl
+	Patent          PatentDecl
+	Months          MonthsDecl
+	Employees       EmployeesDecl
+	CodaFormulas    CodaFormulasDecl
+	BeneficiaryBank BeneficiaryBankDecl
+	BankDetails     BankDetailsDecl
 }
 
 var Ids IdStruct
@@ -211,6 +241,7 @@ func init() {
 				BankFees:             "c-sRGR6jYC7g",
 				RateErrorPrevMon:     "c-_9tuuG4RIN",
 				PaymentChecksPassed:  "c-DRPGK3XTmD",
+				BankDetails:          "c-2TxWM7vHls",
 			},
 		},
 		Corrections: CorrectionsDecl{
@@ -312,6 +343,27 @@ func init() {
 		},
 		CodaFormulas: CodaFormulasDecl{
 			CurrentMonth: "f-rnJn4-MytN",
+		},
+		BeneficiaryBank: BeneficiaryBankDecl{
+			IdOnly: IdOnly{"grid-nm04UZgIT5"},
+			Cols: BeneficiaryBankColumns{
+				Name:              "c-n7C1h8-HT0",
+				Address1:          "c-IXiurFEJhe",
+				Address2:          "c-4V09Q5_ecT",
+				Address3:          "c-eXcEw6G3-d",
+				BeneficiarySWIFT:  "c-ZJ42UOAJJ2",
+				IntermediarySWIFT: "c-0YB127-zuw",
+			},
+		},
+		BankDetails: BankDetailsDecl{
+			IdOnly: IdOnly{"grid-RmSMcSeoRT"},
+			Cols: BankDetailsColumns{
+				ID:              "c-6wrPfoVH6_",
+				Account:         "c-7TwwLMMH2Y",
+				Address1:        "c-Z4kWEGdXUY",
+				Address2:        "c-I051sZQZwd",
+				BeneficiaryBank: "c-ychArTE7uo",
+			},
 		},
 	}
 }

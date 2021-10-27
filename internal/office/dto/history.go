@@ -1,12 +1,14 @@
 package dto
 
-import "oea-go/internal/common"
+import (
+	"oea-go/internal/codatypes"
+)
 
 type GrandTotal struct {
-	ExpensesRub   common.MoneyRub
-	ActuallySpent common.MoneyRub
-	PendingSpend  common.MoneyRub
-	Balance       common.MoneyRub
+	ExpensesRub   codatypes.MoneyRub
+	ActuallySpent codatypes.MoneyRub
+	PendingSpend  codatypes.MoneyRub
+	Balance       codatypes.MoneyRub
 }
 
 func (t *GrandTotal) AddInvoice(inv *Invoice) {

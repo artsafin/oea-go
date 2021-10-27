@@ -1,6 +1,7 @@
 {{ define "sidebar_custom"}}
     <hr>
     <ul class="sticky-top">
+        <li><a href="#bulk-operations">Bulk operations</a></li>
         {{ range .Page.Invoices }}
         <li><a href="#{{ .EmployeeNameSlug }}">{{ .EmployeeName }}</a></li>
         {{ end }}
@@ -9,15 +10,20 @@
 
 {{ define "content"}}
     {{ $month := .Page.SelectedMonth }}
-    <a type="button"
-       class="btn btn-secondary"
-       href="{{ link "EmployeesDownloadAllInvoices" "month" $month }}"
-    >Download all invoices</a>
-<br>
-    <a type="button"
-       class="btn btn-secondary"
-       href="{{ link "EmployeesDownloadPayrollReport" "month" $month }}"
-    >Download Payroll Report</a>
+
+    <h3 id="bulk-operations">Bulk operations</h3>
+
+    <ul class="nav nav-pills">
+        <li class="nav-item">
+            <a class="nav-link" href="{{ link "EmployeesDownloadAllInvoices" "month" $month }}">Download all invoices</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="{{ link "EmployeesDownloadPayrollReport" "month" $month }}">Download Payroll Report</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="{{ link "EmployeesDownloadHellenicPayroll" "month" $month }}">Hellenic payroll file</a>
+        </li>
+    </ul>
 
     <script>
         const copyWithStyle = (element, button) => {

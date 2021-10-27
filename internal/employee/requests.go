@@ -14,6 +14,7 @@ type With struct {
 	Corrections bool
 	PrevInvoice bool
 	Employees   bool
+	BankDetails bool
 }
 
 type Requests struct {
@@ -100,19 +101,21 @@ func (requests *Requests) GetInvoices(month string, with With) (invoices dto.Inv
 		return nil, err
 	}
 
-	invoices = make(dto.Invoices, len(resp.Rows))
+	numRows := len(resp.Rows)
+	invoices = make(dto.Invoices, 0, numRows)
 
 	var corrs map[string][]*dto.Correction
 	var employees map[string]*dto.Employee
+	var bankDetails map[string]dto.BankDetails
 
-	if len(invoices) > 0 && with.Corrections {
+	if numRows > 0 && with.Corrections {
 		corrs, err = requests.getCorrectionsIndexedByInvoice(month)
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	if len(invoices) > 0 && with.Employees {
+	if numRows > 0 && with.Employees {
 		employees, err = requests.GetAllEmployees()
 		if err != nil {
 			return nil, err
@@ -126,7 +129,7 @@ func (requests *Requests) GetInvoices(month string, with With) (invoices dto.Inv
 
 	var prevInvoices map[string]*dto.Invoice
 
-	if len(invoices) > 0 && with.PrevInvoice {
+	if numRows > 0 && with.PrevInvoice {
 		prevInvoicesList, err := requests.GetInvoices(prevMonth.ID, With{})
 		if err != nil {
 			return nil, err
@@ -134,19 +137,32 @@ func (requests *Requests) GetInvoices(month string, with With) (invoices dto.Inv
 		prevInvoices = uniqueInvoiceById(prevInvoicesList)
 	}
 
-	for i, row := range resp.Rows {
-		invoices[i] = dto.NewInvoiceFromRow(&row)
+	if numRows > 0 && with.BankDetails {
+		bankDetails, err = requests.GetAllBankDetails()
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	for _, row := range resp.Rows {
+		invoice := dto.NewInvoiceFromRow(&row)
 		if with.Corrections {
-			invoices[i].Corrections = corrs[invoices[i].Id]
+			invoice.Corrections = corrs[invoice.Id]
 		}
 		if with.PrevInvoice {
-			invoices[i].PrevInvoice = prevInvoices[invoices[i].PreviousInvoiceId]
+			invoice.PrevInvoice = prevInvoices[invoice.PreviousInvoiceId]
 		}
 		if with.Employees {
-			invoices[i].Employee = employees[invoices[i].EmployeeName]
+			invoice.Employee = employees[invoice.EmployeeName]
 		}
 
-		invoices[i].MonthData = thisMonth
+		if invoiceBankDetails, detailsOk := bankDetails[invoice.BankDetailsID]; with.BankDetails && detailsOk {
+			invoice.BankDetails = &invoiceBankDetails
+		}
+
+		invoice.MonthData = thisMonth
+
+		invoices = append(invoices, invoice)
 	}
 
 	sort.Sort(invoices)
@@ -206,6 +222,53 @@ func (requests *Requests) GetAllEmployees() (map[string]*dto.Employee, error) {
 	for _, row := range resp.Rows {
 		empl := dto.NewEmployeeFromRow(&row)
 		result[empl.Name] = empl
+	}
+
+	return result, nil
+}
+
+func (requests *Requests) GetAllBankDetails() (map[string]dto.BankDetails, error) {
+	bankDetailsResp, err := requests.Client.ListViewRows(requests.DocId, dto.Ids.BankDetails.Id, coda.ListViewRowsParameters{
+		ValueFormat: "rich",
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	banks, err := requests.GetBeneficiaryBanksByRowID()
+
+	if err != nil {
+		return nil, err
+	}
+
+	result := make(map[string]dto.BankDetails)
+
+	for _, row := range bankDetailsResp.Rows {
+		d := dto.NewBankDetailsFromRow(&row)
+
+		if bank, ok := banks[d.Bank.RowID]; ok {
+			d.Bank = bank
+		}
+		result[d.ID] = d
+	}
+
+	return result, nil
+}
+
+func (requests *Requests) GetBeneficiaryBanksByRowID() (map[string]dto.BeneficiaryBank, error) {
+	resp, err := requests.Client.ListViewRows(requests.DocId, dto.Ids.BeneficiaryBank.Id, coda.ListViewRowsParameters{
+		ValueFormat: "rich",
+	})
+
+	if err != nil {
+		return nil, err
+	}
+	result := make(map[string]dto.BeneficiaryBank)
+
+	for _, row := range resp.Rows {
+		d := dto.NewBeneficiaryBankFromRow(&row)
+		result[row.Id] = d
 	}
 
 	return result, nil

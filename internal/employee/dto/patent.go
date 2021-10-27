@@ -1,7 +1,7 @@
 package dto
 
 import (
-	"oea-go/internal/common"
+	"oea-go/internal/codatypes"
 	"time"
 )
 
@@ -10,7 +10,7 @@ type PatentCalculation struct {
 	OpeningPatent *time.Time
 	PeriodEnd     *time.Time
 	FullMonths    uint16
-	AnnualCost    common.MoneyRub
-	PeriodCost    common.MoneyRub
+	AnnualCost    codatypes.MoneyRub
+	PeriodCost    codatypes.MoneyRub
 	Period        string
 }

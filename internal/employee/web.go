@@ -10,6 +10,7 @@ import (
 	"oea-go/internal/common/config"
 	"oea-go/internal/employee/dto"
 	"oea-go/internal/excel"
+	"oea-go/internal/hellenic"
 	"oea-go/resources"
 	"time"
 )
@@ -139,6 +140,33 @@ func (h Handler) DownloadPayrollReport(resp http.ResponseWriter, request *http.R
 	resp.Header().Add("Content-Disposition", fmt.Sprintf("attachment; filename=\"payroll_report_%s.xlsx\"", month))
 
 	renderErr := excel.RenderPayrollReport(resp, invoices)
+	if renderErr != nil {
+		resp.Header().Del("Content-Type")
+		resp.Header().Del("Content-Disposition")
+		resp.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprint(resp, renderErr)
+	}
+}
+
+func (h Handler) DownloadHellenicPayroll(resp http.ResponseWriter, request *http.Request) {
+	vars := mux.Vars(request)
+	month, containsMonth := vars["month"]
+	if !containsMonth {
+		resp.WriteHeader(http.StatusBadRequest)
+		fmt.Fprint(resp, "no month provided")
+		return
+	}
+	invoices, err := h.client.GetInvoices(month, With{Employees: true, BankDetails: true})
+	if err != nil {
+		resp.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprint(resp, err)
+		return
+	}
+
+	resp.Header().Add("Content-Type", "text/plain")
+	resp.Header().Add("Content-Disposition", fmt.Sprintf("attachment; filename=\"payroll_%s.txt\"", month))
+
+	renderErr := hellenic.CreatePayrollFile(resp, invoices, h.config.PayrollDebitAccount, time.Now())
 	if renderErr != nil {
 		resp.Header().Del("Content-Type")
 		resp.Header().Del("Content-Disposition")

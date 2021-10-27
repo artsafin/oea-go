@@ -2,14 +2,14 @@ package dto
 
 import (
 	"html/template"
-	"oea-go/internal/common"
+	"oea-go/internal/codatypes"
 )
 
 type EmployeeReportLine struct {
 	Location string
 	Name     string
 	Comment  template.HTML
-	Amount   common.MoneyRub
+	Amount   codatypes.MoneyRub
 }
 
 func (p EmployeeReportLine) clone() EmployeeReportLine {
@@ -21,13 +21,13 @@ func (p EmployeeReportLine) clone() EmployeeReportLine {
 	}
 }
 
-func (p EmployeeReportLine) WithAmount(amount common.MoneyRub) *EmployeeReportLine {
+func (p EmployeeReportLine) WithAmount(amount codatypes.MoneyRub) *EmployeeReportLine {
 	newp := p.clone()
 	newp.Amount = amount
 	return &newp
 }
 
-func (p EmployeeReportLine) WithAmountAndComment(amount common.MoneyRub, comment template.HTML) *EmployeeReportLine {
+func (p EmployeeReportLine) WithAmountAndComment(amount codatypes.MoneyRub, comment template.HTML) *EmployeeReportLine {
 	newp := p.clone()
 	newp.Amount = amount
 	newp.Comment = comment

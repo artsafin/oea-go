@@ -2,7 +2,7 @@ package dto
 
 import (
 	"github.com/artsafin/go-coda"
-	"oea-go/internal/common"
+	"oea-go/internal/codatypes"
 	"time"
 )
 
@@ -12,14 +12,14 @@ type Employee struct {
 	StartDate               *time.Time
 	ProbationEnd            *time.Time
 	AnnualLeaveFrom         *time.Time
-	SalaryBeforeIp          common.MoneyRub
-	SalaryAfterIp           common.MoneyRub
-	NetSalaryAfterProbation common.MoneyRub
+	SalaryBeforeIp          codatypes.MoneyRub
+	SalaryAfterIp           codatypes.MoneyRub
+	NetSalaryAfterProbation codatypes.MoneyRub
 	EndDate                 *time.Time
-	HourRate                common.MoneyEur
-	BankCurrencyControl     common.MoneyRub
-	BankService             common.MoneyRub
-	BankTotalFees           common.MoneyRub
+	HourRate                codatypes.MoneyEur
+	BankCurrencyControl     codatypes.MoneyRub
+	BankService             codatypes.MoneyRub
+	BankTotalFees           codatypes.MoneyRub
 	Address                 string
 	OpeningDateIp           *time.Time
 	StartMonthName          string
@@ -28,8 +28,8 @@ type Employee struct {
 	Position                string
 	INN                     string
 	IsWorkingNow            bool
-	PatentFee               common.MoneyRub
-	LastSalary              common.MoneyRub
+	PatentFee               codatypes.MoneyRub
+	LastSalary              codatypes.MoneyRub
 	EnglishFullName         string
 	BankRequisites          string
 	BillTo                  string
@@ -43,114 +43,107 @@ type Employee struct {
 
 func NewEmployeeFromRow(row *coda.Row) *Employee {
 	empl := Employee{}
-	errs := make([]common.UnexpectedFieldTypeErr, 0)
-	var err *common.UnexpectedFieldTypeErr
+	errs := codatypes.NewErrorContainer()
+	var err error
 
-	if empl.Location, err = common.ToString(Ids.Employees.Cols.Location, row); err != nil {
-		errs = append(errs, *err)
+	if empl.Location, err = codatypes.ToString(Ids.Employees.Cols.Location, row); err != nil {
+		errs.AddError(err)
 	}
-	if empl.Name, err = common.ToString(Ids.Employees.Cols.Name, row); err != nil {
-		errs = append(errs, *err)
+	if empl.Name, err = codatypes.ToString(Ids.Employees.Cols.Name, row); err != nil {
+		errs.AddError(err)
 	}
-	if empl.StartDate, err = common.ToDate(Ids.Employees.Cols.StartDate, row); err != nil {
-		errs = append(errs, *err)
+	if empl.StartDate, err = codatypes.ToDate(Ids.Employees.Cols.StartDate, row); err != nil {
+		errs.AddError(err)
 	}
-	if empl.ProbationEnd, err = common.ToDate(Ids.Employees.Cols.ProbationEnd, row); err != nil {
-		errs = append(errs, *err)
+	if empl.ProbationEnd, err = codatypes.ToDate(Ids.Employees.Cols.ProbationEnd, row); err != nil {
+		errs.AddError(err)
 	}
-	if empl.AnnualLeaveFrom, err = common.ToDate(Ids.Employees.Cols.AnnualLeaveFrom, row); err != nil {
-		errs = append(errs, *err)
+	if empl.AnnualLeaveFrom, err = codatypes.ToDate(Ids.Employees.Cols.AnnualLeaveFrom, row); err != nil {
+		errs.AddError(err)
 	}
-	if empl.SalaryBeforeIp, err = common.ToRub(Ids.Employees.Cols.SalaryBeforeIp, row); err != nil {
-		errs = append(errs, *err)
+	if empl.SalaryBeforeIp, err = codatypes.ToRub(Ids.Employees.Cols.SalaryBeforeIp, row); err != nil {
+		errs.AddError(err)
 	}
-	if empl.SalaryAfterIp, err = common.ToRub(Ids.Employees.Cols.SalaryAfterIp, row); err != nil {
-		errs = append(errs, *err)
+	if empl.SalaryAfterIp, err = codatypes.ToRub(Ids.Employees.Cols.SalaryAfterIp, row); err != nil {
+		errs.AddError(err)
 	}
-	if empl.NetSalaryAfterProbation, err = common.ToRub(Ids.Employees.Cols.NetSalaryAfterProbation, row); err != nil {
-		errs = append(errs, *err)
+	if empl.NetSalaryAfterProbation, err = codatypes.ToRub(Ids.Employees.Cols.NetSalaryAfterProbation, row); err != nil {
+		errs.AddError(err)
 	}
-	if empl.EndDate, err = common.ToDate(Ids.Employees.Cols.EndDate, row); err != nil {
-		errs = append(errs, *err)
+	if empl.EndDate, err = codatypes.ToDate(Ids.Employees.Cols.EndDate, row); err != nil {
+		errs.AddError(err)
 	}
-	if empl.HourRate, err = common.ToEur(Ids.Employees.Cols.HourRate, row); err != nil {
-		errs = append(errs, *err)
+	if empl.HourRate, err = codatypes.ToEur(Ids.Employees.Cols.HourRate, row); err != nil {
+		errs.AddError(err)
 	}
-	if empl.BankCurrencyControl, err = common.ToRub(Ids.Employees.Cols.BankCurrencyControl, row); err != nil {
-		errs = append(errs, *err)
+	if empl.BankCurrencyControl, err = codatypes.ToRub(Ids.Employees.Cols.BankCurrencyControl, row); err != nil {
+		errs.AddError(err)
 	}
-	if empl.BankService, err = common.ToRub(Ids.Employees.Cols.BankService, row); err != nil {
-		errs = append(errs, *err)
+	if empl.BankService, err = codatypes.ToRub(Ids.Employees.Cols.BankService, row); err != nil {
+		errs.AddError(err)
 	}
-	if empl.BankTotalFees, err = common.ToRub(Ids.Employees.Cols.BankTotalFees, row); err != nil {
-		errs = append(errs, *err)
+	if empl.BankTotalFees, err = codatypes.ToRub(Ids.Employees.Cols.BankTotalFees, row); err != nil {
+		errs.AddError(err)
 	}
-	if empl.Address, err = common.ToString(Ids.Employees.Cols.Address, row); err != nil {
-		errs = append(errs, *err)
+	if empl.Address, err = codatypes.ToString(Ids.Employees.Cols.Address, row); err != nil {
+		errs.AddError(err)
 	}
-	if empl.OpeningDateIp, err = common.ToDate(Ids.Employees.Cols.OpeningDateIp, row); err != nil {
-		errs = append(errs, *err)
+	if empl.OpeningDateIp, err = codatypes.ToDate(Ids.Employees.Cols.OpeningDateIp, row); err != nil {
+		errs.AddError(err)
 	}
-	if empl.StartMonthName, err = common.ToString(Ids.Employees.Cols.StartMonth, row); err != nil {
-		errs = append(errs, *err)
+	if empl.StartMonthName, err = codatypes.ToString(Ids.Employees.Cols.StartMonth, row); err != nil {
+		errs.AddError(err)
 	}
-	if empl.MattermostLogin, err = common.ToString(Ids.Employees.Cols.MattermostLogin, row); err != nil {
-		errs = append(errs, *err)
+	if empl.MattermostLogin, err = codatypes.ToString(Ids.Employees.Cols.MattermostLogin, row); err != nil {
+		errs.AddError(err)
 	}
-	if empl.RussianFullName, err = common.ToString(Ids.Employees.Cols.RussianFullName, row); err != nil {
-		errs = append(errs, *err)
+	if empl.RussianFullName, err = codatypes.ToString(Ids.Employees.Cols.RussianFullName, row); err != nil {
+		errs.AddError(err)
 	}
-	if empl.Position, err = common.ToString(Ids.Employees.Cols.Position, row); err != nil {
-		errs = append(errs, *err)
+	if empl.Position, err = codatypes.ToString(Ids.Employees.Cols.Position, row); err != nil {
+		errs.AddError(err)
 	}
-	if empl.INN, err = common.ToString(Ids.Employees.Cols.INN, row); err != nil {
-		errs = append(errs, *err)
+	if empl.INN, err = codatypes.ToString(Ids.Employees.Cols.INN, row); err != nil {
+		errs.AddError(err)
 	}
-	if empl.IsWorkingNow, err = common.ToBool(Ids.Employees.Cols.IsWorkingNow, row); err != nil {
-		errs = append(errs, *err)
+	if empl.IsWorkingNow, err = codatypes.ToBool(Ids.Employees.Cols.IsWorkingNow, row); err != nil {
+		errs.AddError(err)
 	}
-	if empl.PatentFee, err = common.ToRub(Ids.Employees.Cols.PatentFee, row); err != nil {
-		errs = append(errs, *err)
+	if empl.PatentFee, err = codatypes.ToRub(Ids.Employees.Cols.PatentFee, row); err != nil {
+		errs.AddError(err)
 	}
-	if empl.LastSalary, err = common.ToRub(Ids.Employees.Cols.LastSalary, row); err != nil {
-		errs = append(errs, *err)
+	if empl.LastSalary, err = codatypes.ToRub(Ids.Employees.Cols.LastSalary, row); err != nil {
+		errs.AddError(err)
 	}
-	if empl.EnglishFullName, err = common.ToString(Ids.Employees.Cols.EnglishFullName, row); err != nil {
-		errs = append(errs, *err)
+	if empl.EnglishFullName, err = codatypes.ToString(Ids.Employees.Cols.EnglishFullName, row); err != nil {
+		errs.AddError(err)
 	}
-	if empl.BankRequisites, err = common.ToString(Ids.Employees.Cols.BankRequisites, row); err != nil {
-		errs = append(errs, *err)
+	if empl.BankRequisites, err = codatypes.ToString(Ids.Employees.Cols.BankRequisites, row); err != nil {
+		errs.AddError(err)
 	}
-	if empl.BillTo, err = common.ToString(Ids.Employees.Cols.BillTo, row); err != nil {
-		errs = append(errs, *err)
+	if empl.BillTo, err = codatypes.ToString(Ids.Employees.Cols.BillTo, row); err != nil {
+		errs.AddError(err)
 	}
-	if empl.GeneralSdLink, err = common.ToString(Ids.Employees.Cols.GeneralSdLink, row); err != nil {
-		errs = append(errs, *err)
+	if empl.GeneralSdLink, err = codatypes.ToString(Ids.Employees.Cols.GeneralSdLink, row); err != nil {
+		errs.AddError(err)
 	}
-	if empl.PersonnelSdLink, err = common.ToString(Ids.Employees.Cols.PersonnelSdLink, row); err != nil {
-		errs = append(errs, *err)
+	if empl.PersonnelSdLink, err = codatypes.ToString(Ids.Employees.Cols.PersonnelSdLink, row); err != nil {
+		errs.AddError(err)
 	}
-	if empl.FinanceSdLink, err = common.ToString(Ids.Employees.Cols.FinanceSdLink, row); err != nil {
-		errs = append(errs, *err)
+	if empl.FinanceSdLink, err = codatypes.ToString(Ids.Employees.Cols.FinanceSdLink, row); err != nil {
+		errs.AddError(err)
 	}
-	if empl.AclSdLink, err = common.ToString(Ids.Employees.Cols.AclSdLink, row); err != nil {
-		errs = append(errs, *err)
+	if empl.AclSdLink, err = codatypes.ToString(Ids.Employees.Cols.AclSdLink, row); err != nil {
+		errs.AddError(err)
 	}
-	if empl.ContractDate, err = common.ToString(Ids.Employees.Cols.ContractDate, row); err != nil {
-		errs = append(errs, *err)
+	if empl.ContractDate, err = codatypes.ToString(Ids.Employees.Cols.ContractDate, row); err != nil {
+		errs.AddError(err)
 	}
-	if empl.ContractNumber, err = common.ToString(Ids.Employees.Cols.ContractNumber, row); err != nil {
-		errs = append(errs, *err)
+	if empl.ContractNumber, err = codatypes.ToString(Ids.Employees.Cols.ContractNumber, row); err != nil {
+		errs.AddError(err)
 	}
 
-	if len(errs) > 0 {
-		stringErr := ""
-		for _, err := range errs {
-			stringErr += err.Error() + "; "
-		}
-
-		panic(stringErr)
-	}
+	errs.PanicIfError()
 
 	return &empl
 }

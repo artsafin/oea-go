@@ -16,7 +16,7 @@ ARG VERSION
 ADD . /app
 WORKDIR /app
 
-RUN time go build -ldflags "-X main.AppVersion=$VERSION" -o "/tmp/oea-go" . && \
+RUN time go build -ldflags "-X main.AppVersion=$VERSION" -o "/tmp/oea-go" ./cmd/server && \
     chmod a+x /tmp/oea-go && \
     echo -n "BIN SIZE: " && du -k /tmp/oea-go
 

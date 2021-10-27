@@ -3,6 +3,7 @@ package dto
 import (
 	"fmt"
 	"github.com/artsafin/go-coda"
+	"oea-go/internal/codatypes"
 	"oea-go/internal/common"
 	"strings"
 	"time"
@@ -39,27 +40,29 @@ type Invoice struct {
 	EmployeeName         string
 	EmployeeNameSlug     string
 	Employee             *Employee
+	BankDetailsID        string
+	BankDetails          *BankDetails
 	PreviousInvoiceId    string
-	RequestedSubtotalRub common.MoneyRub
-	EurRubExpected       common.MoneyRub
-	RequestedSubtotalEur common.MoneyEur
-	RoundingPrevMonEur   common.MoneyEur
-	Rounding             common.MoneyEur
-	AmountRequestedEur   common.MoneyEur
+	RequestedSubtotalRub codatypes.MoneyRub
+	EurRubExpected       codatypes.MoneyRub
+	RequestedSubtotalEur codatypes.MoneyEur
+	RoundingPrevMonEur   codatypes.MoneyEur
+	Rounding             codatypes.MoneyEur
+	AmountRequestedEur   codatypes.MoneyEur
 	hours                uint16
-	EurRubActual         common.MoneyRub
-	AmountRubActual      common.MoneyRub
-	RateErrorRub         common.MoneyRub
-	CostOfDay            common.MoneyRub
-	BankTotalFees        common.MoneyRub
+	EurRubActual         codatypes.MoneyRub
+	AmountRubActual      codatypes.MoneyRub
+	RateErrorRub         codatypes.MoneyRub
+	CostOfDay            codatypes.MoneyRub
+	BankTotalFees        codatypes.MoneyRub
 	OpeningDateIp        *time.Time
-	CorrectionRub        common.MoneyRub
-	PatentRub            common.MoneyRub
-	TaxesRub             common.MoneyRub
-	BaseSalaryRub        common.MoneyRub
-	BaseSalaryEur        common.MoneyEur
-	BankFees             common.MoneyRub
-	RateErrorPrevMon     common.MoneyRub
+	CorrectionRub        codatypes.MoneyRub
+	PatentRub            codatypes.MoneyRub
+	TaxesRub             codatypes.MoneyRub
+	BaseSalaryRub        codatypes.MoneyRub
+	BaseSalaryEur        codatypes.MoneyEur
+	BankFees             codatypes.MoneyRub
+	RateErrorPrevMon     codatypes.MoneyRub
 	Corrections          []*Correction
 	MonthData            *Month
 	PrevInvoice          *Invoice
@@ -109,9 +112,9 @@ func (inv *Invoice) DateYm() string {
 	return inv.MonthData.LastMonthDay.Format("January 2006")
 }
 
-func (inv *Invoice) HourRate() common.MoneyEur {
+func (inv *Invoice) HourRate() codatypes.MoneyEur {
 	if inv.Employee == nil {
-		return common.MoneyEur(0)
+		return codatypes.MoneyEur(0)
 	}
 	return inv.Employee.HourRate
 }
@@ -120,7 +123,7 @@ func (inv *Invoice) Hours() uint16 {
 	return inv.hours
 }
 
-func (inv *Invoice) TotalEur() common.MoneyEur {
+func (inv *Invoice) TotalEur() codatypes.MoneyEur {
 	return inv.AmountRequestedEur
 }
 
@@ -160,98 +163,94 @@ func (inv *Invoice) DatePayment() string {
 
 func NewInvoiceFromRow(row *coda.Row) *Invoice {
 	invoice := Invoice{}
-	errs := make([]common.UnexpectedFieldTypeErr, 0)
-	var err *common.UnexpectedFieldTypeErr
+	errs := codatypes.NewErrorContainer()
+	var err error
 
-	if invoice.Id, err = common.ToString(Ids.Invoices.Cols.Id, row); err != nil {
-		errs = append(errs, *err)
+	if invoice.Id, err = codatypes.ToString(Ids.Invoices.Cols.Id, row); err != nil {
+		errs.AddError(err)
 	}
-	if invoice.InvoiceNo, err = common.ToString(Ids.Invoices.Cols.InvoiceNo, row); err != nil {
-		errs = append(errs, *err)
+	if invoice.InvoiceNo, err = codatypes.ToString(Ids.Invoices.Cols.InvoiceNo, row); err != nil {
+		errs.AddError(err)
 	}
-	if invoice.Month, err = common.ToString(Ids.Invoices.Cols.Month, row); err != nil {
-		errs = append(errs, *err)
+	if invoice.Month, err = codatypes.ToString(Ids.Invoices.Cols.Month, row); err != nil {
+		errs.AddError(err)
 	}
-	if invoice.EmployeeName, err = common.ToString(Ids.Invoices.Cols.Employee, row); err != nil {
-		errs = append(errs, *err)
+	if invoice.EmployeeName, err = codatypes.ToString(Ids.Invoices.Cols.Employee, row); err != nil {
+		errs.AddError(err)
 	} else {
 		invoice.EmployeeNameSlug = strings.ReplaceAll(strings.ToLower(strings.TrimSpace(invoice.EmployeeName)), " ", "-")
 	}
-	if invoice.PreviousInvoiceId, err = common.ToString(Ids.Invoices.Cols.PreviousInvoice, row); err != nil {
-		errs = append(errs, *err)
+	if invoice.PreviousInvoiceId, err = codatypes.ToString(Ids.Invoices.Cols.PreviousInvoice, row); err != nil {
+		errs.AddError(err)
 	}
-	if invoice.RequestedSubtotalRub, err = common.ToRub(Ids.Invoices.Cols.RequestedSubtotalRub, row); err != nil {
-		errs = append(errs, *err)
+	if invoice.RequestedSubtotalRub, err = codatypes.ToRub(Ids.Invoices.Cols.RequestedSubtotalRub, row); err != nil {
+		errs.AddError(err)
 	}
-	if invoice.EurRubExpected, err = common.ToRub(Ids.Invoices.Cols.EurRubExpected, row); err != nil {
-		errs = append(errs, *err)
+	if invoice.EurRubExpected, err = codatypes.ToRub(Ids.Invoices.Cols.EurRubExpected, row); err != nil {
+		errs.AddError(err)
 	}
-	if invoice.RequestedSubtotalEur, err = common.ToEur(Ids.Invoices.Cols.RequestedSubtotalEur, row); err != nil {
-		errs = append(errs, *err)
+	if invoice.RequestedSubtotalEur, err = codatypes.ToEur(Ids.Invoices.Cols.RequestedSubtotalEur, row); err != nil {
+		errs.AddError(err)
 	}
-	if invoice.RoundingPrevMonEur, err = common.ToEur(Ids.Invoices.Cols.RoundingPrevMonEur, row); err != nil {
-		errs = append(errs, *err)
+	if invoice.RoundingPrevMonEur, err = codatypes.ToEur(Ids.Invoices.Cols.RoundingPrevMonEur, row); err != nil {
+		errs.AddError(err)
 	}
-	if invoice.Rounding, err = common.ToEur(Ids.Invoices.Cols.Rounding, row); err != nil {
-		errs = append(errs, *err)
+	if invoice.Rounding, err = codatypes.ToEur(Ids.Invoices.Cols.Rounding, row); err != nil {
+		errs.AddError(err)
 	}
-	if invoice.AmountRequestedEur, err = common.ToEur(Ids.Invoices.Cols.AmountRequestedEur, row); err != nil {
-		errs = append(errs, *err)
+	if invoice.AmountRequestedEur, err = codatypes.ToEur(Ids.Invoices.Cols.AmountRequestedEur, row); err != nil {
+		errs.AddError(err)
 	}
-	if invoice.hours, err = common.ToUint16(Ids.Invoices.Cols.Hours, row); err != nil {
-		errs = append(errs, *err)
+	if invoice.hours, err = codatypes.ToUint16(Ids.Invoices.Cols.Hours, row); err != nil {
+		errs.AddError(err)
 	}
-	if invoice.EurRubActual, err = common.ToRub(Ids.Invoices.Cols.EurRubActual, row); err != nil {
-		errs = append(errs, *err)
+	if invoice.EurRubActual, err = codatypes.ToRub(Ids.Invoices.Cols.EurRubActual, row); err != nil {
+		errs.AddError(err)
 	}
-	if invoice.AmountRubActual, err = common.ToRub(Ids.Invoices.Cols.AmountRubActual, row); err != nil {
-		errs = append(errs, *err)
+	if invoice.AmountRubActual, err = codatypes.ToRub(Ids.Invoices.Cols.AmountRubActual, row); err != nil {
+		errs.AddError(err)
 	}
-	if invoice.RateErrorRub, err = common.ToRub(Ids.Invoices.Cols.RateErrorRub, row); err != nil {
-		errs = append(errs, *err)
+	if invoice.RateErrorRub, err = codatypes.ToRub(Ids.Invoices.Cols.RateErrorRub, row); err != nil {
+		errs.AddError(err)
 	}
-	if invoice.CostOfDay, err = common.ToRub(Ids.Invoices.Cols.CostOfDay, row); err != nil {
-		errs = append(errs, *err)
+	if invoice.CostOfDay, err = codatypes.ToRub(Ids.Invoices.Cols.CostOfDay, row); err != nil {
+		errs.AddError(err)
 	}
-	if invoice.BankTotalFees, err = common.ToRub(Ids.Invoices.Cols.BankTotalFees, row); err != nil {
-		errs = append(errs, *err)
+	if invoice.BankTotalFees, err = codatypes.ToRub(Ids.Invoices.Cols.BankTotalFees, row); err != nil {
+		errs.AddError(err)
 	}
-	if invoice.OpeningDateIp, err = common.ToDate(Ids.Invoices.Cols.OpeningDateIp, row); err != nil {
-		errs = append(errs, *err)
+	if invoice.OpeningDateIp, err = codatypes.ToDate(Ids.Invoices.Cols.OpeningDateIp, row); err != nil {
+		errs.AddError(err)
 	}
-	if invoice.CorrectionRub, err = common.ToRub(Ids.Invoices.Cols.CorrectionRub, row); err != nil {
-		errs = append(errs, *err)
+	if invoice.CorrectionRub, err = codatypes.ToRub(Ids.Invoices.Cols.CorrectionRub, row); err != nil {
+		errs.AddError(err)
 	}
-	if invoice.PatentRub, err = common.ToRub(Ids.Invoices.Cols.PatentRub, row); err != nil {
-		errs = append(errs, *err)
+	if invoice.PatentRub, err = codatypes.ToRub(Ids.Invoices.Cols.PatentRub, row); err != nil {
+		errs.AddError(err)
 	}
-	if invoice.TaxesRub, err = common.ToRub(Ids.Invoices.Cols.TaxesRub, row); err != nil {
-		errs = append(errs, *err)
+	if invoice.TaxesRub, err = codatypes.ToRub(Ids.Invoices.Cols.TaxesRub, row); err != nil {
+		errs.AddError(err)
 	}
-	if invoice.BaseSalaryRub, err = common.ToRub(Ids.Invoices.Cols.BaseSalaryRub, row); err != nil {
-		errs = append(errs, *err)
+	if invoice.BaseSalaryRub, err = codatypes.ToRub(Ids.Invoices.Cols.BaseSalaryRub, row); err != nil {
+		errs.AddError(err)
 	}
-	if invoice.BaseSalaryEur, err = common.ToEur(Ids.Invoices.Cols.BaseSalaryEur, row); err != nil {
-		errs = append(errs, *err)
+	if invoice.BaseSalaryEur, err = codatypes.ToEur(Ids.Invoices.Cols.BaseSalaryEur, row); err != nil {
+		errs.AddError(err)
 	}
-	if invoice.BankFees, err = common.ToRub(Ids.Invoices.Cols.BankFees, row); err != nil {
-		errs = append(errs, *err)
+	if invoice.BankFees, err = codatypes.ToRub(Ids.Invoices.Cols.BankFees, row); err != nil {
+		errs.AddError(err)
 	}
-	if invoice.RateErrorPrevMon, err = common.ToRub(Ids.Invoices.Cols.RateErrorPrevMon, row); err != nil {
-		errs = append(errs, *err)
+	if invoice.RateErrorPrevMon, err = codatypes.ToRub(Ids.Invoices.Cols.RateErrorPrevMon, row); err != nil {
+		errs.AddError(err)
 	}
-	if invoice.PaymentChecksPassed, err = common.ToBool(Ids.Invoices.Cols.PaymentChecksPassed, row); err != nil {
-		errs = append(errs, *err)
+	if invoice.PaymentChecksPassed, err = codatypes.ToBool(Ids.Invoices.Cols.PaymentChecksPassed, row); err != nil {
+		errs.AddError(err)
+	}
+	if invoice.BankDetailsID, err = codatypes.ToString(Ids.Invoices.Cols.BankDetails, row); err != nil {
+		errs.AddError(err)
 	}
 
-	if len(errs) > 0 {
-		stringErr := ""
-		for _, err := range errs {
-			stringErr += err.Error() + "; "
-		}
-
-		panic(stringErr)
-	}
+	errs.PanicIfError()
 
 	return &invoice
 }

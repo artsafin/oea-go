@@ -2,6 +2,7 @@ package common
 
 import (
 	"fmt"
+	"oea-go/internal/codatypes"
 	"testing"
 	"time"
 )
@@ -19,7 +20,7 @@ func (test *timeTesting) timeMustParse(t time.Time, err error) time.Time {
 
 func (test *timeTesting) parse(val string) time.Time {
 	ttt, err := time.Parse(time.RFC3339, val)
-	ttt = test.timeMustParse(ttt, err).In(datesLocation)
+	ttt = test.timeMustParse(ttt, err).In(codatypes.DatesLocation)
 
 	return ttt
 }

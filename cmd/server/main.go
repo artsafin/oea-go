@@ -13,7 +13,7 @@ import (
 	"os"
 )
 
-// Populated by -ldflags "-X main.AppVersion=..."
+// AppVersion Populated by -ldflags "-X main.AppVersion=..."
 var AppVersion string
 
 func main() {
@@ -75,7 +75,8 @@ func main() {
 		GET.HandleFunc("/employees", router.Page(employeesHandler.Home, "employees")).Name("EmployeesHome")
 		GET.HandleFunc("/employee/{month}", router.Page(employeesHandler.Month, "employees", "employees_month")).Name("EmployeesMonth")
 		GET.HandleFunc("/employee/{month}/invoices", employeesHandler.DownloadAllInvoices).Name("EmployeesDownloadAllInvoices")
-		GET.HandleFunc("/employee/{month}/payrollreport", employeesHandler.DownloadPayrollReport).Name("EmployeesDownloadPayrollReport")
+		GET.HandleFunc("/employee/{month}/payroll.xlsx", employeesHandler.DownloadPayrollReport).Name("EmployeesDownloadPayrollReport")
+		GET.HandleFunc("/employee/{month}/payroll.txt", employeesHandler.DownloadHellenicPayroll).Name("EmployeesDownloadHellenicPayroll")
 		GET.HandleFunc("/employee/{month}/{employee}/invoice", employeesHandler.DownloadInvoice).Name("EmployeesDownloadInvoice")
 
 		GET.HandleFunc("/", router.Page(web.NilTemplateData, "index"))

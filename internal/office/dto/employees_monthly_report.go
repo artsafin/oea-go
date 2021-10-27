@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"html/template"
-	"oea-go/internal/common"
+	"oea-go/internal/codatypes"
 	emplDto "oea-go/internal/employee/dto"
 	"strings"
 )
@@ -27,7 +27,7 @@ func NewEmployeesMonthlyReport(month string) *EmployeesMonthlyReport {
 type EmployeesMonthlyReport struct {
 	Month      string
 	Categories map[string]*EmployeesReportCategory
-	Total      common.MoneyRub
+	Total      codatypes.MoneyRub
 }
 
 func (cats *EmployeesMonthlyReport) AddItemsFromInvoices(invoices emplDto.Invoices) {
@@ -81,7 +81,7 @@ func (cats *EmployeesMonthlyReport) addItem(cat string, payment *EmployeeReportL
 	if _, hasCategory := cats.Categories[cat]; !hasCategory {
 		cats.Categories[cat] = &EmployeesReportCategory{
 			Name:     cat,
-			Total:    common.MoneyRub(0),
+			Total:    codatypes.MoneyRub(0),
 			Payments: make([]*EmployeeReportLine, 0),
 		}
 	}

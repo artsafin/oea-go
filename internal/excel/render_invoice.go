@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"oea-go/internal/common"
+	"oea-go/internal/codatypes"
 	"strings"
 
 	"github.com/360EntSecGroup-Skylar/excelize/v2"
@@ -19,9 +19,9 @@ type InvoiceDataProvider interface {
 	Number() string
 	DateFull() string
 	DateYm() string
-	HourRate() common.MoneyEur
+	HourRate() codatypes.MoneyEur
 	Hours() uint16
-	TotalEur() common.MoneyEur
+	TotalEur() codatypes.MoneyEur
 	BeneficiaryName() string
 	PayerName() string
 	Filename() string
