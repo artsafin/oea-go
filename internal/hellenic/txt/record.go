@@ -1,6 +1,9 @@
 package txt
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+)
 
 type worldwideBankRecord struct {
 	debitAccount              string
@@ -15,8 +18,8 @@ type worldwideBankRecord struct {
 
 func (r *worldwideBankRecord) String() string {
 	return fmt.Sprintf("I|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s",
-		underscore(r.debitAccount),
-		underscore(r.recipient.Account),
+		underscore(strings.ReplaceAll(r.debitAccount, "-", "")),
+		underscore(strings.ReplaceAll(r.recipient.Account, "-", "")),
 		underscore(r.recipient.Amount.Humanize("#.###,##")),
 		underscore(r.recipient.Amount.CurrencyISO4217()),
 		underscore(r.submissionDate),
