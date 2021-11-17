@@ -21,7 +21,7 @@ import (
 	"time"
 )
 
-func loadOfficeData(req *Requests, invoiceID string) (OfficeTemplateData, []error) {
+func loadOfficeData(req *API, invoiceID string) (OfficeTemplateData, []error) {
 	var invoice *dto.Invoice
 	var prevInvoice *dto.Invoice
 	var expensesByCategory dto.ExpenseGroupMap
@@ -91,7 +91,7 @@ func loadOfficeData(req *Requests, invoiceID string) (OfficeTemplateData, []erro
 	}, nil
 }
 
-func getMonthsN(req *empl.Requests, num int, now time.Time) emplDto.Months {
+func getMonthsN(req *empl.API, num int, now time.Time) emplDto.Months {
 	months, _ := req.GetMonths() // TODO pass error
 
 	curMonthIndex := months.IndexOfTime(now)
@@ -113,7 +113,7 @@ func getMonthsN(req *empl.Requests, num int, now time.Time) emplDto.Months {
 	return (*months)[from:to]
 }
 
-func (h handler) loadTodayAndPastInvoices(req *empl.Requests, numPastInvoices int, today time.Time) dto.EmployeesHistoricReport {
+func (h handler) loadTodayAndPastInvoices(req *empl.API, numPastInvoices int, today time.Time) dto.EmployeesHistoricReport {
 	months := getMonthsN(req, numPastInvoices, today)
 	numMonths := len(months)
 
@@ -195,8 +195,8 @@ func NewHandler(cfg *config.Config, logger *zap.SugaredLogger) *handler {
 }
 
 func (h handler) Home(vars map[string]string, req *http.Request) interface{} {
-	client := NewRequests(h.config.BaseUri, h.config.ApiTokenOf, h.config.DocIdOf)
-	invoices, err := client.GetInvoices(InvoiceIsRecent{})
+	api := NewAPI(h.config.BaseUri, h.config.ApiTokenOf, h.config.DocIdOf)
+	invoices, err := api.GetInvoices(InvoiceIsRecent)
 
 	sort.Sort(sort.Reverse(invoices))
 
@@ -204,14 +204,14 @@ func (h handler) Home(vars map[string]string, req *http.Request) interface{} {
 }
 
 func (h handler) ShowInvoiceData(vars map[string]string, req *http.Request) interface{} {
-	officeClient := NewRequests(h.config.BaseUri, h.config.ApiTokenOf, h.config.DocIdOf)
-	officeData, errs := loadOfficeData(officeClient, vars["invoice"])
+	officeAPI := NewAPI(h.config.BaseUri, h.config.ApiTokenOf, h.config.DocIdOf)
+	officeData, errs := loadOfficeData(officeAPI, vars["invoice"])
 	err := common.JoinErrors(errs)
 
 	html := ""
 	if err == nil {
-		emplClient := empl.NewRequests(h.config.BaseUri, h.config.ApiTokenEm, h.config.DocIdEm)
-		employeesData := h.loadTodayAndPastInvoices(emplClient, 5, time.Now())
+		emplAPI := empl.NewAPI(h.config.BaseUri, h.config.ApiTokenEm, h.config.DocIdEm)
+		employeesData := h.loadTodayAndPastInvoices(emplAPI, 5, time.Now())
 
 		html, err = buildApprovalRequestHtml(officeData, employeesData)
 	}
@@ -225,8 +225,8 @@ func (h handler) ShowInvoiceData(vars map[string]string, req *http.Request) inte
 
 func (h handler) DownloadInvoice(resp http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
-	officeClient := NewRequests(h.config.BaseUri, h.config.ApiTokenOf, h.config.DocIdOf)
-	data, errs := loadOfficeData(officeClient, vars["invoice"])
+	api := NewAPI(h.config.BaseUri, h.config.ApiTokenOf, h.config.DocIdOf)
+	data, errs := loadOfficeData(api, vars["invoice"])
 
 	err := common.JoinErrors(errs)
 	if err != nil {

@@ -6,8 +6,10 @@ import (
 	"oea-go/internal/office/codaschema"
 )
 
-type InvoiceIsRecent struct{}
+var InvoiceIsRecent common.QueryParam
 
-func (i InvoiceIsRecent) Apply(p *coda.ListRowsParameters) {
-	p.Query = common.Query(codaschema.ID.Table.Invoices.Cols.IsRecent.ID, "true")
+func init() {
+	InvoiceIsRecent = func(p *coda.ListRowsParameters) {
+		p.Query = common.Query(codaschema.ID.Table.Invoices.Cols.IsRecent.ID, "true")
+	}
 }

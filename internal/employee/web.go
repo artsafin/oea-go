@@ -34,20 +34,20 @@ func (p Page) IsMonthSelected(mon dto.Month) bool {
 
 type Handler struct {
 	config *config.Config
-	client *Requests
+	api    *API
 	logger *zap.SugaredLogger
 }
 
 func NewHandler(cfg *config.Config, logger *zap.SugaredLogger) *Handler {
 	return &Handler{
 		config: cfg,
-		client: NewRequests(cfg.BaseUri, cfg.ApiTokenEm, cfg.DocIdEm),
+		api:    NewAPI(cfg.BaseUri, cfg.ApiTokenEm, cfg.DocIdEm),
 		logger: logger,
 	}
 }
 
 func (h Handler) getLastMonths(num int) dto.Months {
-	months, _ := h.client.GetMonths() // TODO pass error
+	months, _ := h.api.GetMonths() // TODO pass error
 	curMonthIndex := months.IndexOfTime(time.Now())
 
 	from := curMonthIndex - 1
@@ -76,7 +76,7 @@ func (h Handler) Month(vars map[string]string, req *http.Request) interface{} {
 		return h.Home(vars, req)
 	}
 
-	invoices, err := h.client.GetInvoices(month, With{Corrections: true, PrevInvoice: true, Employees: true})
+	invoices, err := h.api.GetInvoices(month, With{Corrections: true, PrevInvoice: true, Employees: true})
 	if err != nil {
 		return NewErrorPage(err)
 	}
@@ -103,7 +103,7 @@ func (h Handler) DownloadInvoice(resp http.ResponseWriter, request *http.Request
 		return
 	}
 
-	invoice, err := h.client.GetInvoiceForMonthAndEmployee(month, employee)
+	invoice, err := h.api.GetInvoiceForMonthAndEmployee(month, employee)
 	if err != nil {
 		resp.WriteHeader(http.StatusBadRequest)
 		fmt.Fprint(resp, err)
@@ -129,7 +129,7 @@ func (h Handler) DownloadPayrollReport(resp http.ResponseWriter, request *http.R
 		fmt.Fprint(resp, "no month provided")
 		return
 	}
-	invoices, err := h.client.GetInvoices(month, With{Employees: true, PrevInvoice: true, Corrections: true})
+	invoices, err := h.api.GetInvoices(month, With{Employees: true, PrevInvoice: true, Corrections: true})
 	if err != nil {
 		resp.WriteHeader(http.StatusInternalServerError)
 		fmt.Fprint(resp, err)
@@ -156,14 +156,21 @@ func (h Handler) DownloadHellenicPayroll(resp http.ResponseWriter, request *http
 		fmt.Fprint(resp, "no month provided")
 		return
 	}
-	invoices, err := h.client.GetInvoices(month, With{Employees: true, BankDetails: true, LegalEntities: true})
+	allInvoices, err := h.api.GetInvoices(month, With{Employees: true, BankDetails: true, LegalEntities: true})
+	payableInvoices := make(dto.Invoices, 0, len(allInvoices))
+	for _, inv := range allInvoices {
+		if inv.PaymentChecksPassed {
+			payableInvoices = append(payableInvoices, inv)
+		}
+	}
+
 	if err != nil {
 		resp.WriteHeader(http.StatusInternalServerError)
 		fmt.Fprint(resp, err)
 		return
 	}
 
-	executionDate, err := h.client.GetPayrollScheduleByMonth(month)
+	executionDate, err := h.api.GetPayrollScheduleByMonth(month)
 	if err != nil || executionDate == nil {
 		resp.WriteHeader(http.StatusInternalServerError)
 		fmt.Fprint(resp, err)
@@ -173,7 +180,7 @@ func (h Handler) DownloadHellenicPayroll(resp http.ResponseWriter, request *http
 	resp.Header().Add("Content-Type", "text/plain")
 	resp.Header().Add("Content-Disposition", fmt.Sprintf("attachment; filename=\"payroll_%s.txt\"", month))
 
-	renderErr := hellenic.CreatePayrollFile(resp, invoices, time.Now(), *executionDate)
+	renderErr := hellenic.CreatePayrollFile(resp, payableInvoices, time.Now(), *executionDate)
 	if renderErr != nil {
 		resp.Header().Del("Content-Type")
 		resp.Header().Del("Content-Disposition")
@@ -193,7 +200,7 @@ func (h Handler) DownloadAllInvoices(resp http.ResponseWriter, request *http.Req
 
 	common.WriteMemProfile("before_getinvoices")
 
-	invoices, err := h.client.GetInvoices(month, With{Employees: true})
+	invoices, err := h.api.GetInvoices(month, With{Employees: true})
 	if err != nil {
 		resp.WriteHeader(http.StatusInternalServerError)
 		fmt.Fprint(resp, err)

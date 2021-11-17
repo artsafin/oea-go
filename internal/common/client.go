@@ -50,9 +50,6 @@ func Query(k, v string) string {
 	return fmt.Sprintf("\"%s\":\"%s\"", k, v)
 }
 
-type QueryParam interface {
-	Apply(p *coda.ListRowsParameters)
-}
-type QueryViewParam interface {
-	Apply(p *coda.ListViewRowsParameters)
-}
+type QueryParam func(p *coda.ListRowsParameters)
+
+type QueryViewParam func(p *coda.ListViewRowsParameters)

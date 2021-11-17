@@ -9,23 +9,23 @@ import (
 	"sort"
 )
 
-type Requests struct {
+type API struct {
 	Client *common.CodaClient
 	DocId  string
 }
 
-func NewRequests(baseUri, apiTokenOf, docId string) *Requests {
-	return &Requests{
+func NewAPI(baseUri, apiTokenOf, docId string) *API {
+	return &API{
 		Client: common.NewCodaClient(baseUri, apiTokenOf),
 		DocId:  docId,
 	}
 }
 
-func (requests *Requests) GetInvoice(invoiceID string) (*dto.Invoice, error) {
+func (api *API) GetInvoice(invoiceID string) (*dto.Invoice, error) {
 	params := coda.ListRowsParameters{
 		Query: fmt.Sprintf("\"%s\":\"%s\"", codaschema.ID.Table.Invoices.Cols.No.ID, invoiceID),
 	}
-	resp, err := requests.Client.ListTableRows(requests.DocId, codaschema.ID.Table.Invoices.ID, params)
+	resp, err := api.Client.ListTableRows(api.DocId, codaschema.ID.Table.Invoices.ID, params)
 	if err != nil {
 		return nil, err
 	}
@@ -39,14 +39,14 @@ func (requests *Requests) GetInvoice(invoiceID string) (*dto.Invoice, error) {
 	return dto.NewInvoiceFromRow(&firstRow), nil
 }
 
-func (requests *Requests) GetInvoices(query ...common.QueryParam) (dto.Invoices, error) {
+func (api *API) GetInvoices(query ...common.QueryParam) (dto.Invoices, error) {
 	params := coda.ListRowsParameters{
 		SortBy: "natural",
 	}
 	for _, q := range query {
-		q.Apply(&params)
+		q(&params)
 	}
-	resp, err := requests.Client.ListTableRows(requests.DocId, codaschema.ID.Table.Invoices.ID, params)
+	resp, err := api.Client.ListTableRows(api.DocId, codaschema.ID.Table.Invoices.ID, params)
 	if err != nil {
 		return nil, err
 	}
@@ -61,9 +61,9 @@ func (requests *Requests) GetInvoices(query ...common.QueryParam) (dto.Invoices,
 	return invoices, nil
 }
 
-func (requests *Requests) GetExpenses(invoiceID string) ([]*dto.Expense, error) {
+func (api *API) GetExpenses(invoiceID string) ([]*dto.Expense, error) {
 	params := coda.ListRowsParameters{}
-	resp, err := requests.Client.ListTableRows(requests.DocId, codaschema.ID.Table.Expenses.ID, params)
+	resp, err := api.Client.ListTableRows(api.DocId, codaschema.ID.Table.Expenses.ID, params)
 	if err != nil {
 		return nil, err
 	}
@@ -79,10 +79,10 @@ func (requests *Requests) GetExpenses(invoiceID string) ([]*dto.Expense, error) 
 	return expenses, nil
 }
 
-func (requests *Requests) GetHistory() (*dto.History, error) {
+func (api *API) GetHistory() (*dto.History, error) {
 	sentInvoices := make([]*dto.Invoice, 0)
 	grandTotal := dto.GrandTotal{}
-	invoices, err := requests.GetInvoices()
+	invoices, err := api.GetInvoices()
 	if err != nil {
 		return nil, err
 	}
@@ -94,7 +94,7 @@ func (requests *Requests) GetHistory() (*dto.History, error) {
 	}
 
 	lastInvoice := sentInvoices[len(sentInvoices)-1]
-	lastInvoice.Expenses, err = requests.GetExpenses(lastInvoice.No)
+	lastInvoice.Expenses, err = api.GetExpenses(lastInvoice.No)
 	if err != nil {
 		return nil, err
 	}
