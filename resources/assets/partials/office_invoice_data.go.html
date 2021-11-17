@@ -9,5 +9,9 @@
 {{end}}
 
 {{ define "content"}}
-    {{ .Page.Body }}
+    {{- if .Page.Error }}
+        {{ .Page.Error }}
+    {{ else }}
+        {{ .Page.Body }}
+    {{ end -}}
 {{end}}

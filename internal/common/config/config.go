@@ -20,27 +20,26 @@ type Config struct {
 	Accounts   Accounts `ignored:"true"`
 	SecretKey  []byte   `ignored:"true"`
 
-	BaseUri             string `envconfig:"base_uri" required:"true"`
-	ApiTokenOf          string `envconfig:"api_token_of" required:"true"`
-	ApiTokenEm          string `envconfig:"api_token_em" required:"true"`
-	DocIdOf             string `envconfig:"doc_id_of" required:"true"`
-	DocIdEm             string `envconfig:"doc_id_em" required:"true"`
-	RawSecretKey        string `envconfig:"secret_key"`
-	RawAccounts         string `envconfig:"auth_accounts"`
-	SmtpHost            string `envconfig:"smtp_host" required:"true"`
-	SmtpUser            string `envconfig:"smtp_user" required:"true"`
-	SmtpPass            string `envconfig:"smtp_pass" required:"true"`
-	SmtpPort            uint   `envconfig:"smtp_port"`
-	SecurePort          uint   `envconfig:"secure_port"`
-	InsecurePort        uint   `envconfig:"insecure_port"`
-	TlsCert             string `envconfig:"tls_cert"`
-	TlsKey              string `envconfig:"tls_key"`
-	UseAuth             bool   `envconfig:"use_auth"`
-	BotToken            string `envconfig:"bot_token"`
-	FilesDir            string `envconfig:"files" required:"true"`
-	IsDebug             bool   `envconfig:"debug"`
-	PayrollDebitAccount string `envconfig:"payroll_debit_account"`
-	StorageAddr         string
+	BaseUri      string `envconfig:"base_uri" required:"true"`
+	ApiTokenOf   string `envconfig:"api_token_of" required:"true"`
+	ApiTokenEm   string `envconfig:"api_token_em" required:"true"`
+	DocIdOf      string `envconfig:"doc_id_of" required:"true"`
+	DocIdEm      string `envconfig:"doc_id_em" required:"true"`
+	RawSecretKey string `envconfig:"secret_key"`
+	RawAccounts  string `envconfig:"auth_accounts"`
+	SmtpHost     string `envconfig:"smtp_host" required:"true"`
+	SmtpUser     string `envconfig:"smtp_user" required:"true"`
+	SmtpPass     string `envconfig:"smtp_pass" required:"true"`
+	SmtpPort     uint   `envconfig:"smtp_port"`
+	SecurePort   uint   `envconfig:"secure_port"`
+	InsecurePort uint   `envconfig:"insecure_port"`
+	TlsCert      string `envconfig:"tls_cert"`
+	TlsKey       string `envconfig:"tls_key"`
+	UseAuth      bool   `envconfig:"use_auth"`
+	BotToken     string `envconfig:"bot_token"`
+	FilesDir     string `envconfig:"files" required:"true"`
+	IsDebug      bool   `envconfig:"debug"`
+	StorageAddr  string
 }
 
 func NewDefaultConfig(appVersion string, storageAddr string) Config {

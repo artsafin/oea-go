@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/artsafin/go-coda"
 	"oea-go/internal/codatypes"
+	"oea-go/internal/office/codaschema"
 	"time"
 )
 
@@ -107,65 +108,65 @@ func NewInvoiceFromRow(row *coda.Row) *Invoice {
 	errs := codatypes.NewErrorContainer()
 	var err error
 
-	if invoice.No, err = codatypes.ToString(Ids.Invoices.Cols.No, row); err != nil {
+	if invoice.No, err = codatypes.ToString(codaschema.ID.Table.Invoices.Cols.No.ID, row); err != nil {
 		errs.AddError(err)
 	}
-	if invoice.Status, err = codatypes.ToString(Ids.Invoices.Cols.Status, row); err != nil {
+	if invoice.Status, err = codatypes.ToString(codaschema.ID.Table.Invoices.Cols.Status.ID, row); err != nil {
 		errs.AddError(err)
 	}
-	if invoice.number, err = codatypes.ToUint16(Ids.Invoices.Cols.Number, row); err != nil {
+	if invoice.number, err = codatypes.ToUint16(codaschema.ID.Table.Invoices.Cols.Number.ID, row); err != nil {
 		errs.AddError(err)
 	}
-	if invoice.Date, err = codatypes.ToDate(Ids.Invoices.Cols.Date, row); err != nil {
+	if invoice.Date, err = codatypes.ToDate(codaschema.ID.Table.Invoices.Cols.Date.ID, row); err != nil {
 		errs.AddError(err)
 	}
-	if invoice.hourRate, err = codatypes.ToEur(Ids.Invoices.Cols.HourRate, row); err != nil {
+	if invoice.hourRate, err = codatypes.ToEur(codaschema.ID.Table.Invoices.Cols.HourRate.ID, row); err != nil {
 		errs.AddError(err)
 	}
-	if invoice.EurFixedRate, err = codatypes.ToRub(Ids.Invoices.Cols.EurFixedRate, row); err != nil {
+	if invoice.EurFixedRate, err = codatypes.ToRub(codaschema.ID.Table.Invoices.Cols.EURFixedRate.ID, row); err != nil {
 		errs.AddError(err)
 	}
-	if invoice.EurRateWorst, err = codatypes.ToRub(Ids.Invoices.Cols.EurRateWorst, row); err != nil {
+	if invoice.EurRateWorst, err = codatypes.ToRub(codaschema.ID.Table.Invoices.Cols.EURRateWorst.ID, row); err != nil {
 		errs.AddError(err)
 	}
-	if invoice.ReturnOfRounding, err = codatypes.ToEur(Ids.Invoices.Cols.ReturnOfRounding, row); err != nil {
+	if invoice.ReturnOfRounding, err = codatypes.ToEur(codaschema.ID.Table.Invoices.Cols.ReturnOfRounding.ID, row); err != nil {
 		errs.AddError(err)
 	}
-	if invoice.Subtotal, err = codatypes.ToEur(Ids.Invoices.Cols.Subtotal, row); err != nil {
+	if invoice.Subtotal, err = codatypes.ToEur(codaschema.ID.Table.Invoices.Cols.Subtotal.ID, row); err != nil {
 		errs.AddError(err)
 	}
-	if invoice.HourRateRounding, err = codatypes.ToEur(Ids.Invoices.Cols.HourRateRounding, row); err != nil {
+	if invoice.HourRateRounding, err = codatypes.ToEur(codaschema.ID.Table.Invoices.Cols.HourRateRounding.ID, row); err != nil {
 		errs.AddError(err)
 	}
-	if invoice.totalEur, err = codatypes.ToEur(Ids.Invoices.Cols.TotalEur, row); err != nil {
+	if invoice.totalEur, err = codatypes.ToEur(codaschema.ID.Table.Invoices.Cols.TotalEUR.ID, row); err != nil {
 		errs.AddError(err)
 	}
-	if invoice.hours, err = codatypes.ToUint16(Ids.Invoices.Cols.Hours, row); err != nil {
+	if invoice.hours, err = codatypes.ToUint16(codaschema.ID.Table.Invoices.Cols.Hours.ID, row); err != nil {
 		errs.AddError(err)
 	}
-	if invoice.filename, err = codatypes.ToString(Ids.Invoices.Cols.Filename, row); err != nil {
+	if invoice.filename, err = codatypes.ToString(codaschema.ID.Table.Invoices.Cols.Filename.ID, row); err != nil {
 		errs.AddError(err)
 	}
 
-	if invoice.ExpensesRub, err = codatypes.ToRub(Ids.Invoices.Cols.ExpensesRub, row); err != nil {
+	if invoice.ExpensesRub, err = codatypes.ToRub(codaschema.ID.Table.Invoices.Cols.ExpensesRUB.ID, row); err != nil {
 		errs.AddError(err)
 	}
-	if invoice.ExpensesEur, err = codatypes.ToEur(Ids.Invoices.Cols.ExpensesEur, row); err != nil {
+	if invoice.ExpensesEur, err = codatypes.ToEur(codaschema.ID.Table.Invoices.Cols.ExpensesEUR.ID, row); err != nil {
 		errs.AddError(err)
 	}
-	if invoice.ActuallySpent, err = codatypes.ToRub(Ids.Invoices.Cols.ActuallySpent, row); err != nil {
+	if invoice.ActuallySpent, err = codatypes.ToRub(codaschema.ID.Table.Invoices.Cols.ActuallySpent.ID, row); err != nil {
 		errs.AddError(err)
 	}
-	if invoice.PendingSpend, err = codatypes.ToRub(Ids.Invoices.Cols.PendingSpend, row); err != nil {
+	if invoice.PendingSpend, err = codatypes.ToRub(codaschema.ID.Table.Invoices.Cols.PendingSpend.ID, row); err != nil {
 		errs.AddError(err)
 	}
-	if invoice.Balance, err = codatypes.ToRub(Ids.Invoices.Cols.Balance, row); err != nil {
+	if invoice.Balance, err = codatypes.ToRub(codaschema.ID.Table.Invoices.Cols.Balance.ID, row); err != nil {
 		errs.AddError(err)
 	}
-	if invoice.PrevInvoiceID, err = codatypes.ToString(Ids.Invoices.Cols.PrevInvoice, row); err != nil {
+	if invoice.PrevInvoiceID, err = codatypes.ToString(codaschema.ID.Table.Invoices.Cols.PrevInvoice.ID, row); err != nil {
 		errs.AddError(err)
 	}
-	if invoice.ApprovalLink, err = codatypes.ToString(Ids.Invoices.Cols.ApprovalLink, row); err != nil {
+	if invoice.ApprovalLink, err = codatypes.ToString(codaschema.ID.Table.Invoices.Cols.ApprovalLink.ID, row); err != nil {
 		errs.AddError(err)
 	}
 

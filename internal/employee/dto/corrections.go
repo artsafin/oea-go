@@ -5,6 +5,7 @@ import (
 	"github.com/artsafin/go-coda"
 	"html/template"
 	"oea-go/internal/codatypes"
+	"oea-go/internal/employee/codaschema"
 	"strings"
 )
 
@@ -52,43 +53,43 @@ func NewCorrectionFromRow(row *coda.Row) *Correction {
 	errs := codatypes.NewErrorContainer()
 	var err error
 
-	if corr.PaymentInvoice, err = codatypes.ToString(Ids.Corrections.Cols.PaymentInvoice, row); err != nil {
+	if corr.PaymentInvoice, err = codatypes.ToString(codaschema.ID.Table.Corrections.Cols.PaymentInvoice.ID, row); err != nil {
 		errs.AddError(err)
 	}
-	if corr.Comment, err = codatypes.ToString(Ids.Corrections.Cols.Comment, row); err != nil {
+	if corr.Comment, err = codatypes.ToString(codaschema.ID.Table.Corrections.Cols.Comment.ID, row); err != nil {
 		errs.AddError(err)
 	}
-	if corr.TotalCorrectionRub, err = codatypes.ToRub(Ids.Corrections.Cols.TotalCorrectionRub, row); err != nil {
+	if corr.TotalCorrectionRub, err = codatypes.ToRub(codaschema.ID.Table.Corrections.Cols.TotalCorrectionRUB.ID, row); err != nil {
 		errs.AddError(err)
 	}
-	if corr.Category, err = codatypes.ToString(Ids.Corrections.Cols.Category, row); err != nil {
+	if corr.Category, err = codatypes.ToString(codaschema.ID.Table.Corrections.Cols.Category.ID, row); err != nil {
 		errs.AddError(err)
 	}
-	if corr.AbsoluteCorrectionRub, err = codatypes.ToRub(Ids.Corrections.Cols.AbsoluteCorrectionRub, row); err != nil {
+	if corr.AbsoluteCorrectionRub, err = codatypes.ToRub(codaschema.ID.Table.Corrections.Cols.AbsoluteCorrectionRUB.ID, row); err != nil {
 		errs.AddError(err)
 	}
-	if corr.AbsoluteCorrectionEur, err = codatypes.ToEur(Ids.Corrections.Cols.AbsoluteCorrectionEur, row); err != nil {
+	if corr.AbsoluteCorrectionEur, err = codatypes.ToEur(codaschema.ID.Table.Corrections.Cols.AbsoluteCorrectionEUR.ID, row); err != nil {
 		errs.AddError(err)
 	}
-	if corr.AbsCorrectionEurInRub, err = codatypes.ToRub(Ids.Corrections.Cols.AbsCorrectionEurInRub, row); err != nil {
+	if corr.AbsCorrectionEurInRub, err = codatypes.ToRub(codaschema.ID.Table.Corrections.Cols.AbsCorrectionEURInRUB.ID, row); err != nil {
 		errs.AddError(err)
 	}
-	if corr.PerDayType, err = codatypes.ToString(Ids.Corrections.Cols.PerDayType, row); err != nil {
+	if corr.PerDayType, err = codatypes.ToString(codaschema.ID.Table.Corrections.Cols.PerDayType.ID, row); err != nil {
 		errs.AddError(err)
 	}
-	if corr.NumberOfDays, err = codatypes.ToFloat64(Ids.Corrections.Cols.NumberOfDays, row); err != nil {
+	if corr.NumberOfDays, err = codatypes.ToFloat64(codaschema.ID.Table.Corrections.Cols.NumberOfDays.ID, row); err != nil {
 		errs.AddError(err)
 	}
-	if corr.CostOfDay, err = codatypes.ToRub(Ids.Corrections.Cols.CostOfDay, row); err != nil {
+	if corr.CostOfDay, err = codatypes.ToRub(codaschema.ID.Table.Corrections.Cols.CostOfDay.ID, row); err != nil {
 		errs.AddError(err)
 	}
-	if corr.PerDay, err = codatypes.ToRub(Ids.Corrections.Cols.PerDay, row); err != nil {
+	if corr.PerDay, err = codatypes.ToRub(codaschema.ID.Table.Corrections.Cols.PerDay.ID, row); err != nil {
 		errs.AddError(err)
 	}
-	if corr.PerDayCoefficient, err = codatypes.ToFloat64(Ids.Corrections.Cols.PerDayCoefficient, row); err != nil {
+	if corr.PerDayCoefficient, err = codatypes.ToFloat64(codaschema.ID.Table.Corrections.Cols.PerDayCoefficient.ID, row); err != nil {
 		errs.AddError(err)
 	}
-	if corr.PerDayCalculationInvoice, err = codatypes.ToString(Ids.Corrections.Cols.PerDayCalculationInvoice, row); err != nil {
+	if corr.PerDayCalculationInvoice, err = codatypes.ToString(codaschema.ID.Table.Corrections.Cols.PerDayCalculationInvoice.ID, row); err != nil {
 		errs.AddError(err)
 	}
 

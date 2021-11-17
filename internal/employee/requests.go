@@ -4,17 +4,21 @@ import (
 	"errors"
 	"fmt"
 	"github.com/artsafin/go-coda"
+	"oea-go/internal/codatypes"
 	"oea-go/internal/common"
+	"oea-go/internal/employee/codaschema"
 	"oea-go/internal/employee/dto"
 	"sort"
 	"strings"
+	"time"
 )
 
 type With struct {
-	Corrections bool
-	PrevInvoice bool
-	Employees   bool
-	BankDetails bool
+	Corrections   bool
+	PrevInvoice   bool
+	Employees     bool
+	BankDetails   bool
+	LegalEntities bool
 }
 
 type Requests struct {
@@ -31,7 +35,7 @@ func NewRequests(baseUri, apiTokenOf, docId string) *Requests {
 
 func (requests *Requests) GetMonths() (*dto.Months, error) {
 	params := coda.ListRowsParameters{}
-	resp, err := requests.Client.ListTableRows(requests.DocId, dto.Ids.Months.Id, params)
+	resp, err := requests.Client.ListTableRows(requests.DocId, codaschema.ID.Table.Months.ID, params)
 	if err != nil {
 		return nil, err
 	}
@@ -48,7 +52,7 @@ func (requests *Requests) GetMonths() (*dto.Months, error) {
 }
 
 func (requests *Requests) GetCurrentMonth() (string, error) {
-	currMonth, err := requests.Client.GetFormula(requests.DocId, dto.Ids.CodaFormulas.CurrentMonth)
+	currMonth, err := requests.Client.GetFormula(requests.DocId, codaschema.ID.Formula.CurrentMonth.ID)
 
 	if err != nil {
 		return "", err
@@ -93,9 +97,9 @@ func (requests *Requests) GetInvoiceForMonthAndEmployee(month, employee string) 
 
 func (requests *Requests) GetInvoices(month string, with With) (invoices dto.Invoices, err error) {
 	params := coda.ListRowsParameters{
-		Query: fmt.Sprintf("%s:\"%s\"", dto.Ids.Invoices.Cols.Month, month),
+		Query: fmt.Sprintf("%s:\"%s\"", codaschema.ID.Table.Invoice.Cols.Month.ID, month),
 	}
-	resp, err := requests.Client.ListTableRows(requests.DocId, dto.Ids.Invoices.Id, params)
+	resp, err := requests.Client.ListTableRows(requests.DocId, codaschema.ID.Table.Invoice.ID, params)
 
 	if err != nil {
 		return nil, err
@@ -116,7 +120,7 @@ func (requests *Requests) GetInvoices(month string, with With) (invoices dto.Inv
 	}
 
 	if numRows > 0 && with.Employees {
-		employees, err = requests.GetAllEmployees()
+		employees, err = requests.GetAllEmployees(with)
 		if err != nil {
 			return nil, err
 		}
@@ -192,7 +196,7 @@ func (requests *Requests) getMonthsData(month string) (*dto.Month, *dto.Month, e
 }
 
 func (requests *Requests) getCorrectionsIndexedByInvoice(month string) (map[string][]*dto.Correction, error) {
-	resp, err := requests.Client.ListTableRows(requests.DocId, dto.Ids.Corrections.Id, coda.ListRowsParameters{})
+	resp, err := requests.Client.ListTableRows(requests.DocId, codaschema.ID.Table.Corrections.ID, coda.ListRowsParameters{})
 
 	if err != nil {
 		return nil, err
@@ -210,17 +214,30 @@ func (requests *Requests) getCorrectionsIndexedByInvoice(month string) (map[stri
 	return result, nil
 }
 
-func (requests *Requests) GetAllEmployees() (map[string]*dto.Employee, error) {
-	resp, err := requests.Client.ListTableRows(requests.DocId, dto.Ids.Employees.Id, coda.ListRowsParameters{})
+func (requests *Requests) GetAllEmployees(with With) (map[string]*dto.Employee, error) {
+	resp, err := requests.Client.ListTableRows(requests.DocId, codaschema.ID.Table.AllEmployees.ID, coda.ListRowsParameters{})
 
 	if err != nil {
 		return nil, err
+	}
+
+	var legalEntities map[string]dto.LegalEntity
+	if with.LegalEntities {
+		legalEntities, err = requests.GetAllLegalEntities()
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	result := make(map[string]*dto.Employee)
 
 	for _, row := range resp.Rows {
 		empl := dto.NewEmployeeFromRow(&row)
+
+		if legalEntity, found := legalEntities[empl.LegalEntityName]; found && with.LegalEntities {
+			empl.LegalEntity = &legalEntity
+		}
+
 		result[empl.Name] = empl
 	}
 
@@ -228,7 +245,7 @@ func (requests *Requests) GetAllEmployees() (map[string]*dto.Employee, error) {
 }
 
 func (requests *Requests) GetAllBankDetails() (map[string]dto.BankDetails, error) {
-	bankDetailsResp, err := requests.Client.ListViewRows(requests.DocId, dto.Ids.BankDetails.Id, coda.ListViewRowsParameters{
+	bankDetailsResp, err := requests.Client.ListViewRows(requests.DocId, codaschema.ID.Table.BankDetails.ID, coda.ListViewRowsParameters{
 		ValueFormat: "rich",
 	})
 
@@ -257,7 +274,7 @@ func (requests *Requests) GetAllBankDetails() (map[string]dto.BankDetails, error
 }
 
 func (requests *Requests) GetBeneficiaryBanksByRowID() (map[string]dto.BeneficiaryBank, error) {
-	resp, err := requests.Client.ListViewRows(requests.DocId, dto.Ids.BeneficiaryBank.Id, coda.ListViewRowsParameters{
+	resp, err := requests.Client.ListViewRows(requests.DocId, codaschema.ID.Table.BeneficiaryBank.ID, coda.ListViewRowsParameters{
 		ValueFormat: "rich",
 	})
 
@@ -272,4 +289,42 @@ func (requests *Requests) GetBeneficiaryBanksByRowID() (map[string]dto.Beneficia
 	}
 
 	return result, nil
+}
+
+func (requests *Requests) GetAllLegalEntities() (map[string]dto.LegalEntity, error) {
+	resp, err := requests.Client.ListViewRows(requests.DocId, codaschema.ID.Table.LegalEntity.ID, coda.ListViewRowsParameters{})
+
+	if err != nil {
+		return nil, err
+	}
+	result := make(map[string]dto.LegalEntity)
+
+	for _, row := range resp.Rows {
+		d := dto.NewLegalEntityFromRow(&row)
+		result[d.EntityName] = d
+	}
+
+	return result, nil
+}
+
+func (requests *Requests) GetPayrollScheduleByMonth(month string) (*time.Time, error) {
+	params := coda.ListViewRowsParameters{
+		Query: fmt.Sprintf("%s:\"%s\"", codaschema.ID.Table.PayrollSchedule.Cols.Month.ID, month),
+	}
+	resp, err := requests.Client.ListViewRows(requests.DocId, codaschema.ID.Table.PayrollSchedule.ID, params)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if len(resp.Rows) != 1 {
+		return nil, errors.New("schedule not found for month " + month)
+	}
+
+	res, err := codatypes.ToDate(codaschema.ID.Table.PayrollSchedule.Cols.ExecutionDate.ID, &resp.Rows[0])
+	if err != nil {
+		return nil, err
+	}
+
+	return res, nil
 }

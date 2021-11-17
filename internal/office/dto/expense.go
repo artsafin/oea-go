@@ -3,6 +3,7 @@ package dto
 import (
 	"fmt"
 	"oea-go/internal/codatypes"
+	"oea-go/internal/office/codaschema"
 	"time"
 
 	"github.com/artsafin/go-coda"
@@ -68,44 +69,44 @@ func NewExpenseFromRow(row *coda.Row) *Expense {
 	errs := codatypes.NewErrorContainer()
 	var err error
 
-	if expense.ID, err = codatypes.ToString(Ids.Expenses.Cols.ID, row); err != nil {
+	if expense.ID, err = codatypes.ToString(codaschema.ID.Table.Expenses.Cols.ID.ID, row); err != nil {
 		errs.AddError(err)
 	}
 
-	if expense.Invoice, err = codatypes.ToString(Ids.Expenses.Cols.Invoice, row); err != nil {
+	if expense.Invoice, err = codatypes.ToString(codaschema.ID.Table.Expenses.Cols.Invoice.ID, row); err != nil {
 		errs.AddError(err)
 	}
-	if expense.Subject, err = codatypes.ToString(Ids.Expenses.Cols.Subject, row); err != nil {
+	if expense.Subject, err = codatypes.ToString(codaschema.ID.Table.Expenses.Cols.Subject.ID, row); err != nil {
 		errs.AddError(err)
 	}
-	if expense.Category, err = codatypes.ToString(Ids.Expenses.Cols.Category, row); err != nil {
+	if expense.Category, err = codatypes.ToString(codaschema.ID.Table.Expenses.Cols.Category.ID, row); err != nil {
 		errs.AddError(err)
 	}
-	if expense.Comment, err = codatypes.ToString(Ids.Expenses.Cols.Comment, row); err != nil {
+	if expense.Comment, err = codatypes.ToString(codaschema.ID.Table.Expenses.Cols.Comment.ID, row); err != nil {
 		errs.AddError(err)
 	}
-	if expense.AmountRub, err = codatypes.ToRub(Ids.Expenses.Cols.AmountRub, row); err != nil {
+	if expense.AmountRub, err = codatypes.ToRub(codaschema.ID.Table.Expenses.Cols.AmountRUB.ID, row); err != nil {
 		errs.AddError(err)
 	}
-	if expense.AmountEur, err = codatypes.ToEur(Ids.Expenses.Cols.AmountEur, row); err != nil {
+	if expense.AmountEur, err = codatypes.ToEur(codaschema.ID.Table.Expenses.Cols.AmountEUR.ID, row); err != nil {
 		errs.AddError(err)
 	}
-	if expense.Status, err = codatypes.ToString(Ids.Expenses.Cols.Status, row); err != nil {
+	if expense.Status, err = codatypes.ToString(codaschema.ID.Table.Expenses.Cols.Status.ID, row); err != nil {
 		errs.AddError(err)
 	}
-	if expense.ActuallySpent, err = codatypes.ToRub(Ids.Expenses.Cols.ActuallySpent, row); err != nil {
+	if expense.ActuallySpent, err = codatypes.ToRub(codaschema.ID.Table.Expenses.Cols.ActuallySpent.ID, row); err != nil {
 		errs.AddError(err)
 	}
-	if expense.RejectionReason, err = codatypes.ToString(Ids.Expenses.Cols.RejectionReason, row); err != nil {
+	if expense.RejectionReason, err = codatypes.ToString(codaschema.ID.Table.Expenses.Cols.RejectionReason.ID, row); err != nil {
 		errs.AddError(err)
 	}
-	if expense.PendingSpend, err = codatypes.ToRub(Ids.Expenses.Cols.PendingSpend, row); err != nil {
+	if expense.PendingSpend, err = codatypes.ToRub(codaschema.ID.Table.Expenses.Cols.PendingSpend.ID, row); err != nil {
 		errs.AddError(err)
 	}
-	if expense.Balance, err = codatypes.ToRub(Ids.Expenses.Cols.Balance, row); err != nil {
+	if expense.Balance, err = codatypes.ToRub(codaschema.ID.Table.Expenses.Cols.Balance.ID, row); err != nil {
 		errs.AddError(err)
 	}
-	if expense.LastCashOutDate, err = codatypes.ToDate(Ids.Expenses.Cols.LastCashOutDate, row); err != nil {
+	if expense.LastCashOutDate, err = codatypes.ToDate(codaschema.ID.Table.Expenses.Cols.LastCashOutDate.ID, row); err != nil {
 		errs.AddError(err)
 	}
 

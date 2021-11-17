@@ -7,7 +7,6 @@ require (
 	github.com/artsafin/go-coda v1.0.1
 	github.com/badoux/checkmail v1.2.1
 	github.com/cristalhq/jwt v1.2.0
-	github.com/davecgh/go-spew v1.1.1
 	github.com/divan/num2words v0.0.0-20170904212200-57dba452f942
 	github.com/dustin/go-humanize v1.0.0
 	github.com/go-telegram-bot-api/telegram-bot-api v4.6.4+incompatible

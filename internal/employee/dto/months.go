@@ -3,6 +3,7 @@ package dto
 import (
 	"errors"
 	"oea-go/internal/codatypes"
+	"oea-go/internal/employee/codaschema"
 	"time"
 
 	"github.com/artsafin/go-coda"
@@ -58,7 +59,6 @@ func (m Months) IndexOfTime(t time.Time) int {
 
 type Month struct {
 	LastMonthDay      *time.Time
-	WorkDays          uint16
 	Year              uint16
 	ID                string
 	PreviousMonthLink string
@@ -75,26 +75,23 @@ func NewMonthFromRow(row *coda.Row) *Month {
 	errs := codatypes.NewErrorContainer()
 	var err error
 
-	if month.ID, err = codatypes.ToString(Ids.Months.Cols.ID, row); err != nil {
+	if month.ID, err = codatypes.ToString(codaschema.ID.Table.Months.Cols.ID.ID, row); err != nil {
 		errs.AddError(err)
 	}
 
-	if month.LastMonthDay, err = codatypes.ToDate(Ids.Months.Cols.Month, row); err != nil {
+	if month.LastMonthDay, err = codatypes.ToDate(codaschema.ID.Table.Months.Cols.Month.ID, row); err != nil {
 		errs.AddError(err)
 	}
-	if month.WorkDays, err = codatypes.ToUint16(Ids.Months.Cols.WorkDays, row); err != nil {
+	if month.Year, err = codatypes.ToUint16(codaschema.ID.Table.Months.Cols.Year.ID, row); err != nil {
 		errs.AddError(err)
 	}
-	if month.Year, err = codatypes.ToUint16(Ids.Months.Cols.Year, row); err != nil {
+	if month.PreviousMonthLink, err = codatypes.ToString(codaschema.ID.Table.Months.Cols.PreviousMonthLink.ID, row); err != nil {
 		errs.AddError(err)
 	}
-	if month.PreviousMonthLink, err = codatypes.ToString(Ids.Months.Cols.PreviousMonthLink, row); err != nil {
+	if month.PreviousMonth, err = codatypes.ToDate(codaschema.ID.Table.Months.Cols.PreviousMonth.ID, row); err != nil {
 		errs.AddError(err)
 	}
-	if month.PreviousMonth, err = codatypes.ToDate(Ids.Months.Cols.PreviousMonth, row); err != nil {
-		errs.AddError(err)
-	}
-	if month.IsCurrent, err = codatypes.ToBool(Ids.Months.Cols.IsCurrent, row); err != nil {
+	if month.IsCurrent, err = codatypes.ToBool(codaschema.ID.Table.Months.Cols.Current.ID, row); err != nil {
 		errs.AddError(err)
 	}
 

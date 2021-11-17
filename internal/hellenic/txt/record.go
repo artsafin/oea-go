@@ -9,6 +9,8 @@ type worldwideBankRecord struct {
 	transactionCosts          transactionCosts
 	receiveTransactionDetails bool
 	recipient                 RecipientBankDetails
+	note1                     string
+	note2                     string
 }
 
 func (r *worldwideBankRecord) String() string {
@@ -29,7 +31,9 @@ func (r *worldwideBankRecord) String() string {
 		underscore(r.recipient.BeneficiarySWIFT),
 		r.transactionCosts,
 		boolToYesNoFlag(r.receiveTransactionDetails),
-		"_", "_", "_", "_", // Notes 1-4
+		underscore(r.note1),
+		underscore(r.note2),
+		"_", "_", // Notes 3-4
 		"_",           // Sorting code
 		"_",           // Receiver’s Correspondent Swift Code
 		"_",           // Receiver’s Correspondent Bank Name

@@ -156,8 +156,15 @@ func (h Handler) DownloadHellenicPayroll(resp http.ResponseWriter, request *http
 		fmt.Fprint(resp, "no month provided")
 		return
 	}
-	invoices, err := h.client.GetInvoices(month, With{Employees: true, BankDetails: true})
+	invoices, err := h.client.GetInvoices(month, With{Employees: true, BankDetails: true, LegalEntities: true})
 	if err != nil {
+		resp.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprint(resp, err)
+		return
+	}
+
+	executionDate, err := h.client.GetPayrollScheduleByMonth(month)
+	if err != nil || executionDate == nil {
 		resp.WriteHeader(http.StatusInternalServerError)
 		fmt.Fprint(resp, err)
 		return
@@ -166,7 +173,7 @@ func (h Handler) DownloadHellenicPayroll(resp http.ResponseWriter, request *http
 	resp.Header().Add("Content-Type", "text/plain")
 	resp.Header().Add("Content-Disposition", fmt.Sprintf("attachment; filename=\"payroll_%s.txt\"", month))
 
-	renderErr := hellenic.CreatePayrollFile(resp, invoices, h.config.PayrollDebitAccount, time.Now())
+	renderErr := hellenic.CreatePayrollFile(resp, invoices, time.Now(), *executionDate)
 	if renderErr != nil {
 		resp.Header().Del("Content-Type")
 		resp.Header().Del("Content-Disposition")

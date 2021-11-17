@@ -1,14 +1,15 @@
 package hellenic
 
 import (
+	"fmt"
 	"io"
 	"oea-go/internal/employee/dto"
 	"oea-go/internal/hellenic/txt"
 	"time"
 )
 
-func CreatePayrollFile(wr io.Writer, invoices dto.Invoices, account string, date time.Time) error {
-	f := txt.NewFile(date, account)
+func CreatePayrollFile(wr io.Writer, invoices dto.Invoices, submissionDate time.Time, valueDate time.Time) error {
+	f := txt.NewFile(submissionDate)
 
 	for _, invoice := range invoices {
 
@@ -16,7 +17,16 @@ func CreatePayrollFile(wr io.Writer, invoices dto.Invoices, account string, date
 			continue
 		}
 
-		f.AddRecord(txt.RecipientBankDetails{
+		senderBankDetails := txt.SenderBankDetails{
+			Account:   invoice.Employee.LegalEntity.AccountNumber,
+			ValueDate: valueDate,
+			Notes: []string{
+				fmt.Sprintf("Invoice Number:%s", invoice.InvoiceNo),
+				fmt.Sprintf("Paid from %s", invoice.Employee.LegalEntity.OfficialName),
+			},
+		}
+
+		recipientBankDetails := txt.RecipientBankDetails{
 			Account:                 invoice.BankDetails.Account,
 			Amount:                  invoice.AmountRequestedEur,
 			BeneficiaryName:         invoice.EmployeeName,
@@ -28,7 +38,9 @@ func CreatePayrollFile(wr io.Writer, invoices dto.Invoices, account string, date
 			BeneficiaryBankAddress3: invoice.BankDetails.Bank.Address3,
 			BeneficiarySWIFT:        invoice.BankDetails.Bank.BeneficiarySWIFT,
 			IntermediarySWIFT:       invoice.BankDetails.Bank.IntermediarySWIFT,
-		})
+		}
+
+		f.AddRecord(senderBankDetails, recipientBankDetails)
 	}
 
 	_, err := wr.Write([]byte(f.String()))

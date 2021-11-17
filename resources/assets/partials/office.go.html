@@ -1,7 +1,15 @@
 {{ define "title"}}Office{{end}}
 
 {{ define "sidebar"}}
-    <a class="nav-link" href="{{ link "OfficeShowInvoiceData" "invoice" .Page.InvoiceID }}">{{ .Page.InvoiceID }}</a>
+    {{- range .Page.Invoices }}
+    <a class="nav-link" href="{{ link "OfficeShowInvoiceData" "invoice" .No }}">{{ .No }}</a>
+    {{- end }}
 {{end}}
 
-{{ define "content"}}Select the invoice in the sidebar{{end}}
+{{ define "content"}}
+    {{- if .Page.Error }}
+        {{ .Page.Error }}
+    {{ else }}
+    Select the invoice in the sidebar
+    {{ end -}}
+{{end}}

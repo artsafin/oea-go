@@ -3,6 +3,7 @@ package dto
 import (
 	"github.com/artsafin/go-coda"
 	"oea-go/internal/codatypes"
+	"oea-go/internal/employee/codaschema"
 )
 
 type BankDetails struct {
@@ -20,21 +21,21 @@ func NewBankDetailsFromRow(row *coda.Row) BankDetails {
 	errs := codatypes.NewErrorContainer()
 	var err error
 
-	if d.ID, err = codatypes.ToString(Ids.BankDetails.Cols.ID, row); err != nil {
+	if d.ID, err = codatypes.ToString(codaschema.ID.Table.BankDetails.Cols.ID.ID, row); err != nil {
 		errs.AddError(err)
 	}
-	if d.Account, err = codatypes.ToString(Ids.BankDetails.Cols.Account, row); err != nil {
+	if d.Account, err = codatypes.ToString(codaschema.ID.Table.BankDetails.Cols.Account.ID, row); err != nil {
 		errs.AddError(err)
 	}
-	if d.Address1, err = codatypes.ToString(Ids.BankDetails.Cols.Address1, row); err != nil {
+	if d.Address1, err = codatypes.ToString(codaschema.ID.Table.BankDetails.Cols.Address1.ID, row); err != nil {
 		errs.AddError(err)
 	}
-	if d.Address2, err = codatypes.ToString(Ids.BankDetails.Cols.Address2, row); err != nil {
+	if d.Address2, err = codatypes.ToString(codaschema.ID.Table.BankDetails.Cols.Address2.ID, row); err != nil {
 		errs.AddError(err)
 	}
 
 	var benBankValue codatypes.StructuredValue
-	if benBankValue, err = codatypes.ToStructuredValue(Ids.BankDetails.Cols.BeneficiaryBank, row); err != nil {
+	if benBankValue, err = codatypes.ToStructuredValue(codaschema.ID.Table.BankDetails.Cols.BeneficiaryBank.ID, row); err != nil {
 		errs.AddError(err)
 	}
 	d.Bank.RowID = benBankValue.RowId

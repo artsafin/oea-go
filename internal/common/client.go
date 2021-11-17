@@ -1,8 +1,10 @@
 package common
 
 import (
+	"fmt"
 	"net/http"
 	"net/url"
+	"strings"
 
 	"github.com/artsafin/go-coda"
 )
@@ -39,4 +41,18 @@ func NewCodaClient(baseUri, apiToken string) *CodaClient {
 			HttpClient: http,
 		},
 	}
+}
+
+func Query(k, v string) string {
+	k = strings.ReplaceAll(k, "\"", "\\\"")
+	v = strings.ReplaceAll(v, "\"", "\\\"")
+
+	return fmt.Sprintf("\"%s\":\"%s\"", k, v)
+}
+
+type QueryParam interface {
+	Apply(p *coda.ListRowsParameters)
+}
+type QueryViewParam interface {
+	Apply(p *coda.ListViewRowsParameters)
 }

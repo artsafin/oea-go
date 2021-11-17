@@ -9,6 +9,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"oea-go/internal/common"
 	"oea-go/internal/common/config"
 	empl "oea-go/internal/employee"
 	emplDto "oea-go/internal/employee/dto"
@@ -20,48 +21,74 @@ import (
 	"time"
 )
 
-func loadOfficeData(req *Requests, invoiceID string) OfficeTemplateData {
+func loadOfficeData(req *Requests, invoiceID string) (OfficeTemplateData, []error) {
 	var invoice *dto.Invoice
 	var prevInvoice *dto.Invoice
 	var expensesByCategory dto.ExpenseGroupMap
 	var history *dto.History
+	errors := make([]error, 0)
 
 	wg := sync.WaitGroup{}
 
 	wg.Add(1)
 	go func() {
+		defer wg.Done()
 		log.Println("Loading invoice", invoiceID, "...")
-		invoice = req.GetInvoice(invoiceID)
+		var err error
+		invoice, err = req.GetInvoice(invoiceID)
+		if err != nil {
+			log.Println(err)
+			errors = append(errors, err)
+			return
+		}
 		if invoice.PrevInvoiceID != "" {
 			log.Println("Loading prev invoice", invoice.PrevInvoiceID, "...")
-			prevInvoice = req.GetInvoice(invoice.PrevInvoiceID)
+			prevInvoice, err = req.GetInvoice(invoice.PrevInvoiceID)
+			if err != nil {
+				log.Println(err)
+				errors = append(errors, err)
+				return
+			}
 		}
-		wg.Done()
 	}()
 
 	wg.Add(1)
 	go func() {
+		defer wg.Done()
 		log.Println("Loading expenses...")
-		expenses := req.GetExpenses(invoiceID)
+		expenses, err := req.GetExpenses(invoiceID)
+		if err != nil {
+			log.Println(err)
+			errors = append(errors, err)
+			return
+		}
 		expensesByCategory = dto.GroupExpensesByCategory(expenses)
-		wg.Done()
 	}()
 
 	wg.Add(1)
 	go func() {
+		defer wg.Done()
 		log.Println("Loading history...")
-		history = req.GetHistory()
-		wg.Done()
+		var err error
+		history, err = req.GetHistory()
+		if err != nil {
+			log.Println(err)
+			errors = append(errors, err)
+		}
 	}()
 
 	wg.Wait()
+
+	if len(errors) > 0 {
+		return OfficeTemplateData{}, errors
+	}
 
 	return OfficeTemplateData{
 		PrevInvoice:   *prevInvoice,
 		Invoice:       *invoice,
 		ExpenseGroups: expensesByCategory,
 		History:       *history,
-	}
+	}, nil
 }
 
 func getMonthsN(req *empl.Requests, num int, now time.Time) emplDto.Months {
@@ -134,7 +161,7 @@ func (h handler) loadTodayAndPastInvoices(req *empl.Requests, numPastInvoices in
 	return hist
 }
 
-func buildApprovalRequestHtml(officeData OfficeTemplateData, employeesData dto.EmployeesHistoricReport) string {
+func buildApprovalRequestHtml(officeData OfficeTemplateData, employeesData dto.EmployeesHistoricReport) (string, error) {
 	tpl := resources.MustParseTemplate(template.New("post.go.html"), "assets/post.go.html")
 
 	buf := &bytes.Buffer{}
@@ -145,13 +172,15 @@ func buildApprovalRequestHtml(officeData OfficeTemplateData, employeesData dto.E
 	})
 
 	if err != nil {
-		panic(err)
+		return "", err
 	}
 
-	return buf.String()
+	return buf.String(), nil
 }
 
 type Page struct {
+	Error     error
+	Invoices  dto.Invoices
 	InvoiceID string
 	Body      template.HTML
 }
@@ -167,21 +196,28 @@ func NewHandler(cfg *config.Config, logger *zap.SugaredLogger) *handler {
 
 func (h handler) Home(vars map[string]string, req *http.Request) interface{} {
 	client := NewRequests(h.config.BaseUri, h.config.ApiTokenOf, h.config.DocIdOf)
-	invoiceId, _ := client.GetLastInvoice()
+	invoices, err := client.GetInvoices(InvoiceIsRecent{})
 
-	return Page{InvoiceID: invoiceId}
+	sort.Sort(sort.Reverse(invoices))
+
+	return Page{Invoices: invoices, Error: err}
 }
 
 func (h handler) ShowInvoiceData(vars map[string]string, req *http.Request) interface{} {
 	officeClient := NewRequests(h.config.BaseUri, h.config.ApiTokenOf, h.config.DocIdOf)
-	officeData := loadOfficeData(officeClient, vars["invoice"])
+	officeData, errs := loadOfficeData(officeClient, vars["invoice"])
+	err := common.JoinErrors(errs)
 
-	emplClient := empl.NewRequests(h.config.BaseUri, h.config.ApiTokenEm, h.config.DocIdEm)
-	employeesData := h.loadTodayAndPastInvoices(emplClient, 5, time.Now())
+	html := ""
+	if err == nil {
+		emplClient := empl.NewRequests(h.config.BaseUri, h.config.ApiTokenEm, h.config.DocIdEm)
+		employeesData := h.loadTodayAndPastInvoices(emplClient, 5, time.Now())
 
-	html := buildApprovalRequestHtml(officeData, employeesData)
+		html, err = buildApprovalRequestHtml(officeData, employeesData)
+	}
 
 	return Page{
+		Error:     err,
 		InvoiceID: vars["invoice"],
 		Body:      template.HTML(html),
 	}
@@ -190,7 +226,14 @@ func (h handler) ShowInvoiceData(vars map[string]string, req *http.Request) inte
 func (h handler) DownloadInvoice(resp http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	officeClient := NewRequests(h.config.BaseUri, h.config.ApiTokenOf, h.config.DocIdOf)
-	data := loadOfficeData(officeClient, vars["invoice"])
+	data, errs := loadOfficeData(officeClient, vars["invoice"])
+
+	err := common.JoinErrors(errs)
+	if err != nil {
+		resp.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprint(resp, err)
+		return
+	}
 
 	resp.Header().Add("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
 	resp.Header().Add("Content-Disposition", fmt.Sprintf("attachment; filename=\"%s.xlsx\"", data.Invoice.Filename()))

@@ -6,6 +6,26 @@ import (
 	"time"
 )
 
+type SenderBankDetails struct {
+	Account   string
+	ValueDate time.Time
+	Notes     []string
+}
+
+func (d *SenderBankDetails) Note1() string {
+	if len(d.Notes) >= 1 {
+		return d.Notes[0]
+	}
+	return ""
+}
+
+func (d *SenderBankDetails) Note2() string {
+	if len(d.Notes) >= 2 {
+		return d.Notes[1]
+	}
+	return ""
+}
+
 type RecipientBankDetails struct {
 	Account                 string
 	Amount                  codatypes.MoneyEur
@@ -21,27 +41,31 @@ type RecipientBankDetails struct {
 }
 
 type file struct {
-	header  *header
-	records []worldwideBankRecord
+	submissionDate time.Time
+	header         *header
+	records        []worldwideBankRecord
 }
 
-func NewFile(submissionDate time.Time, debitAccount string) file {
+func NewFile(submissionDate time.Time) file {
 	return file{
-		header:  &header{uploadType: "S", submissionDate: submissionDate.Format("20060102"), debitAccount: debitAccount},
-		records: make([]worldwideBankRecord, 0),
+		submissionDate: submissionDate,
+		header:         &header{uploadType: "M", submissionDate: "_", debitAccount: "_"},
+		records:        make([]worldwideBankRecord, 0),
 	}
 }
 
-func (f *file) AddRecord(details RecipientBankDetails) {
-	f.header.increment(details.Amount)
+func (f *file) AddRecord(sendDetails SenderBankDetails, rcpDetails RecipientBankDetails) {
+	f.header.increment(rcpDetails.Amount)
 
 	rec := worldwideBankRecord{
-		debitAccount:              f.header.debitAccount,
-		submissionDate:            f.header.submissionDate,
-		valueDate:                 f.header.submissionDate,
+		debitAccount:              sendDetails.Account,
+		submissionDate:            f.submissionDate.Format("20060102"),
+		valueDate:                 sendDetails.ValueDate.Format("20060102"),
 		transactionCosts:          TransactionCostsOurs,
 		receiveTransactionDetails: true,
-		recipient:                 details,
+		recipient:                 rcpDetails,
+		note1:                     sendDetails.Note1(),
+		note2:                     sendDetails.Note2(),
 	}
 	f.records = append(f.records, rec)
 }

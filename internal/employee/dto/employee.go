@@ -3,6 +3,7 @@ package dto
 import (
 	"github.com/artsafin/go-coda"
 	"oea-go/internal/codatypes"
+	"oea-go/internal/employee/codaschema"
 	"time"
 )
 
@@ -28,8 +29,6 @@ type Employee struct {
 	Position                string
 	INN                     string
 	IsWorkingNow            bool
-	PatentFee               codatypes.MoneyRub
-	LastSalary              codatypes.MoneyRub
 	EnglishFullName         string
 	BankRequisites          string
 	BillTo                  string
@@ -39,6 +38,8 @@ type Employee struct {
 	AclSdLink               string
 	ContractDate            string
 	ContractNumber          string
+	LegalEntityName         string
+	LegalEntity             *LegalEntity
 }
 
 func NewEmployeeFromRow(row *coda.Row) *Employee {
@@ -46,100 +47,97 @@ func NewEmployeeFromRow(row *coda.Row) *Employee {
 	errs := codatypes.NewErrorContainer()
 	var err error
 
-	if empl.Location, err = codatypes.ToString(Ids.Employees.Cols.Location, row); err != nil {
+	if empl.Location, err = codatypes.ToString(codaschema.ID.Table.AllEmployees.Cols.Location.ID, row); err != nil {
 		errs.AddError(err)
 	}
-	if empl.Name, err = codatypes.ToString(Ids.Employees.Cols.Name, row); err != nil {
+	if empl.Name, err = codatypes.ToString(codaschema.ID.Table.AllEmployees.Cols.Name.ID, row); err != nil {
 		errs.AddError(err)
 	}
-	if empl.StartDate, err = codatypes.ToDate(Ids.Employees.Cols.StartDate, row); err != nil {
+	if empl.StartDate, err = codatypes.ToDate(codaschema.ID.Table.AllEmployees.Cols.StartDate.ID, row); err != nil {
 		errs.AddError(err)
 	}
-	if empl.ProbationEnd, err = codatypes.ToDate(Ids.Employees.Cols.ProbationEnd, row); err != nil {
+	if empl.ProbationEnd, err = codatypes.ToDate(codaschema.ID.Table.AllEmployees.Cols.ProbationEnd.ID, row); err != nil {
 		errs.AddError(err)
 	}
-	if empl.AnnualLeaveFrom, err = codatypes.ToDate(Ids.Employees.Cols.AnnualLeaveFrom, row); err != nil {
+	if empl.AnnualLeaveFrom, err = codatypes.ToDate(codaschema.ID.Table.AllEmployees.Cols.AnnualLeaveFrom.ID, row); err != nil {
 		errs.AddError(err)
 	}
-	if empl.SalaryBeforeIp, err = codatypes.ToRub(Ids.Employees.Cols.SalaryBeforeIp, row); err != nil {
+	if empl.SalaryBeforeIp, err = codatypes.ToRub(codaschema.ID.Table.AllEmployees.Cols.SalaryBeforeIP.ID, row); err != nil {
 		errs.AddError(err)
 	}
-	if empl.SalaryAfterIp, err = codatypes.ToRub(Ids.Employees.Cols.SalaryAfterIp, row); err != nil {
+	if empl.SalaryAfterIp, err = codatypes.ToRub(codaschema.ID.Table.AllEmployees.Cols.SalaryAfterIP.ID, row); err != nil {
 		errs.AddError(err)
 	}
-	if empl.NetSalaryAfterProbation, err = codatypes.ToRub(Ids.Employees.Cols.NetSalaryAfterProbation, row); err != nil {
+	if empl.NetSalaryAfterProbation, err = codatypes.ToRub(codaschema.ID.Table.AllEmployees.Cols.NetSalaryAfterProbation.ID, row); err != nil {
 		errs.AddError(err)
 	}
-	if empl.EndDate, err = codatypes.ToDate(Ids.Employees.Cols.EndDate, row); err != nil {
+	if empl.EndDate, err = codatypes.ToDate(codaschema.ID.Table.AllEmployees.Cols.EndDate.ID, row); err != nil {
 		errs.AddError(err)
 	}
-	if empl.HourRate, err = codatypes.ToEur(Ids.Employees.Cols.HourRate, row); err != nil {
+	if empl.HourRate, err = codatypes.ToEur(codaschema.ID.Table.AllEmployees.Cols.HourRate.ID, row); err != nil {
 		errs.AddError(err)
 	}
-	if empl.BankCurrencyControl, err = codatypes.ToRub(Ids.Employees.Cols.BankCurrencyControl, row); err != nil {
+	if empl.BankCurrencyControl, err = codatypes.ToRub(codaschema.ID.Table.AllEmployees.Cols.BankCC.ID, row); err != nil {
 		errs.AddError(err)
 	}
-	if empl.BankService, err = codatypes.ToRub(Ids.Employees.Cols.BankService, row); err != nil {
+	if empl.BankService, err = codatypes.ToRub(codaschema.ID.Table.AllEmployees.Cols.BankService.ID, row); err != nil {
 		errs.AddError(err)
 	}
-	if empl.BankTotalFees, err = codatypes.ToRub(Ids.Employees.Cols.BankTotalFees, row); err != nil {
+	if empl.BankTotalFees, err = codatypes.ToRub(codaschema.ID.Table.AllEmployees.Cols.BankTotalFees.ID, row); err != nil {
 		errs.AddError(err)
 	}
-	if empl.Address, err = codatypes.ToString(Ids.Employees.Cols.Address, row); err != nil {
+	if empl.Address, err = codatypes.ToString(codaschema.ID.Table.AllEmployees.Cols.Address.ID, row); err != nil {
 		errs.AddError(err)
 	}
-	if empl.OpeningDateIp, err = codatypes.ToDate(Ids.Employees.Cols.OpeningDateIp, row); err != nil {
+	if empl.OpeningDateIp, err = codatypes.ToDate(codaschema.ID.Table.AllEmployees.Cols.OpeningDateIP.ID, row); err != nil {
 		errs.AddError(err)
 	}
-	if empl.StartMonthName, err = codatypes.ToString(Ids.Employees.Cols.StartMonth, row); err != nil {
+	if empl.StartMonthName, err = codatypes.ToString(codaschema.ID.Table.AllEmployees.Cols.StartMonth.ID, row); err != nil {
 		errs.AddError(err)
 	}
-	if empl.MattermostLogin, err = codatypes.ToString(Ids.Employees.Cols.MattermostLogin, row); err != nil {
+	if empl.MattermostLogin, err = codatypes.ToString(codaschema.ID.Table.AllEmployees.Cols.MattermostLogin.ID, row); err != nil {
 		errs.AddError(err)
 	}
-	if empl.RussianFullName, err = codatypes.ToString(Ids.Employees.Cols.RussianFullName, row); err != nil {
+	if empl.RussianFullName, err = codatypes.ToString(codaschema.ID.Table.AllEmployees.Cols.RussianFullName.ID, row); err != nil {
 		errs.AddError(err)
 	}
-	if empl.Position, err = codatypes.ToString(Ids.Employees.Cols.Position, row); err != nil {
+	if empl.Position, err = codatypes.ToString(codaschema.ID.Table.AllEmployees.Cols.Position.ID, row); err != nil {
 		errs.AddError(err)
 	}
-	if empl.INN, err = codatypes.ToString(Ids.Employees.Cols.INN, row); err != nil {
+	if empl.INN, err = codatypes.ToString(codaschema.ID.Table.AllEmployees.Cols.INN.ID, row); err != nil {
 		errs.AddError(err)
 	}
-	if empl.IsWorkingNow, err = codatypes.ToBool(Ids.Employees.Cols.IsWorkingNow, row); err != nil {
+	if empl.IsWorkingNow, err = codatypes.ToBool(codaschema.ID.Table.AllEmployees.Cols.WorkingNow.ID, row); err != nil {
 		errs.AddError(err)
 	}
-	if empl.PatentFee, err = codatypes.ToRub(Ids.Employees.Cols.PatentFee, row); err != nil {
+	if empl.EnglishFullName, err = codatypes.ToString(codaschema.ID.Table.AllEmployees.Cols.EnglishFullName.ID, row); err != nil {
 		errs.AddError(err)
 	}
-	if empl.LastSalary, err = codatypes.ToRub(Ids.Employees.Cols.LastSalary, row); err != nil {
+	if empl.BankRequisites, err = codatypes.ToString(codaschema.ID.Table.AllEmployees.Cols.BankRequisites.ID, row); err != nil {
 		errs.AddError(err)
 	}
-	if empl.EnglishFullName, err = codatypes.ToString(Ids.Employees.Cols.EnglishFullName, row); err != nil {
+	if empl.BillTo, err = codatypes.ToString(codaschema.ID.Table.AllEmployees.Cols.BillTo.ID, row); err != nil {
 		errs.AddError(err)
 	}
-	if empl.BankRequisites, err = codatypes.ToString(Ids.Employees.Cols.BankRequisites, row); err != nil {
+	if empl.GeneralSdLink, err = codatypes.ToString(codaschema.ID.Table.AllEmployees.Cols.GeneralSD.ID, row); err != nil {
 		errs.AddError(err)
 	}
-	if empl.BillTo, err = codatypes.ToString(Ids.Employees.Cols.BillTo, row); err != nil {
+	if empl.PersonnelSdLink, err = codatypes.ToString(codaschema.ID.Table.AllEmployees.Cols.PersonnelSD.ID, row); err != nil {
 		errs.AddError(err)
 	}
-	if empl.GeneralSdLink, err = codatypes.ToString(Ids.Employees.Cols.GeneralSdLink, row); err != nil {
+	if empl.FinanceSdLink, err = codatypes.ToString(codaschema.ID.Table.AllEmployees.Cols.FinanceSD.ID, row); err != nil {
 		errs.AddError(err)
 	}
-	if empl.PersonnelSdLink, err = codatypes.ToString(Ids.Employees.Cols.PersonnelSdLink, row); err != nil {
+	if empl.AclSdLink, err = codatypes.ToString(codaschema.ID.Table.AllEmployees.Cols.ACLSD.ID, row); err != nil {
 		errs.AddError(err)
 	}
-	if empl.FinanceSdLink, err = codatypes.ToString(Ids.Employees.Cols.FinanceSdLink, row); err != nil {
+	if empl.ContractDate, err = codatypes.ToString(codaschema.ID.Table.AllEmployees.Cols.ContractDate.ID, row); err != nil {
 		errs.AddError(err)
 	}
-	if empl.AclSdLink, err = codatypes.ToString(Ids.Employees.Cols.AclSdLink, row); err != nil {
+	if empl.ContractNumber, err = codatypes.ToString(codaschema.ID.Table.AllEmployees.Cols.ContractNumber.ID, row); err != nil {
 		errs.AddError(err)
 	}
-	if empl.ContractDate, err = codatypes.ToString(Ids.Employees.Cols.ContractDate, row); err != nil {
-		errs.AddError(err)
-	}
-	if empl.ContractNumber, err = codatypes.ToString(Ids.Employees.Cols.ContractNumber, row); err != nil {
+	if empl.LegalEntityName, err = codatypes.ToString(codaschema.ID.Table.AllEmployees.Cols.LegalEntity.ID, row); err != nil {
 		errs.AddError(err)
 	}
 
