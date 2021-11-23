@@ -57,3 +57,41 @@ func Test_underscore(t *testing.T) {
 		})
 	}
 }
+
+func Test_lPadSp(t *testing.T) {
+	tests := []struct {
+		name  string
+		value string
+		lim   int
+		want  string
+	}{
+		{"empty pad 5", "", 5, "     "},
+		{"less pad 5", "abc", 5, "  abc"},
+		{"eq pad 5", "abcde", 5, "abcde"},
+		{"more pad 5", "abcdefgh", 5, "abcdefgh"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equal(t, tt.want, lPadSp(tt.value, tt.lim))
+		})
+	}
+}
+
+func Test_rPadSp(t *testing.T) {
+	tests := []struct {
+		name  string
+		value string
+		lim   int
+		want  string
+	}{
+		{"empty pad 5", "", 5, "     "},
+		{"less pad 5", "abc", 5, "abc  "},
+		{"eq pad 5", "abcde", 5, "abcde"},
+		{"more pad 5", "abcdefgh", 5, "abcdefgh"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equal(t, tt.want, rPadSp(tt.value, tt.lim))
+		})
+	}
+}

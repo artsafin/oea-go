@@ -19,11 +19,11 @@ func (h *header) increment(amount codatypes.MoneyEur) {
 }
 
 func (h *header) String() string {
-	return fmt.Sprintf("%s|%d|%s|%s|%s",
+	return fmt.Sprintf("%s|%5d|%s|%s|%s",
 		h.uploadType,
 		h.totalNumberOfTransactions,
-		h.amount.Humanize("#.###,##"),
-		underscore(h.submissionDate),
-		underscore(h.debitAccount),
+		lPadSp(h.amount.Humanize("#.###,##"), 18),
+		h.submissionDate,
+		lPadSp(h.debitAccount, 16),
 	)
 }
