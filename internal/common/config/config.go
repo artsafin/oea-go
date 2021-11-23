@@ -62,6 +62,7 @@ func (c *Config) DumpNonSecretParameters(wr io.Writer) {
 	}
 
 	lines := []string{
+		"Version: " + c.AppVersion,
 		redKV("Users", boolStr(c.UseAuth, c.Accounts.String(), "⚠ auth disabled")),
 		redKV("TLS", boolStr(c.TlsCert != "", "configured", "⚠ disabled")),
 		redKV("Debug mode", boolStr(c.IsDebug, "⚠ enabled", "disabled")),
