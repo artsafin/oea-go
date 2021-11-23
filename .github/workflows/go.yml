@@ -47,6 +47,6 @@ jobs:
     - name: Notify in telegram
       run: |
         curl -XPOST \
-        --data "chat_id=${{ secrets.TG_DEPLOYBOT_CHAT }}&parse_mode=Markdown" \
-        --data "text=${GITHUB_JOB} complete in `${GITHUB_REPOSITORY}`:\n `${GITHUB_REF_NAME}` <=> `${GITHUB_SHA}`" \
+        --data "chat_id=${{ secrets.TG_DEPLOYBOT_CHAT }}&parse_mode=HTML" \
+        --data "text=${GITHUB_JOB} complete in <code>${GITHUB_REPOSITORY}</code>:\\n <code>${GITHUB_REF_NAME}</code> <=> <code>${GITHUB_SHA}</code>" \
         'https://api.telegram.org/bot${{ secrets.TG_DEPLOYBOT_TOKEN }}/sendMessage'
