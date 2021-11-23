@@ -13,3 +13,10 @@ func underscore(value string) string {
 	}
 	return value
 }
+
+func limit(value string, lim uint16) string {
+	if len(value) > int(lim) {
+		return value[:lim]
+	}
+	return value
+}

@@ -178,7 +178,7 @@ func (h Handler) DownloadHellenicPayroll(resp http.ResponseWriter, request *http
 	}
 
 	resp.Header().Add("Content-Type", "text/plain")
-	resp.Header().Add("Content-Disposition", fmt.Sprintf("attachment; filename=\"payroll_%s.txt\"", month))
+	resp.Header().Add("Content-Disposition", fmt.Sprintf("attachment; filename=\"payroll_%s.txt\"", executionDate.Format("020106")))
 
 	renderErr := hellenic.CreatePayrollFile(resp, payableInvoices, time.Now(), *executionDate)
 	if renderErr != nil {
