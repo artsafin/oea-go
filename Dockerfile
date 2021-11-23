@@ -26,8 +26,12 @@ RUN echo "Building version $VERSION" && \
 
 FROM alpine
 
+ARG VERSION
+
 RUN addgroup -g 9999 -S user && \
     adduser -u 9999 -G user -S -H user
+
+LABEL oea_version="$VERSION"
 
 COPY --from=build /tmp/oea-go /
 ENTRYPOINT ["/oea-go"]
