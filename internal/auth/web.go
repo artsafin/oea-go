@@ -80,7 +80,7 @@ func sanitizeReturnUrl(returnUrl string) string {
 }
 
 func (ctl Controller) HandleFirstFactorSendSuccess(resp http.ResponseWriter, req *http.Request) {
-	ctl.partial.MustRenderWithData(resp, web.NewPartialData(authControllerData{}.WithFirstFactor(), req))
+	ctl.partial.MustRenderWithData(resp, web.NewPartialData(ctl.config.AppVersion, authControllerData{}.WithFirstFactor(), req))
 }
 
 func extractAccountFromJWT(req *http.Request, config *config.Config) (account *config.Account, token *authtoken.Token, err error) {
@@ -136,7 +136,7 @@ func (ctl Controller) HandleBeginSecondFactor(resp http.ResponseWriter, req *htt
 		}
 	}
 
-	ctl.partial.MustRenderWithData(resp, web.NewPartialData(partialData, req))
+	ctl.partial.MustRenderWithData(resp, web.NewPartialData(ctl.config.AppVersion, partialData, req))
 }
 
 func (ctl Controller) HandleCheckSecondFactor(resp http.ResponseWriter, req *http.Request) {
@@ -208,7 +208,7 @@ func (ctl Controller) HandleAuthStart(resp http.ResponseWriter, req *http.Reques
 	data := newAuthControllerDataFromRequest(req)
 
 	if req.Method == http.MethodGet {
-		ctl.partial.MustRenderWithData(resp, web.NewPartialData(data, req))
+		ctl.partial.MustRenderWithData(resp, web.NewPartialData(ctl.config.AppVersion, data, req))
 		return
 	}
 
@@ -216,16 +216,16 @@ func (ctl Controller) HandleAuthStart(resp http.ResponseWriter, req *http.Reques
 	data.PrevEmail = recipient
 
 	if !ctl.config.IsAuthAllowed(recipient) {
-		ctl.partial.MustRenderWithData(resp, web.NewPartialData(data.WithError("specified email is not permitted"), req))
+		ctl.partial.MustRenderWithData(resp, web.NewPartialData(ctl.config.AppVersion, data.WithError("specified email is not permitted"), req))
 		return
 	}
 
 	if emailValidErr := checkmail.ValidateFormat(recipient); emailValidErr != nil {
-		ctl.partial.MustRenderWithData(resp, web.NewPartialData(data.WithError(fmt.Sprintf("submitted email is incorrect: %s", emailValidErr)), req))
+		ctl.partial.MustRenderWithData(resp, web.NewPartialData(ctl.config.AppVersion, data.WithError(fmt.Sprintf("submitted email is incorrect: %s", emailValidErr)), req))
 		return
 	}
 	if emailValidErr := checkmail.ValidateHost(recipient); emailValidErr != nil {
-		ctl.partial.MustRenderWithData(resp, web.NewPartialData(data.WithError(fmt.Sprintf("submitted email is incorrect: %s", emailValidErr)), req))
+		ctl.partial.MustRenderWithData(resp, web.NewPartialData(ctl.config.AppVersion, data.WithError(fmt.Sprintf("submitted email is incorrect: %s", emailValidErr)), req))
 		return
 	}
 
@@ -237,7 +237,7 @@ func (ctl Controller) HandleAuthStart(resp http.ResponseWriter, req *http.Reques
 	)
 
 	if tokErr != nil {
-		ctl.partial.MustRenderWithData(resp, web.NewPartialData(data.WithError(fmt.Sprintf("error generating token: %v", tokErr)), req))
+		ctl.partial.MustRenderWithData(resp, web.NewPartialData(ctl.config.AppVersion, data.WithError(fmt.Sprintf("error generating token: %v", tokErr)), req))
 		return
 	}
 
@@ -257,7 +257,7 @@ func (ctl Controller) HandleAuthStart(resp http.ResponseWriter, req *http.Reques
 
 	if ctl.config.IsEmailsEnabled() {
 		if err := sendMail(authInfo, link, recipient, ctl.config); err != nil {
-			ctl.partial.MustRenderWithData(resp, web.NewPartialData(data.WithError(err.Error()), req))
+			ctl.partial.MustRenderWithData(resp, web.NewPartialData(ctl.config.AppVersion, data.WithError(err.Error()), req))
 			return
 		}
 	} else {

@@ -15,6 +15,7 @@
                         <a class="nav-item nav-link" href="{{ link "EmployeesHome" }}">Employees</a>
                     </div>
                 </div>
+                <div class="justify-content-end" style="margin-right: 1em; font-size: 80%; color: #ccc">version {{ .Version }}</div>
                 <div class="justify-content-end">
                     {{ if authToken }}
                         <form action="{{ link "Logout" }}?return={{ .RequestURI }}" method="POST">

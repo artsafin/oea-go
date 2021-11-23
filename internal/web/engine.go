@@ -21,6 +21,7 @@ const (
 type Engine struct {
 	*mux.Router
 	AuthToken *authtoken.Token
+	Version   string
 }
 
 // Writes Location header to response writer and sets specified status
@@ -64,12 +65,14 @@ type Partial struct {
 type PartialData struct {
 	Page       interface{}
 	RequestURI string
+	Version    string
 }
 
-func NewPartialData(data interface{}, r *http.Request) *PartialData {
+func NewPartialData(version string, data interface{}, r *http.Request) *PartialData {
 	return &PartialData{
 		Page:       data,
 		RequestURI: r.RequestURI,
+		Version:    version,
 	}
 }
 
@@ -93,14 +96,14 @@ func (e *Engine) Page(templateDataFn func(map[string]string, *http.Request) inte
 	tpl := e.CreatePartial(names...)
 
 	return func(resp http.ResponseWriter, req *http.Request) {
-		data := NewPartialData(templateDataFn(mux.Vars(req), req), req)
+		data := NewPartialData(e.Version, templateDataFn(mux.Vars(req), req), req)
 
 		tpl.MustRenderWithData(resp, data)
 	}
 }
 
 func ListenAndServe(cfg config.Config, logger *zap.SugaredLogger, routerConfigurer func(*Engine)) {
-	router := &Engine{Router: mux.NewRouter()}
+	router := &Engine{Router: mux.NewRouter(), Version: cfg.AppVersion}
 	router.Use(requestIdMiddleware)
 	router.Use(loggerMiddleware{logger: logger}.MiddlewareFunc)
 	router.NotFoundHandler = http.HandlerFunc(router.Page(NilTemplateData, "404"))
