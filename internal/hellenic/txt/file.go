@@ -49,7 +49,7 @@ type file struct {
 func NewFile(submissionDate time.Time) file {
 	return file{
 		submissionDate: submissionDate,
-		header:         &header{uploadType: "M", submissionDate: "_", debitAccount: "_"},
+		header:         &header{uploadType: "M", submissionDate: lPadSp("", 8), debitAccount: lPadSp("", 16)},
 		records:        make([]worldwideBankRecord, 0),
 	}
 }
