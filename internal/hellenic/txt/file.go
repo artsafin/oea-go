@@ -73,11 +73,11 @@ func (f *file) AddRecord(sendDetails SenderBankDetails, rcpDetails RecipientBank
 func (f *file) String() string {
 	sb := strings.Builder{}
 	sb.WriteString(f.header.String())
-	sb.WriteString("\n")
+	sb.WriteString("\r\n")
 
 	for _, r := range f.records {
 		sb.WriteString(r.String())
-		sb.WriteString("\n")
+		sb.WriteString("\r\n")
 	}
 
 	return sb.String()
