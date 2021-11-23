@@ -48,5 +48,5 @@ jobs:
       run: |
         curl -XPOST \
         --data "chat_id=${{ secrets.TG_DEPLOYBOT_CHAT }}&parse_mode=HTML" \
-        --data "text=${GITHUB_JOB} complete in <code>${GITHUB_REPOSITORY}</code>:\\n <code>${GITHUB_REF_NAME}</code> <=> <code>${GITHUB_SHA}</code>" \
+        --data "text=${GITHUB_JOB} complete in <code>${GITHUB_REPOSITORY}</code>:\\n <code>${GITHUB_REF_NAME}</code> &lt;=&gt; <code>${GITHUB_SHA}</code>" \
         'https://api.telegram.org/bot${{ secrets.TG_DEPLOYBOT_TOKEN }}/sendMessage'
