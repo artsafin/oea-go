@@ -1,4 +1,4 @@
-FROM golang:1.16-alpine as deps
+FROM golang:1.17-alpine as deps
 
 ADD go.mod /app/go.mod
 WORKDIR /app
