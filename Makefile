@@ -11,7 +11,7 @@ assets:
 	test -f resources/assets/bootstrap.min.css || curl -s https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css -o resources/assets/bootstrap.min.css
 
 build: assets
-	docker build -f ./Dockerfile --build-arg "VERSION=$(VERSION)" -t oea-go:local .
+	docker build -f ./Dockerfile --build-arg "VERSION=$(VERSION)" $(BUILD_ARGS) -t oea-go:local .
 
 test:
 	go test ./...
