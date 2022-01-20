@@ -3,6 +3,7 @@ package dto
 import (
 	"github.com/artsafin/go-coda"
 	"oea-go/internal/codatypes"
+	"oea-go/internal/common"
 	"oea-go/internal/employee/codaschema"
 )
 
@@ -11,9 +12,10 @@ type LegalEntity struct {
 	EntityName    string
 	OfficialName  string
 	AccountNumber string
+	Requisites    string
 }
 
-func NewLegalEntityFromRow(row *coda.Row) LegalEntity {
+func NewLegalEntityFromRow(row *coda.Row) (LegalEntity, error) {
 	d := LegalEntity{}
 	errs := codatypes.NewErrorContainer()
 	var err error
@@ -29,8 +31,9 @@ func NewLegalEntityFromRow(row *coda.Row) LegalEntity {
 	if d.AccountNumber, err = codatypes.ToString(codaschema.ID.Table.LegalEntity.Cols.AccountNumber.ID, row); err != nil {
 		errs.AddError(err)
 	}
+	if d.Requisites, err = codatypes.ToString(codaschema.ID.Table.LegalEntity.Cols.Requisites.ID, row); err != nil {
+		errs.AddError(err)
+	}
 
-	errs.PanicIfError()
-
-	return d
+	return d, common.JoinErrors(errs)
 }

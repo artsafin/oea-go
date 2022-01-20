@@ -13,7 +13,7 @@ func CreatePayrollFile(wr io.Writer, invoices dto.Invoices, submissionDate time.
 
 	for _, invoice := range invoices {
 
-		if invoice.BankDetails == nil {
+		if invoice.RecipientDetails == nil {
 			continue
 		}
 
@@ -27,17 +27,17 @@ func CreatePayrollFile(wr io.Writer, invoices dto.Invoices, submissionDate time.
 		}
 
 		recipientBankDetails := txt.RecipientBankDetails{
-			Account:                 invoice.BankDetails.Account,
-			Amount:                  invoice.AmountRequestedEur,
+			Account:                 invoice.RecipientDetails.Account,
+			Amount:                  invoice.EURTotal,
 			BeneficiaryName:         invoice.EmployeeName,
-			BeneficiaryAddress1:     invoice.BankDetails.Address1,
-			BeneficiaryAddress2:     invoice.BankDetails.Address2,
-			BeneficiaryBankName:     invoice.BankDetails.Bank.Name,
-			BeneficiaryBankAddress1: invoice.BankDetails.Bank.Address1,
-			BeneficiaryBankAddress2: invoice.BankDetails.Bank.Address2,
-			BeneficiaryBankAddress3: invoice.BankDetails.Bank.Address3,
-			BeneficiarySWIFT:        invoice.BankDetails.Bank.BeneficiarySWIFT,
-			IntermediarySWIFT:       invoice.BankDetails.Bank.IntermediarySWIFT,
+			BeneficiaryAddress1:     invoice.RecipientDetails.Address1,
+			BeneficiaryAddress2:     invoice.RecipientDetails.Address2,
+			BeneficiaryBankName:     invoice.RecipientDetails.Bank.Name,
+			BeneficiaryBankAddress1: invoice.RecipientDetails.Bank.Address1,
+			BeneficiaryBankAddress2: invoice.RecipientDetails.Bank.Address2,
+			BeneficiaryBankAddress3: invoice.RecipientDetails.Bank.Address3,
+			BeneficiarySWIFT:        invoice.RecipientDetails.Bank.BeneficiarySWIFT,
+			IntermediarySWIFT:       invoice.RecipientDetails.Bank.IntermediarySWIFT,
 		}
 
 		f.AddRecord(senderBankDetails, recipientBankDetails)

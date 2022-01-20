@@ -3,18 +3,20 @@ package dto
 import (
 	"github.com/artsafin/go-coda"
 	"oea-go/internal/codatypes"
+	"oea-go/internal/common"
 	"oea-go/internal/employee/codaschema"
 )
 
 type BankDetails struct {
-	ID       string
-	Account  string
-	Address1 string
-	Address2 string
-	Bank     BeneficiaryBank
+	ID             string
+	BankRequisites string
+	Account        string
+	Address1       string
+	Address2       string
+	Bank           BeneficiaryBank
 }
 
-func NewBankDetailsFromRow(row *coda.Row) BankDetails {
+func NewBankDetailsFromRow(row *coda.Row) (BankDetails, error) {
 	d := BankDetails{
 		Bank: BeneficiaryBank{},
 	}
@@ -22,6 +24,9 @@ func NewBankDetailsFromRow(row *coda.Row) BankDetails {
 	var err error
 
 	if d.ID, err = codatypes.ToString(codaschema.ID.Table.BankDetails.Cols.ID.ID, row); err != nil {
+		errs.AddError(err)
+	}
+	if d.BankRequisites, err = codatypes.ToString(codaschema.ID.Table.BankDetails.Cols.BankRequisites.ID, row); err != nil {
 		errs.AddError(err)
 	}
 	if d.Account, err = codatypes.ToString(codaschema.ID.Table.BankDetails.Cols.Account.ID, row); err != nil {
@@ -40,7 +45,5 @@ func NewBankDetailsFromRow(row *coda.Row) BankDetails {
 	}
 	d.Bank.RowID = benBankValue.RowId
 
-	errs.PanicIfError()
-
-	return d
+	return d, common.JoinErrors(errs)
 }

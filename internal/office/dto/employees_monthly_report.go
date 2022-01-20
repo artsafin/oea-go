@@ -2,11 +2,8 @@ package dto
 
 import (
 	"errors"
-	"fmt"
-	"html/template"
 	"oea-go/internal/codatypes"
 	emplDto "oea-go/internal/employee/dto"
-	"strings"
 )
 
 const (
@@ -37,30 +34,30 @@ func (cats *EmployeesMonthlyReport) AddItemsFromInvoices(invoices emplDto.Invoic
 }
 
 func (cats *EmployeesMonthlyReport) addItemsFromInvoice(invoice *emplDto.Invoice) {
-	location := "n/a"
-	if invoice.Employee != nil {
-		location = invoice.Employee.Location
-	}
-	payment := EmployeeReportLine{
-		Location: location,
-		Name:     invoice.EmployeeName,
-	}
-
-	cats.addItem(CatSalaries, payment.WithAmount(invoice.BaseSalaryRub))
-	cats.addItem(CatPaymentService, payment.WithAmount(invoice.BankFees))
-
-	for _, corr := range invoice.Corrections {
-		comment := template.HTML(fmt.Sprintf("%s [%s]", strings.Replace(corr.Comment, "\n", "<br>", -1), corr.SubCategory()))
-		cats.addItem(corr.Category, payment.WithAmountAndComment(corr.TotalCorrectionRub, comment))
-	}
-
-	if invoice.PatentRub > 0 {
-		cats.addItem(CatPatents, payment.WithAmount(invoice.PatentRub))
-	}
-
-	if invoice.TaxesRub > 0 {
-		cats.addItem(CatTaxes, payment.WithAmount(invoice.TaxesRub))
-	}
+	//location := "n/a"
+	//if invoice.Employee != nil {
+	//	location = invoice.Employee.Location
+	//}
+	//payment := EmployeeReportLine{
+	//	Location: location,
+	//	Name:     invoice.EmployeeName,
+	//}
+	//
+	//cats.addItem(CatSalaries, payment.WithAmount(invoice.BaseSalaryRub))
+	//cats.addItem(CatPaymentService, payment.WithAmount(invoice.BankFees))
+	//
+	//for _, entry := range invoice.Entries {
+	//	comment := template.HTML(strings.Replace(entry.Comment, "\n", "<br>", -1))
+	//	cats.addItem(entry.Type, payment.WithAmountAndComment(entry.RUBAmount, comment))
+	//}
+	//
+	//if invoice.PatentRub > 0 {
+	//	cats.addItem(CatPatents, payment.WithAmount(invoice.PatentRub))
+	//}
+	//
+	//if invoice.TaxesRub > 0 {
+	//	cats.addItem(CatTaxes, payment.WithAmount(invoice.TaxesRub))
+	//}
 }
 
 func (cats *EmployeesMonthlyReport) HasCategory(cat string) bool {

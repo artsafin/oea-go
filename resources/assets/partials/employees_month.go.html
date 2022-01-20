@@ -10,6 +10,11 @@
 
 {{ define "content"}}
     {{ $month := .Page.SelectedMonth }}
+    {{ if .Page.Error }}
+        <div class="alert alert-danger" role="alert">{{ .Page.Error }}</div>
+    {{ else }}
+        <!-- no errors -->
+    {{ end }}
 
     <h3 id="bulk-operations">Bulk operations</h3>
 
@@ -27,7 +32,7 @@
 
     <script>
         const copyWithStyle = (element, button) => {
-            console.log('copyWithStyle', element, button);
+            /*console.log('copyWithStyle', element, button);*/
             const doc = document;
             let range;
             let selection;
@@ -71,25 +76,22 @@
                                                                href="{{ .Employee.GeneralSdLink }}"
                                                                target="_blank"
                             >General SD</a>{{ end }}
-                            {{ if .Employee.PersonnelSdLink }}<a class="btn btn-outline-info btn-sm"
-                                                                 role="button"
-                                                                 href="{{ .Employee.PersonnelSdLink }}"
-                                                                 target="_blank"
-                            >Personnel SD</a>{{ end }}
                             {{ if .Employee.FinanceSdLink }}<a class="btn btn-outline-info btn-sm"
                                                                role="button"
                                                                href="{{ .Employee.FinanceSdLink }}"
                                                                target="_blank"
                             >Finance SD</a>{{ end }}
-                            {{ if .Employee.AclSdLink }}<a class="btn btn-outline-info btn-sm"
-                                                           role="button"
-                                                           href="{{ .Employee.AclSdLink }}"
-                                                           target="_blank"
-                            >ACL SD</a>{{ end }}
                             <a type="button"
-                               class="btn btn-secondary btn-sm"
+                               class="btn btn-outline-info btn-sm"
                                href="{{ link "EmployeesDownloadInvoice" "month" $month "employee" .EmployeeName }}"
                             >Invoice</a>
+
+                            <input class="btn btn-outline-info btn-sm"
+                                   type="button"
+                                   title="Copy"
+                                   value="📰"
+                                   onclick="copyWithStyle(document.getElementById('{{ .EmployeeNameSlug }}'), this)"
+                            >
                         </div>
                     </td>
                 </tr>
@@ -97,15 +99,9 @@
             <tbody style="{{ if not .PaymentChecksPassed }}opacity: 0.3{{end}}">
                 <tr>
                     <td>
-                        <input class="btn btn-outline-info btn-sm"
-                               type="button"
-                               title="Copy"
-                               value="📰"
-                               onclick="copyWithStyle(this.nextElementSibling, this)"
-                        >
-                        <div>
-                            <h3 style="display: inline-block" id="{{ .EmployeeNameSlug }}">
-                                {{ .EmployeeName }}
+                        <div id="{{ .EmployeeNameSlug }}">
+                            <h3 style="display: inline-block">
+                                {{ .EmployeeName }} {{ $month }}
                             </h3>
                             <table border="1" cellspacing="0" cellpadding="2" width="800" valign="top" class="standart">
                                 <thead style="font-weight: bold; background-color: #cacaca">
@@ -116,100 +112,53 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr>
-                                        <td>Salary <b>{{ .EmployeeName }}</b> {{ $month }}</td>
-                                        <td>{{ if .BaseSalaryRub }}{{ .BaseSalaryRub }}{{ end }}</td>
-                                        <td>{{ if .BaseSalaryEur }}{{ .BaseSalaryEur }}{{ end }}</td>
-                                    </tr>
-                                    {{ if .BankFees }}
-                                    <tr>
-                                        <td>Bank fees</td>
-                                        <td>{{ .BankFees }}</td>
-                                        <td></td>
-                                    </tr>
-                                    {{ end }}
-                                    {{ range .Corrections }}
+                                    {{ range .Entries }}
                                         <tr>
                                             <td title="{{ .LongComment }}">{{ .LongComment }}</td>
-                                            <td>{{ .TotalCorrectionRub }}</td>
-                                            <td>{{ if .AbsoluteCorrectionEur }}<i>For&nbsp;reference: {{ .AbsoluteCorrectionEur }}</i>{{ end }}</td>
-                                        </tr>
-                                    {{ end }}
-                                    {{ if ne .PatentRub 0 }}
-                                        <tr>
-                                            <td>Patent</td>
-                                            <td>{{ .PatentRub }}</td>
-                                            <td></td>
-                                        </tr>
-                                    {{ end }}
-                                    {{ if ne .TaxesRub 0 }}
-                                        <tr>
-                                            <td>Taxes</td>
-                                            <td>{{ .TaxesRub }}</td>
-                                            <td></td>
-                                        </tr>
-                                    {{ end }}
-                                    <tr>
-                                        <td>
-                                            <p>Currency rate variance from previous month</p>
-                                            {{ if .PrevInvoice }}
-                                                <p>
-                                                    Expected EURRUB {{ .PrevInvoice.EurRubExpected }}<br>
-                                                    Actual EURRUB {{ .PrevInvoice.EurRubActual }}
-                                                </p>
+                                            {{ if .RUBAmount }}
+                                                <td style="text-align: right">{{ .RUBAmount }}</td>
+                                            {{ else }}
+                                                <td style="background-color: #cacaca"></td>
                                             {{ end }}
-                                        </td>
-                                        <td>{{ .RateErrorPrevMon }}</td>
-                                        <td></td>
-                                    </tr>
-                                    <tr>
-                                        <td>Subtotal (EURRUB {{ .EurRubExpected }})</td>
-                                        <td>{{ .RequestedSubtotalRub }}</td>
-                                        <td>{{ .RequestedSubtotalEur }}</td>
-                                    </tr>
-                                    {{ if .RoundingPrevMonEur }}
-                                    <tr>
-                                        <td>Rounding in previous month</td>
-                                        <td></td>
-                                        <td> -{{ .RoundingPrevMonEur }}</td>
-                                    </tr>
+
+                                            {{ if .EURAmount }}
+                                                <td style="text-align: right">{{ .EURAmount }}</td>
+                                            {{ else }}
+                                                <td style="background-color: #cacaca"></td>
+                                            {{ end }}
+                                        </tr>
                                     {{ end }}
+                                    <tr style="border-top: 2px solid #ccc;"></tr>
+                                    {{ if .EUREntriesSum }}
+                                        <tr>
+                                            <td>EUR Subtotal</td>
+                                            <td></td>
+                                            <td style="text-align: right">{{ .EUREntriesSum }}</td>
+                                        </tr>
+                                    {{ end }}
+                                    <tr>
+                                        <td>RUB Subtotal and conversion (EURRUB {{ .EURRUBExpected }})</td>
+                                        <td style="text-align: right">{{ .RUBEntriesSum }}</td>
+                                        <td style="text-align: right">{{ .RUBEntriesInEUR }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>EUR Total</td>
+                                        <td></td>
+                                        <td style="text-align: right">{{ .EURSubtotal }}</td>
+                                    </tr>
                                     <tr>
                                         <td>Rounding</td>
                                         <td></td>
-                                        <td>{{ .Rounding }}</td>
+                                        <td style="text-align: right">{{ .EURRounding }}</td>
                                     </tr>
+                                    <tr style="border-top: 2px solid #ccc;"></tr>
                                     <tr>
-                                        <td>Total</td>
+                                        <td><b>Grand Total</b></td>
                                         <td></td>
-                                        <td>{{ .AmountRequestedEur }}</td>
+                                        <td style="text-align: right"><b>{{ .EURTotal }}</b></td>
                                     </tr>
                                 </tbody>
                             </table>
-                        </div>
-                    </td>
-                    <td width="500">
-                        <input class="btn btn-outline-info btn-sm"
-                               type="button"
-                               title="Copy"
-                               value="📰"
-                               onclick="copyWithStyle(this.nextElementSibling, this)"
-                        >
-                        <div>
-                            <p>Invoice for {{ .FullMonthName }}</p>
-                            <div class="code" style="background-color: #fbf9f5; border: 1px solid #b3b3b3; font-size:12px; font-family: monospace;">
-                                Full Name of the vendor/provider: {{ .Employee.EnglishFullName }}<br>
-                                Amount and currency: EUR {{ .AmountRequestedEur }}<br>
-                                Date of invoice: {{ .DateFull }}<br>
-                                Date of payment: {{ .DatePayment }}<br>
-                                Specify if it's a one-time payment or recurring: recurring<br>
-                                Bank details of the supplier (if this info is not included on the invoice): included in the invoice<br>
-                                Attach the invoice/agreement that relates to the payment request: attached<br>
-                            </div>
-                            {{ if .Employee.GeneralSdLink }}
-                                <p></p>
-                                <p><a href="{{ .Employee.GeneralSdLink }}">Calculation details</a></p>
-                            {{ end }}
                         </div>
                     </td>
                 </tr>

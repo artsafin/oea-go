@@ -126,7 +126,7 @@ func (h handler) loadTodayAndPastInvoices(req *empl.API, numPastInvoices int, to
 		go func(month *emplDto.Month) {
 			defer wg.Done()
 			h.logger.Infof("started loading invoices for month %v", month.ID)
-			invoices, err := req.GetInvoices(month.ID, empl.With{Corrections: true, Employees: true})
+			invoices, err := req.GetInvoices(month.ID, empl.With{Entries: true, Employee: true})
 			if err != nil {
 				h.logger.Errorf("error during mass loading of invoices for month %v: %v", month.ID, err)
 				return
