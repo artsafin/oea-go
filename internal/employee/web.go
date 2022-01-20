@@ -209,7 +209,7 @@ func (h Handler) DownloadAllInvoices(resp http.ResponseWriter, request *http.Req
 
 	common.WriteMemProfile("before_getinvoices")
 
-	invoices, err := h.api.GetInvoices(month, With{Employee: true})
+	invoices, err := h.api.GetInvoices(month, With{Employee: true, BankDetails: true, LegalEntities: true})
 	if err != nil {
 		resp.WriteHeader(http.StatusInternalServerError)
 		fmt.Fprint(resp, err)

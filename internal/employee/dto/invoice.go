@@ -38,6 +38,8 @@ type Invoice struct {
 	RecipientDetails    *BankDetails
 	PrevInvoiceID       string
 	PrevInvoice         *Invoice
+	contractNumber      string
+	contractDate        string
 }
 
 //region InvoiceDataProvider implementation
@@ -57,10 +59,10 @@ func (inv *Invoice) BeneficiaryRequisites() string {
 }
 
 func (inv *Invoice) PayerRequisites() string {
-	if inv.Employee == nil {
+	if inv.SenderDetails == nil {
 		return "n/a"
 	}
-	return strings.ReplaceAll(inv.Employee.LegalEntity.Requisites, "\n", "\r\n")
+	return strings.ReplaceAll(inv.SenderDetails.Requisites, "\n", "\r\n")
 }
 
 func (inv *Invoice) BeneficiaryName() string {
@@ -112,11 +114,11 @@ func (inv *Invoice) DateFull() string {
 }
 
 func (inv *Invoice) ContractNumber() string {
-	return inv.Employee.ContractNumber
+	return inv.contractNumber
 }
 
 func (inv *Invoice) ContractDate() string {
-	return inv.Employee.ContractDate
+	return inv.contractDate
 }
 
 //endregion
@@ -193,6 +195,12 @@ func NewInvoiceFromRow(row *coda.Row) (*Invoice, error) {
 		errs.AddError(err)
 	}
 	if invoice.PrevInvoiceID, err = codatypes.ToString(codaschema.ID.Table.Invoice.Cols.PreviousInvoice.ID, row); err != nil {
+		errs.AddError(err)
+	}
+	if invoice.contractNumber, err = codatypes.ToString(codaschema.ID.Table.Invoice.Cols.ContractNumber.ID, row); err != nil {
+		errs.AddError(err)
+	}
+	if invoice.contractDate, err = codatypes.ToString(codaschema.ID.Table.Invoice.Cols.ContractDate.ID, row); err != nil {
 		errs.AddError(err)
 	}
 

@@ -81,7 +81,7 @@ func uniqueInvoiceById(invoices dto.Invoices) map[string]*dto.Invoice {
 }
 
 func (api *API) GetInvoiceForMonthAndEmployee(month, employee string) (*dto.Invoice, error) {
-	invoices, err := api.GetInvoices(month, With{Employee: true})
+	invoices, err := api.GetInvoices(month, With{Employee: true, BankDetails: true, LegalEntities: true})
 	if err != nil {
 		return nil, err
 	}

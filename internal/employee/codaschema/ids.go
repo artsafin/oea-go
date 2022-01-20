@@ -61,6 +61,7 @@ type _tableSchema struct {
 	Salaries                          _salariesTable                          // Salaries
 	PayableEmployees                  _payableEmployeesTable                  // Payable employees
 	QuickManualEntry                  _quickManualEntryTable                  // Quick Manual Entry
+	NewInvoiceEntriesPerType          _newInvoiceEntriesPerTypeTable          // New invoice entries per type
 }
 type _formulaSchema struct {
 	CurrentMonth                  _codaEntity // currentMonth
@@ -138,6 +139,8 @@ type _invoiceTableColumns struct {
 	RUBTotal            _codaEntity // RUB Total
 	HourRate            _codaEntity // Hour Rate
 	WorkDays            _codaEntity // Work days
+	ContractDate        _codaEntity // Contract Date
+	ContractNumber      _codaEntity // Contract Number
 }
 
 // Table Months
@@ -727,6 +730,19 @@ type _quickManualEntryTableColumns struct {
 	IE6PercentTax _codaEntity // IE 6% Tax
 }
 
+// Table New invoice entries per type
+type _newInvoiceEntriesPerTypeTable struct {
+	_codaEntity
+	Cols _newInvoiceEntriesPerTypeTableColumns
+}
+type _newInvoiceEntriesPerTypeTableColumns struct {
+	Invoice   _codaEntity // Invoice
+	Type      _codaEntity // Type
+	Comment   _codaEntity // Comment
+	RUBAmount _codaEntity // RUB Amount
+	EURAmount _codaEntity // EUR Amount
+}
+
 var ID _schema
 
 func init() {
@@ -913,6 +929,14 @@ func init() {
 					WorkDays: _codaEntity{
 						ID:   "c-ovkSZVew-L",
 						Name: "Work days",
+					},
+					ContractDate: _codaEntity{
+						ID:   "c-keT0IA7CqE",
+						Name: "Contract Date",
+					},
+					ContractNumber: _codaEntity{
+						ID:   "c-QntkvMYxT-",
+						Name: "Contract Number",
 					},
 				},
 			},
@@ -2277,6 +2301,34 @@ func init() {
 					IE6PercentTax: _codaEntity{
 						ID:   "c-L-78eDsX4J",
 						Name: "IE 6% Tax",
+					},
+				},
+			},
+			NewInvoiceEntriesPerType: _newInvoiceEntriesPerTypeTable{
+				_codaEntity: _codaEntity{
+					ID:   "table-vHvZOlu-NN",
+					Name: "New invoice entries per type",
+				},
+				Cols: _newInvoiceEntriesPerTypeTableColumns{
+					Invoice: _codaEntity{
+						ID:   "c-7SU0iOBY9J",
+						Name: "Invoice",
+					},
+					Type: _codaEntity{
+						ID:   "c-zDY58PF0P6",
+						Name: "Type",
+					},
+					Comment: _codaEntity{
+						ID:   "c--_r48PQnSn",
+						Name: "Comment",
+					},
+					RUBAmount: _codaEntity{
+						ID:   "c-P2x5IJuMXN",
+						Name: "RUB Amount",
+					},
+					EURAmount: _codaEntity{
+						ID:   "c-pRmEece9pf",
+						Name: "EUR Amount",
 					},
 				},
 			},
