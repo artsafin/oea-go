@@ -138,7 +138,7 @@ func (h Handler) DownloadPayrollReport(resp http.ResponseWriter, request *http.R
 		fmt.Fprint(resp, "no month provided")
 		return
 	}
-	invoices, err := h.api.GetInvoices(month, With{Employee: true, PrevInvoice: true, Entries: true})
+	invoices, err := h.api.GetInvoices(month, With{Entries: true})
 	if err != nil {
 		resp.WriteHeader(http.StatusInternalServerError)
 		fmt.Fprint(resp, err)

@@ -166,17 +166,18 @@ type _entriesTable struct {
 	Cols _entriesTableColumns
 }
 type _entriesTableColumns struct {
-	Comment    _codaEntity // Comment
-	EURAmount  _codaEntity // EUR Amount
-	RUBAmount  _codaEntity // RUB Amount
-	Invoice    _codaEntity // Invoice
-	Display    _codaEntity // Display
-	Type       _codaEntity // Type
-	ModifiedOn _codaEntity // Modified on
-	CreatedOn  _codaEntity // Created on
-	Origin     _codaEntity // Origin
-	ModifiedBy _codaEntity // Modified by
-	Sort       _codaEntity // Sort
+	Comment        _codaEntity // Comment
+	EURAmount      _codaEntity // EUR Amount
+	RUBAmount      _codaEntity // RUB Amount
+	Invoice        _codaEntity // Invoice
+	Display        _codaEntity // Display
+	Type           _codaEntity // Type
+	ModifiedOn     _codaEntity // Modified on
+	CreatedOn      _codaEntity // Created on
+	Origin         _codaEntity // Origin
+	ModifiedBy     _codaEntity // Modified by
+	Sort           _codaEntity // Sort
+	RUBAmountInEUR _codaEntity // RUB Amount in EUR
 }
 
 // Table Working Employees
@@ -1033,6 +1034,10 @@ func init() {
 					Sort: _codaEntity{
 						ID:   "c-7rE4nrnOXc",
 						Name: "Sort",
+					},
+					RUBAmountInEUR: _codaEntity{
+						ID:   "c-jVyYfeGaZ8",
+						Name: "RUB Amount in EUR",
 					},
 				},
 			},

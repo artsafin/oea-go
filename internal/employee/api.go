@@ -211,22 +211,32 @@ func (api *API) getMonthsData(month string) (*dto.Month, *dto.Month, error) {
 }
 
 func (api *API) getEntriesForMonthIndexedByInvoice(month string) (map[string]dto.Entries, error) {
-	resp, err := api.Client.ListViewRows(api.DocId, codaschema.ID.Table.Entries.ID, coda.ListViewRowsParameters{})
-
-	if err != nil {
-		return nil, err
-	}
-
+	nextToken := "initial"
 	result := make(map[string]dto.Entries)
 
-	for _, row := range resp.Rows {
-		entry, err := dto.NewEntryFromRow(&row)
+	for nextToken != "" {
+		if nextToken == "initial" {
+			nextToken = ""
+		}
+		resp, err := api.Client.ListViewRows(api.DocId, codaschema.ID.Table.Entries.ID, coda.ListViewRowsParameters{
+			PaginationPayload: coda.PaginationPayload{PageToken: nextToken},
+		})
+
 		if err != nil {
 			return nil, err
 		}
-		if strings.Contains(entry.Invoice, month) {
-			result[entry.Invoice] = append(result[entry.Invoice], entry)
+
+		for _, row := range resp.Rows {
+			entry, err := dto.NewEntryFromRow(&row)
+			if err != nil {
+				return nil, err
+			}
+			if strings.Contains(entry.Invoice, month) {
+				result[entry.Invoice] = append(result[entry.Invoice], entry)
+			}
 		}
+
+		nextToken = resp.NextPageToken
 	}
 
 	return result, nil

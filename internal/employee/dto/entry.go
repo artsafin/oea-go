@@ -11,17 +11,22 @@ import (
 )
 
 type Entry struct {
-	Invoice   string
-	Type      string
-	Comment   string
-	RUBAmount codatypes.MoneyRub
-	EURAmount codatypes.MoneyEur
-	Sort      uint16
+	Invoice        string
+	Type           string
+	Comment        string
+	RUBAmount      codatypes.MoneyRub
+	RUBAmountInEUR codatypes.MoneyEur
+	EURAmount      codatypes.MoneyEur
+	Sort           uint16
 }
 
-func (e *Entry) LongComment() template.HTML {
+func (e Entry) LongComment() template.HTML {
 	htmlComment := strings.Replace(e.Comment, "\n", "<br>", -1)
 	return template.HTML(fmt.Sprintf("<code>%s</code><br>%s", e.Type, htmlComment))
+}
+
+func (e Entry) EURTotal() codatypes.MoneyEur {
+	return e.EURAmount + e.RUBAmountInEUR
 }
 
 func NewEntryFromRow(row *coda.Row) (*Entry, error) {
@@ -42,6 +47,9 @@ func NewEntryFromRow(row *coda.Row) (*Entry, error) {
 		errs.AddError(err)
 	}
 	if entry.EURAmount, err = codatypes.ToEur(codaschema.ID.Table.Entries.Cols.EURAmount.ID, row); err != nil {
+		errs.AddError(err)
+	}
+	if entry.RUBAmountInEUR, err = codatypes.ToEur(codaschema.ID.Table.Entries.Cols.RUBAmountInEUR.ID, row); err != nil {
 		errs.AddError(err)
 	}
 	if entry.Sort, err = codatypes.ToUint16(codaschema.ID.Table.Entries.Cols.Sort.ID, row); err != nil {
