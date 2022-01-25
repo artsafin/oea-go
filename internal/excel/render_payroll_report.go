@@ -95,7 +95,8 @@ func columnsFromInvoices(invoices dto.Invoices) (cols []column) {
 	cm["Employee"] = &column{"Employee", groupPrelude, 2, map[int]interface{}{}}
 	cm["Net salaries"] = &column{"Net salaries", groupTotals, 0, map[int]interface{}{}}
 	cm["Company cost"] = &column{"Company cost", groupTotals, 1, map[int]interface{}{}}
-	cm["Total"] = &column{"Total", groupTotals, 2, map[int]interface{}{}}
+	cm["Rounding"] = &column{"Rounding", groupTotals, 2, map[int]interface{}{}}
+	cm["Total"] = &column{"Total", groupTotals, 3, map[int]interface{}{}}
 
 	for invoiceIndex, inv := range invoices {
 		cm["#"].vals[invoiceIndex] = cell{value: invoiceIndex + 1}
@@ -141,9 +142,11 @@ func columnsFromInvoices(invoices dto.Invoices) (cols []column) {
 			}
 		}
 
+		excelRoundingError := inv.EURTotal.Number() - inv.EURRounding.Number() - netSalariesEUR.Number() - companyCostsEUR.Number()
 		cm["Net salaries"].vals[invoiceIndex] = numberCell{value: netSalariesEUR.Number()}
 		cm["Company cost"].vals[invoiceIndex] = numberCell{value: companyCostsEUR.Number()}
-		cm["Total"].vals[invoiceIndex] = numberCell{value: (netSalariesEUR + companyCostsEUR).Number()}
+		cm["Rounding"].vals[invoiceIndex] = numberCell{value: inv.EURRounding.Number() + excelRoundingError}
+		cm["Total"].vals[invoiceIndex] = numberCell{value: inv.EURTotal.Number()}
 	}
 
 	for _, col := range cm {
