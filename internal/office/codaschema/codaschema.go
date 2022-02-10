@@ -2757,6 +2757,98 @@ func NewExpensesByCategory(row Valuer) (dto ExpensesByCategory, errs error) {
 
 	return
 }
+type InvoicePaymentLookup struct {
+    Values []InvoicePaymentRowRef
+}
+func (l InvoicePaymentLookup) FirstRef() (first InvoicePaymentRowRef, found bool) {
+	if len(l.Values) > 0 {
+		return l.Values[0], true
+	}
+
+	return InvoicePaymentRowRef{}, false
+}
+
+func (l InvoicePaymentLookup) FirstRefName() string {
+	if len(l.Values) > 0 {
+		return l.Values[0].Name
+	}
+
+	return ""
+}
+
+func (l InvoicePaymentLookup) RefNames() (names []string) {
+	for _, v := range l.Values {
+		names = append(names, v.Name)
+	}
+
+	return
+}
+
+
+func (l InvoicePaymentLookup) FirstData() InvoicePayment {
+	if len(l.Values) > 0 && l.Values[0].Data != nil {
+		return *l.Values[0].Data
+	}
+
+	return InvoicePayment{}
+}
+
+func (l InvoicePaymentLookup) Data() (data []InvoicePayment) {
+	for _, i := range l.Values {
+		if i.Data != nil {
+			data = append(data, *i.Data)
+		}
+	}
+
+	return
+}
+
+
+type InvoicePaymentRowRef struct {
+    Name  string
+    RowID string
+    Data  *InvoicePayment
+}
+
+func ToInvoicePaymentLookup(colID string, row Valuer) (values InvoicePaymentLookup, err error) {
+    rawv, ok := row.GetValue(colID)
+    if !ok {
+        return InvoicePaymentLookup{}, fmt.Errorf("missing column %v in Invoice payment row", colID)
+    }
+
+    if strv, ok := rawv.(string); ok && strv == "" {
+        return InvoicePaymentLookup{}, nil
+    }
+
+	if slicev, ok := rawv.([]interface{}); ok {
+		for i, interv := range slicev {
+			sv, err := toStructuredValue(interv)
+			if err != nil {
+				return InvoicePaymentLookup{}, fmt.Errorf("slice value #%v: %w", i, err)
+			}
+			values.Values = append(values.Values, InvoicePaymentRowRef{
+				Name:  sv.Name,
+				RowID: sv.RowId,
+			})
+		}
+
+		return
+	}
+
+	sv, err := toStructuredValue(rawv)
+	if err != nil {
+		return InvoicePaymentLookup{}, err
+	}
+
+	values.Values = []InvoicePaymentRowRef{
+	    {
+            Name:  sv.Name,
+            RowID: sv.RowId,
+	    },
+	}
+
+	return
+}
 type InvoicesLookup struct {
     Values []InvoicesRowRef
 }
@@ -2767,6 +2859,23 @@ func (l InvoicesLookup) FirstRef() (first InvoicesRowRef, found bool) {
 
 	return InvoicesRowRef{}, false
 }
+
+func (l InvoicesLookup) FirstRefName() string {
+	if len(l.Values) > 0 {
+		return l.Values[0].Name
+	}
+
+	return ""
+}
+
+func (l InvoicesLookup) RefNames() (names []string) {
+	for _, v := range l.Values {
+		names = append(names, v.Name)
+	}
+
+	return
+}
+
 
 func (l InvoicesLookup) FirstData() Invoices {
 	if len(l.Values) > 0 && l.Values[0].Data != nil {
@@ -2843,6 +2952,23 @@ func (l CashFlowLookup) FirstRef() (first CashFlowRowRef, found bool) {
 	return CashFlowRowRef{}, false
 }
 
+func (l CashFlowLookup) FirstRefName() string {
+	if len(l.Values) > 0 {
+		return l.Values[0].Name
+	}
+
+	return ""
+}
+
+func (l CashFlowLookup) RefNames() (names []string) {
+	for _, v := range l.Values {
+		names = append(names, v.Name)
+	}
+
+	return
+}
+
+
 func (l CashFlowLookup) FirstData() CashFlow {
 	if len(l.Values) > 0 && l.Values[0].Data != nil {
 		return *l.Values[0].Data
@@ -2917,6 +3043,23 @@ func (l InventoryTypesLookup) FirstRef() (first InventoryTypesRowRef, found bool
 
 	return InventoryTypesRowRef{}, false
 }
+
+func (l InventoryTypesLookup) FirstRefName() string {
+	if len(l.Values) > 0 {
+		return l.Values[0].Name
+	}
+
+	return ""
+}
+
+func (l InventoryTypesLookup) RefNames() (names []string) {
+	for _, v := range l.Values {
+		names = append(names, v.Name)
+	}
+
+	return
+}
+
 
 func (l InventoryTypesLookup) FirstData() InventoryTypes {
 	if len(l.Values) > 0 && l.Values[0].Data != nil {
@@ -2993,6 +3136,23 @@ func (l AuditCategoryLookup) FirstRef() (first AuditCategoryRowRef, found bool) 
 	return AuditCategoryRowRef{}, false
 }
 
+func (l AuditCategoryLookup) FirstRefName() string {
+	if len(l.Values) > 0 {
+		return l.Values[0].Name
+	}
+
+	return ""
+}
+
+func (l AuditCategoryLookup) RefNames() (names []string) {
+	for _, v := range l.Values {
+		names = append(names, v.Name)
+	}
+
+	return
+}
+
+
 func (l AuditCategoryLookup) FirstData() AuditCategory {
 	if len(l.Values) > 0 && l.Values[0].Data != nil {
 		return *l.Values[0].Data
@@ -3067,6 +3227,23 @@ func (l AccountsLookup) FirstRef() (first AccountsRowRef, found bool) {
 
 	return AccountsRowRef{}, false
 }
+
+func (l AccountsLookup) FirstRefName() string {
+	if len(l.Values) > 0 {
+		return l.Values[0].Name
+	}
+
+	return ""
+}
+
+func (l AccountsLookup) RefNames() (names []string) {
+	for _, v := range l.Values {
+		names = append(names, v.Name)
+	}
+
+	return
+}
+
 
 func (l AccountsLookup) FirstData() Accounts {
 	if len(l.Values) > 0 && l.Values[0].Data != nil {
@@ -3143,6 +3320,23 @@ func (l ExpensesLookup) FirstRef() (first ExpensesRowRef, found bool) {
 	return ExpensesRowRef{}, false
 }
 
+func (l ExpensesLookup) FirstRefName() string {
+	if len(l.Values) > 0 {
+		return l.Values[0].Name
+	}
+
+	return ""
+}
+
+func (l ExpensesLookup) RefNames() (names []string) {
+	for _, v := range l.Values {
+		names = append(names, v.Name)
+	}
+
+	return
+}
+
+
 func (l ExpensesLookup) FirstData() Expenses {
 	if len(l.Values) > 0 && l.Values[0].Data != nil {
 		return *l.Values[0].Data
@@ -3199,81 +3393,6 @@ func ToExpensesLookup(colID string, row Valuer) (values ExpensesLookup, err erro
 	}
 
 	values.Values = []ExpensesRowRef{
-	    {
-            Name:  sv.Name,
-            RowID: sv.RowId,
-	    },
-	}
-
-	return
-}
-type InvoicePaymentLookup struct {
-    Values []InvoicePaymentRowRef
-}
-func (l InvoicePaymentLookup) FirstRef() (first InvoicePaymentRowRef, found bool) {
-	if len(l.Values) > 0 {
-		return l.Values[0], true
-	}
-
-	return InvoicePaymentRowRef{}, false
-}
-
-func (l InvoicePaymentLookup) FirstData() InvoicePayment {
-	if len(l.Values) > 0 && l.Values[0].Data != nil {
-		return *l.Values[0].Data
-	}
-
-	return InvoicePayment{}
-}
-
-func (l InvoicePaymentLookup) Data() (data []InvoicePayment) {
-	for _, i := range l.Values {
-		if i.Data != nil {
-			data = append(data, *i.Data)
-		}
-	}
-
-	return
-}
-
-
-type InvoicePaymentRowRef struct {
-    Name  string
-    RowID string
-    Data  *InvoicePayment
-}
-
-func ToInvoicePaymentLookup(colID string, row Valuer) (values InvoicePaymentLookup, err error) {
-    rawv, ok := row.GetValue(colID)
-    if !ok {
-        return InvoicePaymentLookup{}, fmt.Errorf("missing column %v in Invoice payment row", colID)
-    }
-
-    if strv, ok := rawv.(string); ok && strv == "" {
-        return InvoicePaymentLookup{}, nil
-    }
-
-	if slicev, ok := rawv.([]interface{}); ok {
-		for i, interv := range slicev {
-			sv, err := toStructuredValue(interv)
-			if err != nil {
-				return InvoicePaymentLookup{}, fmt.Errorf("slice value #%v: %w", i, err)
-			}
-			values.Values = append(values.Values, InvoicePaymentRowRef{
-				Name:  sv.Name,
-				RowID: sv.RowId,
-			})
-		}
-
-		return
-	}
-
-	sv, err := toStructuredValue(rawv)
-	if err != nil {
-		return InvoicePaymentLookup{}, err
-	}
-
-	values.Values = []InvoicePaymentRowRef{
 	    {
             Name:  sv.Name,
             RowID: sv.RowId,
@@ -4029,6 +4148,14 @@ type Tables struct {
 // LoadRelationsCashFlow loads data into lookup fields of the CashFlow struct
 func (doc *CodaDocument) LoadRelationsCashFlow(ctx context.Context, shallow map[RowID]CashFlow, rels Tables) (err error) {
 	var ok bool
+	var _accountsMap map[RowID]Accounts
+	if _accountsMap, ok = doc.relationsCache["Accounts"].(map[RowID]Accounts); rels.Accounts && !ok {
+		_accountsMap, _, err = doc.MapOfAccounts(ctx)
+		if err != nil {
+			return err
+		}
+		doc.relationsCache["Accounts"] = _accountsMap
+	}
 	var _expensesMap map[RowID]Expenses
 	if _expensesMap, ok = doc.relationsCache["Expenses"].(map[RowID]Expenses); rels.Expenses && !ok {
 		_expensesMap, _, err = doc.MapOfExpenses(ctx)
@@ -4045,40 +4172,8 @@ func (doc *CodaDocument) LoadRelationsCashFlow(ctx context.Context, shallow map[
 		}
 		doc.relationsCache["InvoicePayment"] = _invoicePaymentMap
 	}
-	var _accountsMap map[RowID]Accounts
-	if _accountsMap, ok = doc.relationsCache["Accounts"].(map[RowID]Accounts); rels.Accounts && !ok {
-		_accountsMap, _, err = doc.MapOfAccounts(ctx)
-		if err != nil {
-			return err
-		}
-		doc.relationsCache["Accounts"] = _accountsMap
-	}
 
 	for ii, item := range shallow {
-		if rels.Expenses {
-			for vi, v := range item.CashOutPurpose.Values {
-				if v.Data != nil {
-					continue
-				}
-
-				data, ok := _expensesMap[RowID(v.RowID)]
-
-				if ok {
-					shallow[ii].CashOutPurpose.Values[vi].Data = &data
-				}
-			}
-			for vi, v := range item.PersonalPaidIn.Values {
-				if v.Data != nil {
-					continue
-				}
-
-				data, ok := _expensesMap[RowID(v.RowID)]
-
-				if ok {
-					shallow[ii].PersonalPaidIn.Values[vi].Data = &data
-				}
-			}
-		}
 		if rels.InvoicePayment {
 			for vi, v := range item.CashIn.Values {
 				if v.Data != nil {
@@ -4105,6 +4200,30 @@ func (doc *CodaDocument) LoadRelationsCashFlow(ctx context.Context, shallow map[
 				}
 			}
 		}
+		if rels.Expenses {
+			for vi, v := range item.CashOutPurpose.Values {
+				if v.Data != nil {
+					continue
+				}
+
+				data, ok := _expensesMap[RowID(v.RowID)]
+
+				if ok {
+					shallow[ii].CashOutPurpose.Values[vi].Data = &data
+				}
+			}
+			for vi, v := range item.PersonalPaidIn.Values {
+				if v.Data != nil {
+					continue
+				}
+
+				data, ok := _expensesMap[RowID(v.RowID)]
+
+				if ok {
+					shallow[ii].PersonalPaidIn.Values[vi].Data = &data
+				}
+			}
+		}
 	}
 
 	return nil
@@ -4113,6 +4232,14 @@ func (doc *CodaDocument) LoadRelationsCashFlow(ctx context.Context, shallow map[
 // LoadRelationsExpenses loads data into lookup fields of the Expenses struct
 func (doc *CodaDocument) LoadRelationsExpenses(ctx context.Context, shallow map[RowID]Expenses, rels Tables) (err error) {
 	var ok bool
+	var _invoicesMap map[RowID]Invoices
+	if _invoicesMap, ok = doc.relationsCache["Invoices"].(map[RowID]Invoices); rels.Invoices && !ok {
+		_invoicesMap, _, err = doc.MapOfInvoices(ctx)
+		if err != nil {
+			return err
+		}
+		doc.relationsCache["Invoices"] = _invoicesMap
+	}
 	var _inventoryTypesMap map[RowID]InventoryTypes
 	if _inventoryTypesMap, ok = doc.relationsCache["InventoryTypes"].(map[RowID]InventoryTypes); rels.InventoryTypes && !ok {
 		_inventoryTypesMap, _, err = doc.MapOfInventoryTypes(ctx)
@@ -4128,14 +4255,6 @@ func (doc *CodaDocument) LoadRelationsExpenses(ctx context.Context, shallow map[
 			return err
 		}
 		doc.relationsCache["AuditCategory"] = _auditCategoryMap
-	}
-	var _invoicesMap map[RowID]Invoices
-	if _invoicesMap, ok = doc.relationsCache["Invoices"].(map[RowID]Invoices); rels.Invoices && !ok {
-		_invoicesMap, _, err = doc.MapOfInvoices(ctx)
-		if err != nil {
-			return err
-		}
-		doc.relationsCache["Invoices"] = _invoicesMap
 	}
 
 	for ii, item := range shallow {

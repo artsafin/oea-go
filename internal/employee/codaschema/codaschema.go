@@ -3333,6 +3333,15 @@ func ToUint8(colID string, row Valuer) (uint8, error) {
 	return 0, newFieldError(colID, "uint8", rawv)
 }
 
+func toStructuredValueFromValuer(colID string, row Valuer) (sv structuredValue, err error) {
+	rawv, ok := row.GetValue(colID)
+	if !ok {
+		return structuredValue{}, nil
+	}
+
+	return toStructuredValue(rawv)
+}
+
 func toStructuredValue(rawv interface{}) (sv structuredValue, err error) {
 	var ok bool
 	var mapv map[string]interface{}
@@ -5938,456 +5947,6 @@ func NewTESTTABLE(row Valuer) (dto TESTTABLE, errs error) {
 
 	return
 }
-type MonthsLookup struct {
-    Values []MonthsRowRef
-}
-func (l MonthsLookup) FirstRef() (first MonthsRowRef, found bool) {
-	if len(l.Values) > 0 {
-		return l.Values[0], true
-	}
-
-	return MonthsRowRef{}, false
-}
-
-func (l MonthsLookup) FirstData() Months {
-	if len(l.Values) > 0 && l.Values[0].Data != nil {
-		return *l.Values[0].Data
-	}
-
-	return Months{}
-}
-
-func (l MonthsLookup) Data() (data []Months) {
-	for _, i := range l.Values {
-		if i.Data != nil {
-			data = append(data, *i.Data)
-		}
-	}
-
-	return
-}
-
-
-type MonthsRowRef struct {
-    Name  string
-    RowID string
-    Data  *Months
-}
-
-func ToMonthsLookup(colID string, row Valuer) (values MonthsLookup, err error) {
-    rawv, ok := row.GetValue(colID)
-    if !ok {
-        return MonthsLookup{}, fmt.Errorf("missing column %v in Months row", colID)
-    }
-
-    if strv, ok := rawv.(string); ok && strv == "" {
-        return MonthsLookup{}, nil
-    }
-
-	if slicev, ok := rawv.([]interface{}); ok {
-		for i, interv := range slicev {
-			sv, err := toStructuredValue(interv)
-			if err != nil {
-				return MonthsLookup{}, fmt.Errorf("slice value #%v: %w", i, err)
-			}
-			values.Values = append(values.Values, MonthsRowRef{
-				Name:  sv.Name,
-				RowID: sv.RowId,
-			})
-		}
-
-		return
-	}
-
-	sv, err := toStructuredValue(rawv)
-	if err != nil {
-		return MonthsLookup{}, err
-	}
-
-	values.Values = []MonthsRowRef{
-	    {
-            Name:  sv.Name,
-            RowID: sv.RowId,
-	    },
-	}
-
-	return
-}
-type AllEmployeesLookup struct {
-    Values []AllEmployeesRowRef
-}
-func (l AllEmployeesLookup) FirstRef() (first AllEmployeesRowRef, found bool) {
-	if len(l.Values) > 0 {
-		return l.Values[0], true
-	}
-
-	return AllEmployeesRowRef{}, false
-}
-
-func (l AllEmployeesLookup) FirstData() AllEmployees {
-	if len(l.Values) > 0 && l.Values[0].Data != nil {
-		return *l.Values[0].Data
-	}
-
-	return AllEmployees{}
-}
-
-func (l AllEmployeesLookup) Data() (data []AllEmployees) {
-	for _, i := range l.Values {
-		if i.Data != nil {
-			data = append(data, *i.Data)
-		}
-	}
-
-	return
-}
-
-
-type AllEmployeesRowRef struct {
-    Name  string
-    RowID string
-    Data  *AllEmployees
-}
-
-func ToAllEmployeesLookup(colID string, row Valuer) (values AllEmployeesLookup, err error) {
-    rawv, ok := row.GetValue(colID)
-    if !ok {
-        return AllEmployeesLookup{}, fmt.Errorf("missing column %v in All employees row", colID)
-    }
-
-    if strv, ok := rawv.(string); ok && strv == "" {
-        return AllEmployeesLookup{}, nil
-    }
-
-	if slicev, ok := rawv.([]interface{}); ok {
-		for i, interv := range slicev {
-			sv, err := toStructuredValue(interv)
-			if err != nil {
-				return AllEmployeesLookup{}, fmt.Errorf("slice value #%v: %w", i, err)
-			}
-			values.Values = append(values.Values, AllEmployeesRowRef{
-				Name:  sv.Name,
-				RowID: sv.RowId,
-			})
-		}
-
-		return
-	}
-
-	sv, err := toStructuredValue(rawv)
-	if err != nil {
-		return AllEmployeesLookup{}, err
-	}
-
-	values.Values = []AllEmployeesRowRef{
-	    {
-            Name:  sv.Name,
-            RowID: sv.RowId,
-	    },
-	}
-
-	return
-}
-type InvoiceLookup struct {
-    Values []InvoiceRowRef
-}
-func (l InvoiceLookup) FirstRef() (first InvoiceRowRef, found bool) {
-	if len(l.Values) > 0 {
-		return l.Values[0], true
-	}
-
-	return InvoiceRowRef{}, false
-}
-
-func (l InvoiceLookup) FirstData() Invoice {
-	if len(l.Values) > 0 && l.Values[0].Data != nil {
-		return *l.Values[0].Data
-	}
-
-	return Invoice{}
-}
-
-func (l InvoiceLookup) Data() (data []Invoice) {
-	for _, i := range l.Values {
-		if i.Data != nil {
-			data = append(data, *i.Data)
-		}
-	}
-
-	return
-}
-
-
-type InvoiceRowRef struct {
-    Name  string
-    RowID string
-    Data  *Invoice
-}
-
-func ToInvoiceLookup(colID string, row Valuer) (values InvoiceLookup, err error) {
-    rawv, ok := row.GetValue(colID)
-    if !ok {
-        return InvoiceLookup{}, fmt.Errorf("missing column %v in Invoice row", colID)
-    }
-
-    if strv, ok := rawv.(string); ok && strv == "" {
-        return InvoiceLookup{}, nil
-    }
-
-	if slicev, ok := rawv.([]interface{}); ok {
-		for i, interv := range slicev {
-			sv, err := toStructuredValue(interv)
-			if err != nil {
-				return InvoiceLookup{}, fmt.Errorf("slice value #%v: %w", i, err)
-			}
-			values.Values = append(values.Values, InvoiceRowRef{
-				Name:  sv.Name,
-				RowID: sv.RowId,
-			})
-		}
-
-		return
-	}
-
-	sv, err := toStructuredValue(rawv)
-	if err != nil {
-		return InvoiceLookup{}, err
-	}
-
-	values.Values = []InvoiceRowRef{
-	    {
-            Name:  sv.Name,
-            RowID: sv.RowId,
-	    },
-	}
-
-	return
-}
-type EmployeePatentsLookup struct {
-    Values []EmployeePatentsRowRef
-}
-func (l EmployeePatentsLookup) FirstRef() (first EmployeePatentsRowRef, found bool) {
-	if len(l.Values) > 0 {
-		return l.Values[0], true
-	}
-
-	return EmployeePatentsRowRef{}, false
-}
-
-func (l EmployeePatentsLookup) FirstData() EmployeePatents {
-	if len(l.Values) > 0 && l.Values[0].Data != nil {
-		return *l.Values[0].Data
-	}
-
-	return EmployeePatents{}
-}
-
-func (l EmployeePatentsLookup) Data() (data []EmployeePatents) {
-	for _, i := range l.Values {
-		if i.Data != nil {
-			data = append(data, *i.Data)
-		}
-	}
-
-	return
-}
-
-
-type EmployeePatentsRowRef struct {
-    Name  string
-    RowID string
-    Data  *EmployeePatents
-}
-
-func ToEmployeePatentsLookup(colID string, row Valuer) (values EmployeePatentsLookup, err error) {
-    rawv, ok := row.GetValue(colID)
-    if !ok {
-        return EmployeePatentsLookup{}, fmt.Errorf("missing column %v in Employee Patents row", colID)
-    }
-
-    if strv, ok := rawv.(string); ok && strv == "" {
-        return EmployeePatentsLookup{}, nil
-    }
-
-	if slicev, ok := rawv.([]interface{}); ok {
-		for i, interv := range slicev {
-			sv, err := toStructuredValue(interv)
-			if err != nil {
-				return EmployeePatentsLookup{}, fmt.Errorf("slice value #%v: %w", i, err)
-			}
-			values.Values = append(values.Values, EmployeePatentsRowRef{
-				Name:  sv.Name,
-				RowID: sv.RowId,
-			})
-		}
-
-		return
-	}
-
-	sv, err := toStructuredValue(rawv)
-	if err != nil {
-		return EmployeePatentsLookup{}, err
-	}
-
-	values.Values = []EmployeePatentsRowRef{
-	    {
-            Name:  sv.Name,
-            RowID: sv.RowId,
-	    },
-	}
-
-	return
-}
-type TaxYearsLookup struct {
-    Values []TaxYearsRowRef
-}
-func (l TaxYearsLookup) FirstRef() (first TaxYearsRowRef, found bool) {
-	if len(l.Values) > 0 {
-		return l.Values[0], true
-	}
-
-	return TaxYearsRowRef{}, false
-}
-
-func (l TaxYearsLookup) FirstData() TaxYears {
-	if len(l.Values) > 0 && l.Values[0].Data != nil {
-		return *l.Values[0].Data
-	}
-
-	return TaxYears{}
-}
-
-func (l TaxYearsLookup) Data() (data []TaxYears) {
-	for _, i := range l.Values {
-		if i.Data != nil {
-			data = append(data, *i.Data)
-		}
-	}
-
-	return
-}
-
-
-type TaxYearsRowRef struct {
-    Name  string
-    RowID string
-    Data  *TaxYears
-}
-
-func ToTaxYearsLookup(colID string, row Valuer) (values TaxYearsLookup, err error) {
-    rawv, ok := row.GetValue(colID)
-    if !ok {
-        return TaxYearsLookup{}, fmt.Errorf("missing column %v in Tax years row", colID)
-    }
-
-    if strv, ok := rawv.(string); ok && strv == "" {
-        return TaxYearsLookup{}, nil
-    }
-
-	if slicev, ok := rawv.([]interface{}); ok {
-		for i, interv := range slicev {
-			sv, err := toStructuredValue(interv)
-			if err != nil {
-				return TaxYearsLookup{}, fmt.Errorf("slice value #%v: %w", i, err)
-			}
-			values.Values = append(values.Values, TaxYearsRowRef{
-				Name:  sv.Name,
-				RowID: sv.RowId,
-			})
-		}
-
-		return
-	}
-
-	sv, err := toStructuredValue(rawv)
-	if err != nil {
-		return TaxYearsLookup{}, err
-	}
-
-	values.Values = []TaxYearsRowRef{
-	    {
-            Name:  sv.Name,
-            RowID: sv.RowId,
-	    },
-	}
-
-	return
-}
-type LegalEntityLookup struct {
-    Values []LegalEntityRowRef
-}
-func (l LegalEntityLookup) FirstRef() (first LegalEntityRowRef, found bool) {
-	if len(l.Values) > 0 {
-		return l.Values[0], true
-	}
-
-	return LegalEntityRowRef{}, false
-}
-
-func (l LegalEntityLookup) FirstData() LegalEntity {
-	if len(l.Values) > 0 && l.Values[0].Data != nil {
-		return *l.Values[0].Data
-	}
-
-	return LegalEntity{}
-}
-
-func (l LegalEntityLookup) Data() (data []LegalEntity) {
-	for _, i := range l.Values {
-		if i.Data != nil {
-			data = append(data, *i.Data)
-		}
-	}
-
-	return
-}
-
-
-type LegalEntityRowRef struct {
-    Name  string
-    RowID string
-    Data  *LegalEntity
-}
-
-func ToLegalEntityLookup(colID string, row Valuer) (values LegalEntityLookup, err error) {
-    rawv, ok := row.GetValue(colID)
-    if !ok {
-        return LegalEntityLookup{}, fmt.Errorf("missing column %v in Legal entity row", colID)
-    }
-
-    if strv, ok := rawv.(string); ok && strv == "" {
-        return LegalEntityLookup{}, nil
-    }
-
-	if slicev, ok := rawv.([]interface{}); ok {
-		for i, interv := range slicev {
-			sv, err := toStructuredValue(interv)
-			if err != nil {
-				return LegalEntityLookup{}, fmt.Errorf("slice value #%v: %w", i, err)
-			}
-			values.Values = append(values.Values, LegalEntityRowRef{
-				Name:  sv.Name,
-				RowID: sv.RowId,
-			})
-		}
-
-		return
-	}
-
-	sv, err := toStructuredValue(rawv)
-	if err != nil {
-		return LegalEntityLookup{}, err
-	}
-
-	values.Values = []LegalEntityRowRef{
-	    {
-            Name:  sv.Name,
-            RowID: sv.RowId,
-	    },
-	}
-
-	return
-}
 type LocationLookup struct {
     Values []LocationRowRef
 }
@@ -6398,6 +5957,23 @@ func (l LocationLookup) FirstRef() (first LocationRowRef, found bool) {
 
 	return LocationRowRef{}, false
 }
+
+func (l LocationLookup) FirstRefName() string {
+	if len(l.Values) > 0 {
+		return l.Values[0].Name
+	}
+
+	return ""
+}
+
+func (l LocationLookup) RefNames() (names []string) {
+	for _, v := range l.Values {
+		names = append(names, v.Name)
+	}
+
+	return
+}
+
 
 func (l LocationLookup) FirstData() Location {
 	if len(l.Values) > 0 && l.Values[0].Data != nil {
@@ -6463,26 +6039,43 @@ func ToLocationLookup(colID string, row Valuer) (values LocationLookup, err erro
 
 	return
 }
-type EntriesLookup struct {
-    Values []EntriesRowRef
+type TaxYearsLookup struct {
+    Values []TaxYearsRowRef
 }
-func (l EntriesLookup) FirstRef() (first EntriesRowRef, found bool) {
+func (l TaxYearsLookup) FirstRef() (first TaxYearsRowRef, found bool) {
 	if len(l.Values) > 0 {
 		return l.Values[0], true
 	}
 
-	return EntriesRowRef{}, false
+	return TaxYearsRowRef{}, false
 }
 
-func (l EntriesLookup) FirstData() Entries {
+func (l TaxYearsLookup) FirstRefName() string {
+	if len(l.Values) > 0 {
+		return l.Values[0].Name
+	}
+
+	return ""
+}
+
+func (l TaxYearsLookup) RefNames() (names []string) {
+	for _, v := range l.Values {
+		names = append(names, v.Name)
+	}
+
+	return
+}
+
+
+func (l TaxYearsLookup) FirstData() TaxYears {
 	if len(l.Values) > 0 && l.Values[0].Data != nil {
 		return *l.Values[0].Data
 	}
 
-	return Entries{}
+	return TaxYears{}
 }
 
-func (l EntriesLookup) Data() (data []Entries) {
+func (l TaxYearsLookup) Data() (data []TaxYears) {
 	for _, i := range l.Values {
 		if i.Data != nil {
 			data = append(data, *i.Data)
@@ -6493,29 +6086,29 @@ func (l EntriesLookup) Data() (data []Entries) {
 }
 
 
-type EntriesRowRef struct {
+type TaxYearsRowRef struct {
     Name  string
     RowID string
-    Data  *Entries
+    Data  *TaxYears
 }
 
-func ToEntriesLookup(colID string, row Valuer) (values EntriesLookup, err error) {
+func ToTaxYearsLookup(colID string, row Valuer) (values TaxYearsLookup, err error) {
     rawv, ok := row.GetValue(colID)
     if !ok {
-        return EntriesLookup{}, fmt.Errorf("missing column %v in Entries row", colID)
+        return TaxYearsLookup{}, fmt.Errorf("missing column %v in Tax years row", colID)
     }
 
     if strv, ok := rawv.(string); ok && strv == "" {
-        return EntriesLookup{}, nil
+        return TaxYearsLookup{}, nil
     }
 
 	if slicev, ok := rawv.([]interface{}); ok {
 		for i, interv := range slicev {
 			sv, err := toStructuredValue(interv)
 			if err != nil {
-				return EntriesLookup{}, fmt.Errorf("slice value #%v: %w", i, err)
+				return TaxYearsLookup{}, fmt.Errorf("slice value #%v: %w", i, err)
 			}
-			values.Values = append(values.Values, EntriesRowRef{
+			values.Values = append(values.Values, TaxYearsRowRef{
 				Name:  sv.Name,
 				RowID: sv.RowId,
 			})
@@ -6526,10 +6119,10 @@ func ToEntriesLookup(colID string, row Valuer) (values EntriesLookup, err error)
 
 	sv, err := toStructuredValue(rawv)
 	if err != nil {
-		return EntriesLookup{}, err
+		return TaxYearsLookup{}, err
 	}
 
-	values.Values = []EntriesRowRef{
+	values.Values = []TaxYearsRowRef{
 	    {
             Name:  sv.Name,
             RowID: sv.RowId,
@@ -6538,26 +6131,43 @@ func ToEntriesLookup(colID string, row Valuer) (values EntriesLookup, err error)
 
 	return
 }
-type EntryTypeLookup struct {
-    Values []EntryTypeRowRef
+type AllEmployeesLookup struct {
+    Values []AllEmployeesRowRef
 }
-func (l EntryTypeLookup) FirstRef() (first EntryTypeRowRef, found bool) {
+func (l AllEmployeesLookup) FirstRef() (first AllEmployeesRowRef, found bool) {
 	if len(l.Values) > 0 {
 		return l.Values[0], true
 	}
 
-	return EntryTypeRowRef{}, false
+	return AllEmployeesRowRef{}, false
 }
 
-func (l EntryTypeLookup) FirstData() EntryType {
+func (l AllEmployeesLookup) FirstRefName() string {
+	if len(l.Values) > 0 {
+		return l.Values[0].Name
+	}
+
+	return ""
+}
+
+func (l AllEmployeesLookup) RefNames() (names []string) {
+	for _, v := range l.Values {
+		names = append(names, v.Name)
+	}
+
+	return
+}
+
+
+func (l AllEmployeesLookup) FirstData() AllEmployees {
 	if len(l.Values) > 0 && l.Values[0].Data != nil {
 		return *l.Values[0].Data
 	}
 
-	return EntryType{}
+	return AllEmployees{}
 }
 
-func (l EntryTypeLookup) Data() (data []EntryType) {
+func (l AllEmployeesLookup) Data() (data []AllEmployees) {
 	for _, i := range l.Values {
 		if i.Data != nil {
 			data = append(data, *i.Data)
@@ -6568,29 +6178,29 @@ func (l EntryTypeLookup) Data() (data []EntryType) {
 }
 
 
-type EntryTypeRowRef struct {
+type AllEmployeesRowRef struct {
     Name  string
     RowID string
-    Data  *EntryType
+    Data  *AllEmployees
 }
 
-func ToEntryTypeLookup(colID string, row Valuer) (values EntryTypeLookup, err error) {
+func ToAllEmployeesLookup(colID string, row Valuer) (values AllEmployeesLookup, err error) {
     rawv, ok := row.GetValue(colID)
     if !ok {
-        return EntryTypeLookup{}, fmt.Errorf("missing column %v in Entry Type row", colID)
+        return AllEmployeesLookup{}, fmt.Errorf("missing column %v in All employees row", colID)
     }
 
     if strv, ok := rawv.(string); ok && strv == "" {
-        return EntryTypeLookup{}, nil
+        return AllEmployeesLookup{}, nil
     }
 
 	if slicev, ok := rawv.([]interface{}); ok {
 		for i, interv := range slicev {
 			sv, err := toStructuredValue(interv)
 			if err != nil {
-				return EntryTypeLookup{}, fmt.Errorf("slice value #%v: %w", i, err)
+				return AllEmployeesLookup{}, fmt.Errorf("slice value #%v: %w", i, err)
 			}
-			values.Values = append(values.Values, EntryTypeRowRef{
+			values.Values = append(values.Values, AllEmployeesRowRef{
 				Name:  sv.Name,
 				RowID: sv.RowId,
 			})
@@ -6601,10 +6211,10 @@ func ToEntryTypeLookup(colID string, row Valuer) (values EntryTypeLookup, err er
 
 	sv, err := toStructuredValue(rawv)
 	if err != nil {
-		return EntryTypeLookup{}, err
+		return AllEmployeesLookup{}, err
 	}
 
-	values.Values = []EntryTypeRowRef{
+	values.Values = []AllEmployeesRowRef{
 	    {
             Name:  sv.Name,
             RowID: sv.RowId,
@@ -6623,6 +6233,23 @@ func (l FullPayrollReportLookup) FirstRef() (first FullPayrollReportRowRef, foun
 
 	return FullPayrollReportRowRef{}, false
 }
+
+func (l FullPayrollReportLookup) FirstRefName() string {
+	if len(l.Values) > 0 {
+		return l.Values[0].Name
+	}
+
+	return ""
+}
+
+func (l FullPayrollReportLookup) RefNames() (names []string) {
+	for _, v := range l.Values {
+		names = append(names, v.Name)
+	}
+
+	return
+}
+
 
 func (l FullPayrollReportLookup) FirstData() FullPayrollReport {
 	if len(l.Values) > 0 && l.Values[0].Data != nil {
@@ -6699,6 +6326,23 @@ func (l BeneficiaryBankLookup) FirstRef() (first BeneficiaryBankRowRef, found bo
 	return BeneficiaryBankRowRef{}, false
 }
 
+func (l BeneficiaryBankLookup) FirstRefName() string {
+	if len(l.Values) > 0 {
+		return l.Values[0].Name
+	}
+
+	return ""
+}
+
+func (l BeneficiaryBankLookup) RefNames() (names []string) {
+	for _, v := range l.Values {
+		names = append(names, v.Name)
+	}
+
+	return
+}
+
+
 func (l BeneficiaryBankLookup) FirstData() BeneficiaryBank {
 	if len(l.Values) > 0 && l.Values[0].Data != nil {
 		return *l.Values[0].Data
@@ -6763,26 +6407,43 @@ func ToBeneficiaryBankLookup(colID string, row Valuer) (values BeneficiaryBankLo
 
 	return
 }
-type PerDayPoliciesLookup struct {
-    Values []PerDayPoliciesRowRef
+type TemplateEntriesLookup struct {
+    Values []TemplateEntriesRowRef
 }
-func (l PerDayPoliciesLookup) FirstRef() (first PerDayPoliciesRowRef, found bool) {
+func (l TemplateEntriesLookup) FirstRef() (first TemplateEntriesRowRef, found bool) {
 	if len(l.Values) > 0 {
 		return l.Values[0], true
 	}
 
-	return PerDayPoliciesRowRef{}, false
+	return TemplateEntriesRowRef{}, false
 }
 
-func (l PerDayPoliciesLookup) FirstData() PerDayPolicies {
+func (l TemplateEntriesLookup) FirstRefName() string {
+	if len(l.Values) > 0 {
+		return l.Values[0].Name
+	}
+
+	return ""
+}
+
+func (l TemplateEntriesLookup) RefNames() (names []string) {
+	for _, v := range l.Values {
+		names = append(names, v.Name)
+	}
+
+	return
+}
+
+
+func (l TemplateEntriesLookup) FirstData() TemplateEntries {
 	if len(l.Values) > 0 && l.Values[0].Data != nil {
 		return *l.Values[0].Data
 	}
 
-	return PerDayPolicies{}
+	return TemplateEntries{}
 }
 
-func (l PerDayPoliciesLookup) Data() (data []PerDayPolicies) {
+func (l TemplateEntriesLookup) Data() (data []TemplateEntries) {
 	for _, i := range l.Values {
 		if i.Data != nil {
 			data = append(data, *i.Data)
@@ -6793,29 +6454,29 @@ func (l PerDayPoliciesLookup) Data() (data []PerDayPolicies) {
 }
 
 
-type PerDayPoliciesRowRef struct {
+type TemplateEntriesRowRef struct {
     Name  string
     RowID string
-    Data  *PerDayPolicies
+    Data  *TemplateEntries
 }
 
-func ToPerDayPoliciesLookup(colID string, row Valuer) (values PerDayPoliciesLookup, err error) {
+func ToTemplateEntriesLookup(colID string, row Valuer) (values TemplateEntriesLookup, err error) {
     rawv, ok := row.GetValue(colID)
     if !ok {
-        return PerDayPoliciesLookup{}, fmt.Errorf("missing column %v in Per Day Policies row", colID)
+        return TemplateEntriesLookup{}, fmt.Errorf("missing column %v in Template Entries row", colID)
     }
 
     if strv, ok := rawv.(string); ok && strv == "" {
-        return PerDayPoliciesLookup{}, nil
+        return TemplateEntriesLookup{}, nil
     }
 
 	if slicev, ok := rawv.([]interface{}); ok {
 		for i, interv := range slicev {
 			sv, err := toStructuredValue(interv)
 			if err != nil {
-				return PerDayPoliciesLookup{}, fmt.Errorf("slice value #%v: %w", i, err)
+				return TemplateEntriesLookup{}, fmt.Errorf("slice value #%v: %w", i, err)
 			}
-			values.Values = append(values.Values, PerDayPoliciesRowRef{
+			values.Values = append(values.Values, TemplateEntriesRowRef{
 				Name:  sv.Name,
 				RowID: sv.RowId,
 			})
@@ -6826,10 +6487,286 @@ func ToPerDayPoliciesLookup(colID string, row Valuer) (values PerDayPoliciesLook
 
 	sv, err := toStructuredValue(rawv)
 	if err != nil {
-		return PerDayPoliciesLookup{}, err
+		return TemplateEntriesLookup{}, err
 	}
 
-	values.Values = []PerDayPoliciesRowRef{
+	values.Values = []TemplateEntriesRowRef{
+	    {
+            Name:  sv.Name,
+            RowID: sv.RowId,
+	    },
+	}
+
+	return
+}
+type EntryTypeLookup struct {
+    Values []EntryTypeRowRef
+}
+func (l EntryTypeLookup) FirstRef() (first EntryTypeRowRef, found bool) {
+	if len(l.Values) > 0 {
+		return l.Values[0], true
+	}
+
+	return EntryTypeRowRef{}, false
+}
+
+func (l EntryTypeLookup) FirstRefName() string {
+	if len(l.Values) > 0 {
+		return l.Values[0].Name
+	}
+
+	return ""
+}
+
+func (l EntryTypeLookup) RefNames() (names []string) {
+	for _, v := range l.Values {
+		names = append(names, v.Name)
+	}
+
+	return
+}
+
+
+func (l EntryTypeLookup) FirstData() EntryType {
+	if len(l.Values) > 0 && l.Values[0].Data != nil {
+		return *l.Values[0].Data
+	}
+
+	return EntryType{}
+}
+
+func (l EntryTypeLookup) Data() (data []EntryType) {
+	for _, i := range l.Values {
+		if i.Data != nil {
+			data = append(data, *i.Data)
+		}
+	}
+
+	return
+}
+
+
+type EntryTypeRowRef struct {
+    Name  string
+    RowID string
+    Data  *EntryType
+}
+
+func ToEntryTypeLookup(colID string, row Valuer) (values EntryTypeLookup, err error) {
+    rawv, ok := row.GetValue(colID)
+    if !ok {
+        return EntryTypeLookup{}, fmt.Errorf("missing column %v in Entry Type row", colID)
+    }
+
+    if strv, ok := rawv.(string); ok && strv == "" {
+        return EntryTypeLookup{}, nil
+    }
+
+	if slicev, ok := rawv.([]interface{}); ok {
+		for i, interv := range slicev {
+			sv, err := toStructuredValue(interv)
+			if err != nil {
+				return EntryTypeLookup{}, fmt.Errorf("slice value #%v: %w", i, err)
+			}
+			values.Values = append(values.Values, EntryTypeRowRef{
+				Name:  sv.Name,
+				RowID: sv.RowId,
+			})
+		}
+
+		return
+	}
+
+	sv, err := toStructuredValue(rawv)
+	if err != nil {
+		return EntryTypeLookup{}, err
+	}
+
+	values.Values = []EntryTypeRowRef{
+	    {
+            Name:  sv.Name,
+            RowID: sv.RowId,
+	    },
+	}
+
+	return
+}
+type EmployeePatentsLookup struct {
+    Values []EmployeePatentsRowRef
+}
+func (l EmployeePatentsLookup) FirstRef() (first EmployeePatentsRowRef, found bool) {
+	if len(l.Values) > 0 {
+		return l.Values[0], true
+	}
+
+	return EmployeePatentsRowRef{}, false
+}
+
+func (l EmployeePatentsLookup) FirstRefName() string {
+	if len(l.Values) > 0 {
+		return l.Values[0].Name
+	}
+
+	return ""
+}
+
+func (l EmployeePatentsLookup) RefNames() (names []string) {
+	for _, v := range l.Values {
+		names = append(names, v.Name)
+	}
+
+	return
+}
+
+
+func (l EmployeePatentsLookup) FirstData() EmployeePatents {
+	if len(l.Values) > 0 && l.Values[0].Data != nil {
+		return *l.Values[0].Data
+	}
+
+	return EmployeePatents{}
+}
+
+func (l EmployeePatentsLookup) Data() (data []EmployeePatents) {
+	for _, i := range l.Values {
+		if i.Data != nil {
+			data = append(data, *i.Data)
+		}
+	}
+
+	return
+}
+
+
+type EmployeePatentsRowRef struct {
+    Name  string
+    RowID string
+    Data  *EmployeePatents
+}
+
+func ToEmployeePatentsLookup(colID string, row Valuer) (values EmployeePatentsLookup, err error) {
+    rawv, ok := row.GetValue(colID)
+    if !ok {
+        return EmployeePatentsLookup{}, fmt.Errorf("missing column %v in Employee Patents row", colID)
+    }
+
+    if strv, ok := rawv.(string); ok && strv == "" {
+        return EmployeePatentsLookup{}, nil
+    }
+
+	if slicev, ok := rawv.([]interface{}); ok {
+		for i, interv := range slicev {
+			sv, err := toStructuredValue(interv)
+			if err != nil {
+				return EmployeePatentsLookup{}, fmt.Errorf("slice value #%v: %w", i, err)
+			}
+			values.Values = append(values.Values, EmployeePatentsRowRef{
+				Name:  sv.Name,
+				RowID: sv.RowId,
+			})
+		}
+
+		return
+	}
+
+	sv, err := toStructuredValue(rawv)
+	if err != nil {
+		return EmployeePatentsLookup{}, err
+	}
+
+	values.Values = []EmployeePatentsRowRef{
+	    {
+            Name:  sv.Name,
+            RowID: sv.RowId,
+	    },
+	}
+
+	return
+}
+type LegalEntityLookup struct {
+    Values []LegalEntityRowRef
+}
+func (l LegalEntityLookup) FirstRef() (first LegalEntityRowRef, found bool) {
+	if len(l.Values) > 0 {
+		return l.Values[0], true
+	}
+
+	return LegalEntityRowRef{}, false
+}
+
+func (l LegalEntityLookup) FirstRefName() string {
+	if len(l.Values) > 0 {
+		return l.Values[0].Name
+	}
+
+	return ""
+}
+
+func (l LegalEntityLookup) RefNames() (names []string) {
+	for _, v := range l.Values {
+		names = append(names, v.Name)
+	}
+
+	return
+}
+
+
+func (l LegalEntityLookup) FirstData() LegalEntity {
+	if len(l.Values) > 0 && l.Values[0].Data != nil {
+		return *l.Values[0].Data
+	}
+
+	return LegalEntity{}
+}
+
+func (l LegalEntityLookup) Data() (data []LegalEntity) {
+	for _, i := range l.Values {
+		if i.Data != nil {
+			data = append(data, *i.Data)
+		}
+	}
+
+	return
+}
+
+
+type LegalEntityRowRef struct {
+    Name  string
+    RowID string
+    Data  *LegalEntity
+}
+
+func ToLegalEntityLookup(colID string, row Valuer) (values LegalEntityLookup, err error) {
+    rawv, ok := row.GetValue(colID)
+    if !ok {
+        return LegalEntityLookup{}, fmt.Errorf("missing column %v in Legal entity row", colID)
+    }
+
+    if strv, ok := rawv.(string); ok && strv == "" {
+        return LegalEntityLookup{}, nil
+    }
+
+	if slicev, ok := rawv.([]interface{}); ok {
+		for i, interv := range slicev {
+			sv, err := toStructuredValue(interv)
+			if err != nil {
+				return LegalEntityLookup{}, fmt.Errorf("slice value #%v: %w", i, err)
+			}
+			values.Values = append(values.Values, LegalEntityRowRef{
+				Name:  sv.Name,
+				RowID: sv.RowId,
+			})
+		}
+
+		return
+	}
+
+	sv, err := toStructuredValue(rawv)
+	if err != nil {
+		return LegalEntityLookup{}, err
+	}
+
+	values.Values = []LegalEntityRowRef{
 	    {
             Name:  sv.Name,
             RowID: sv.RowId,
@@ -6848,6 +6785,23 @@ func (l BankTariffsLookup) FirstRef() (first BankTariffsRowRef, found bool) {
 
 	return BankTariffsRowRef{}, false
 }
+
+func (l BankTariffsLookup) FirstRefName() string {
+	if len(l.Values) > 0 {
+		return l.Values[0].Name
+	}
+
+	return ""
+}
+
+func (l BankTariffsLookup) RefNames() (names []string) {
+	for _, v := range l.Values {
+		names = append(names, v.Name)
+	}
+
+	return
+}
+
 
 func (l BankTariffsLookup) FirstData() BankTariffs {
 	if len(l.Values) > 0 && l.Values[0].Data != nil {
@@ -6924,6 +6878,23 @@ func (l BankDetailsLookup) FirstRef() (first BankDetailsRowRef, found bool) {
 	return BankDetailsRowRef{}, false
 }
 
+func (l BankDetailsLookup) FirstRefName() string {
+	if len(l.Values) > 0 {
+		return l.Values[0].Name
+	}
+
+	return ""
+}
+
+func (l BankDetailsLookup) RefNames() (names []string) {
+	for _, v := range l.Values {
+		names = append(names, v.Name)
+	}
+
+	return
+}
+
+
 func (l BankDetailsLookup) FirstData() BankDetails {
 	if len(l.Values) > 0 && l.Values[0].Data != nil {
 		return *l.Values[0].Data
@@ -6988,26 +6959,43 @@ func ToBankDetailsLookup(colID string, row Valuer) (values BankDetailsLookup, er
 
 	return
 }
-type TemplateEntriesLookup struct {
-    Values []TemplateEntriesRowRef
+type InvoiceLookup struct {
+    Values []InvoiceRowRef
 }
-func (l TemplateEntriesLookup) FirstRef() (first TemplateEntriesRowRef, found bool) {
+func (l InvoiceLookup) FirstRef() (first InvoiceRowRef, found bool) {
 	if len(l.Values) > 0 {
 		return l.Values[0], true
 	}
 
-	return TemplateEntriesRowRef{}, false
+	return InvoiceRowRef{}, false
 }
 
-func (l TemplateEntriesLookup) FirstData() TemplateEntries {
+func (l InvoiceLookup) FirstRefName() string {
+	if len(l.Values) > 0 {
+		return l.Values[0].Name
+	}
+
+	return ""
+}
+
+func (l InvoiceLookup) RefNames() (names []string) {
+	for _, v := range l.Values {
+		names = append(names, v.Name)
+	}
+
+	return
+}
+
+
+func (l InvoiceLookup) FirstData() Invoice {
 	if len(l.Values) > 0 && l.Values[0].Data != nil {
 		return *l.Values[0].Data
 	}
 
-	return TemplateEntries{}
+	return Invoice{}
 }
 
-func (l TemplateEntriesLookup) Data() (data []TemplateEntries) {
+func (l InvoiceLookup) Data() (data []Invoice) {
 	for _, i := range l.Values {
 		if i.Data != nil {
 			data = append(data, *i.Data)
@@ -7018,29 +7006,29 @@ func (l TemplateEntriesLookup) Data() (data []TemplateEntries) {
 }
 
 
-type TemplateEntriesRowRef struct {
+type InvoiceRowRef struct {
     Name  string
     RowID string
-    Data  *TemplateEntries
+    Data  *Invoice
 }
 
-func ToTemplateEntriesLookup(colID string, row Valuer) (values TemplateEntriesLookup, err error) {
+func ToInvoiceLookup(colID string, row Valuer) (values InvoiceLookup, err error) {
     rawv, ok := row.GetValue(colID)
     if !ok {
-        return TemplateEntriesLookup{}, fmt.Errorf("missing column %v in Template Entries row", colID)
+        return InvoiceLookup{}, fmt.Errorf("missing column %v in Invoice row", colID)
     }
 
     if strv, ok := rawv.(string); ok && strv == "" {
-        return TemplateEntriesLookup{}, nil
+        return InvoiceLookup{}, nil
     }
 
 	if slicev, ok := rawv.([]interface{}); ok {
 		for i, interv := range slicev {
 			sv, err := toStructuredValue(interv)
 			if err != nil {
-				return TemplateEntriesLookup{}, fmt.Errorf("slice value #%v: %w", i, err)
+				return InvoiceLookup{}, fmt.Errorf("slice value #%v: %w", i, err)
 			}
-			values.Values = append(values.Values, TemplateEntriesRowRef{
+			values.Values = append(values.Values, InvoiceRowRef{
 				Name:  sv.Name,
 				RowID: sv.RowId,
 			})
@@ -7051,10 +7039,286 @@ func ToTemplateEntriesLookup(colID string, row Valuer) (values TemplateEntriesLo
 
 	sv, err := toStructuredValue(rawv)
 	if err != nil {
-		return TemplateEntriesLookup{}, err
+		return InvoiceLookup{}, err
 	}
 
-	values.Values = []TemplateEntriesRowRef{
+	values.Values = []InvoiceRowRef{
+	    {
+            Name:  sv.Name,
+            RowID: sv.RowId,
+	    },
+	}
+
+	return
+}
+type EntriesLookup struct {
+    Values []EntriesRowRef
+}
+func (l EntriesLookup) FirstRef() (first EntriesRowRef, found bool) {
+	if len(l.Values) > 0 {
+		return l.Values[0], true
+	}
+
+	return EntriesRowRef{}, false
+}
+
+func (l EntriesLookup) FirstRefName() string {
+	if len(l.Values) > 0 {
+		return l.Values[0].Name
+	}
+
+	return ""
+}
+
+func (l EntriesLookup) RefNames() (names []string) {
+	for _, v := range l.Values {
+		names = append(names, v.Name)
+	}
+
+	return
+}
+
+
+func (l EntriesLookup) FirstData() Entries {
+	if len(l.Values) > 0 && l.Values[0].Data != nil {
+		return *l.Values[0].Data
+	}
+
+	return Entries{}
+}
+
+func (l EntriesLookup) Data() (data []Entries) {
+	for _, i := range l.Values {
+		if i.Data != nil {
+			data = append(data, *i.Data)
+		}
+	}
+
+	return
+}
+
+
+type EntriesRowRef struct {
+    Name  string
+    RowID string
+    Data  *Entries
+}
+
+func ToEntriesLookup(colID string, row Valuer) (values EntriesLookup, err error) {
+    rawv, ok := row.GetValue(colID)
+    if !ok {
+        return EntriesLookup{}, fmt.Errorf("missing column %v in Entries row", colID)
+    }
+
+    if strv, ok := rawv.(string); ok && strv == "" {
+        return EntriesLookup{}, nil
+    }
+
+	if slicev, ok := rawv.([]interface{}); ok {
+		for i, interv := range slicev {
+			sv, err := toStructuredValue(interv)
+			if err != nil {
+				return EntriesLookup{}, fmt.Errorf("slice value #%v: %w", i, err)
+			}
+			values.Values = append(values.Values, EntriesRowRef{
+				Name:  sv.Name,
+				RowID: sv.RowId,
+			})
+		}
+
+		return
+	}
+
+	sv, err := toStructuredValue(rawv)
+	if err != nil {
+		return EntriesLookup{}, err
+	}
+
+	values.Values = []EntriesRowRef{
+	    {
+            Name:  sv.Name,
+            RowID: sv.RowId,
+	    },
+	}
+
+	return
+}
+type PerDayPoliciesLookup struct {
+    Values []PerDayPoliciesRowRef
+}
+func (l PerDayPoliciesLookup) FirstRef() (first PerDayPoliciesRowRef, found bool) {
+	if len(l.Values) > 0 {
+		return l.Values[0], true
+	}
+
+	return PerDayPoliciesRowRef{}, false
+}
+
+func (l PerDayPoliciesLookup) FirstRefName() string {
+	if len(l.Values) > 0 {
+		return l.Values[0].Name
+	}
+
+	return ""
+}
+
+func (l PerDayPoliciesLookup) RefNames() (names []string) {
+	for _, v := range l.Values {
+		names = append(names, v.Name)
+	}
+
+	return
+}
+
+
+func (l PerDayPoliciesLookup) FirstData() PerDayPolicies {
+	if len(l.Values) > 0 && l.Values[0].Data != nil {
+		return *l.Values[0].Data
+	}
+
+	return PerDayPolicies{}
+}
+
+func (l PerDayPoliciesLookup) Data() (data []PerDayPolicies) {
+	for _, i := range l.Values {
+		if i.Data != nil {
+			data = append(data, *i.Data)
+		}
+	}
+
+	return
+}
+
+
+type PerDayPoliciesRowRef struct {
+    Name  string
+    RowID string
+    Data  *PerDayPolicies
+}
+
+func ToPerDayPoliciesLookup(colID string, row Valuer) (values PerDayPoliciesLookup, err error) {
+    rawv, ok := row.GetValue(colID)
+    if !ok {
+        return PerDayPoliciesLookup{}, fmt.Errorf("missing column %v in Per Day Policies row", colID)
+    }
+
+    if strv, ok := rawv.(string); ok && strv == "" {
+        return PerDayPoliciesLookup{}, nil
+    }
+
+	if slicev, ok := rawv.([]interface{}); ok {
+		for i, interv := range slicev {
+			sv, err := toStructuredValue(interv)
+			if err != nil {
+				return PerDayPoliciesLookup{}, fmt.Errorf("slice value #%v: %w", i, err)
+			}
+			values.Values = append(values.Values, PerDayPoliciesRowRef{
+				Name:  sv.Name,
+				RowID: sv.RowId,
+			})
+		}
+
+		return
+	}
+
+	sv, err := toStructuredValue(rawv)
+	if err != nil {
+		return PerDayPoliciesLookup{}, err
+	}
+
+	values.Values = []PerDayPoliciesRowRef{
+	    {
+            Name:  sv.Name,
+            RowID: sv.RowId,
+	    },
+	}
+
+	return
+}
+type MonthsLookup struct {
+    Values []MonthsRowRef
+}
+func (l MonthsLookup) FirstRef() (first MonthsRowRef, found bool) {
+	if len(l.Values) > 0 {
+		return l.Values[0], true
+	}
+
+	return MonthsRowRef{}, false
+}
+
+func (l MonthsLookup) FirstRefName() string {
+	if len(l.Values) > 0 {
+		return l.Values[0].Name
+	}
+
+	return ""
+}
+
+func (l MonthsLookup) RefNames() (names []string) {
+	for _, v := range l.Values {
+		names = append(names, v.Name)
+	}
+
+	return
+}
+
+
+func (l MonthsLookup) FirstData() Months {
+	if len(l.Values) > 0 && l.Values[0].Data != nil {
+		return *l.Values[0].Data
+	}
+
+	return Months{}
+}
+
+func (l MonthsLookup) Data() (data []Months) {
+	for _, i := range l.Values {
+		if i.Data != nil {
+			data = append(data, *i.Data)
+		}
+	}
+
+	return
+}
+
+
+type MonthsRowRef struct {
+    Name  string
+    RowID string
+    Data  *Months
+}
+
+func ToMonthsLookup(colID string, row Valuer) (values MonthsLookup, err error) {
+    rawv, ok := row.GetValue(colID)
+    if !ok {
+        return MonthsLookup{}, fmt.Errorf("missing column %v in Months row", colID)
+    }
+
+    if strv, ok := rawv.(string); ok && strv == "" {
+        return MonthsLookup{}, nil
+    }
+
+	if slicev, ok := rawv.([]interface{}); ok {
+		for i, interv := range slicev {
+			sv, err := toStructuredValue(interv)
+			if err != nil {
+				return MonthsLookup{}, fmt.Errorf("slice value #%v: %w", i, err)
+			}
+			values.Values = append(values.Values, MonthsRowRef{
+				Name:  sv.Name,
+				RowID: sv.RowId,
+			})
+		}
+
+		return
+	}
+
+	sv, err := toStructuredValue(rawv)
+	if err != nil {
+		return MonthsLookup{}, err
+	}
+
+	values.Values = []MonthsRowRef{
 	    {
             Name:  sv.Name,
             RowID: sv.RowId,
@@ -9239,22 +9503,6 @@ type Tables struct {
 // LoadRelationsAllEmployees loads data into lookup fields of the AllEmployees struct
 func (doc *CodaDocument) LoadRelationsAllEmployees(ctx context.Context, shallow map[RowID]AllEmployees, rels Tables) (err error) {
 	var ok bool
-	var _legalEntityMap map[RowID]LegalEntity
-	if _legalEntityMap, ok = doc.relationsCache["LegalEntity"].(map[RowID]LegalEntity); rels.LegalEntity && !ok {
-		_legalEntityMap, _, err = doc.MapOfLegalEntity(ctx)
-		if err != nil {
-			return err
-		}
-		doc.relationsCache["LegalEntity"] = _legalEntityMap
-	}
-	var _locationMap map[RowID]Location
-	if _locationMap, ok = doc.relationsCache["Location"].(map[RowID]Location); rels.Location && !ok {
-		_locationMap, _, err = doc.MapOfLocation(ctx)
-		if err != nil {
-			return err
-		}
-		doc.relationsCache["Location"] = _locationMap
-	}
 	var _bankTariffsMap map[RowID]BankTariffs
 	if _bankTariffsMap, ok = doc.relationsCache["BankTariffs"].(map[RowID]BankTariffs); rels.BankTariffs && !ok {
 		_bankTariffsMap, _, err = doc.MapOfBankTariffs(ctx)
@@ -9271,21 +9519,24 @@ func (doc *CodaDocument) LoadRelationsAllEmployees(ctx context.Context, shallow 
 		}
 		doc.relationsCache["BankDetails"] = _bankDetailsMap
 	}
+	var _legalEntityMap map[RowID]LegalEntity
+	if _legalEntityMap, ok = doc.relationsCache["LegalEntity"].(map[RowID]LegalEntity); rels.LegalEntity && !ok {
+		_legalEntityMap, _, err = doc.MapOfLegalEntity(ctx)
+		if err != nil {
+			return err
+		}
+		doc.relationsCache["LegalEntity"] = _legalEntityMap
+	}
+	var _locationMap map[RowID]Location
+	if _locationMap, ok = doc.relationsCache["Location"].(map[RowID]Location); rels.Location && !ok {
+		_locationMap, _, err = doc.MapOfLocation(ctx)
+		if err != nil {
+			return err
+		}
+		doc.relationsCache["Location"] = _locationMap
+	}
 
 	for ii, item := range shallow {
-		if rels.BankDetails {
-			for vi, v := range item.BankDetails.Values {
-				if v.Data != nil {
-					continue
-				}
-
-				data, ok := _bankDetailsMap[RowID(v.RowID)]
-
-				if ok {
-					shallow[ii].BankDetails.Values[vi].Data = &data
-				}
-			}
-		}
 		if rels.LegalEntity {
 			for vi, v := range item.LegalEntity.Values {
 				if v.Data != nil {
@@ -9325,6 +9576,19 @@ func (doc *CodaDocument) LoadRelationsAllEmployees(ctx context.Context, shallow 
 				}
 			}
 		}
+		if rels.BankDetails {
+			for vi, v := range item.BankDetails.Values {
+				if v.Data != nil {
+					continue
+				}
+
+				data, ok := _bankDetailsMap[RowID(v.RowID)]
+
+				if ok {
+					shallow[ii].BankDetails.Values[vi].Data = &data
+				}
+			}
+		}
 	}
 
 	return nil
@@ -9333,6 +9597,14 @@ func (doc *CodaDocument) LoadRelationsAllEmployees(ctx context.Context, shallow 
 // LoadRelationsInvoice loads data into lookup fields of the Invoice struct
 func (doc *CodaDocument) LoadRelationsInvoice(ctx context.Context, shallow map[RowID]Invoice, rels Tables) (err error) {
 	var ok bool
+	var _monthsMap map[RowID]Months
+	if _monthsMap, ok = doc.relationsCache["Months"].(map[RowID]Months); rels.Months && !ok {
+		_monthsMap, _, err = doc.MapOfMonths(ctx)
+		if err != nil {
+			return err
+		}
+		doc.relationsCache["Months"] = _monthsMap
+	}
 	var _allEmployeesMap map[RowID]AllEmployees
 	if _allEmployeesMap, ok = doc.relationsCache["AllEmployees"].(map[RowID]AllEmployees); rels.AllEmployees && !ok {
 		_allEmployeesMap, _, err = doc.MapOfAllEmployees(ctx)
@@ -9357,42 +9629,8 @@ func (doc *CodaDocument) LoadRelationsInvoice(ctx context.Context, shallow map[R
 		}
 		doc.relationsCache["LegalEntity"] = _legalEntityMap
 	}
-	var _monthsMap map[RowID]Months
-	if _monthsMap, ok = doc.relationsCache["Months"].(map[RowID]Months); rels.Months && !ok {
-		_monthsMap, _, err = doc.MapOfMonths(ctx)
-		if err != nil {
-			return err
-		}
-		doc.relationsCache["Months"] = _monthsMap
-	}
 
 	for ii, item := range shallow {
-		if rels.Months {
-			for vi, v := range item.Month.Values {
-				if v.Data != nil {
-					continue
-				}
-
-				data, ok := _monthsMap[RowID(v.RowID)]
-
-				if ok {
-					shallow[ii].Month.Values[vi].Data = &data
-				}
-			}
-		}
-		if rels.AllEmployees {
-			for vi, v := range item.Employee.Values {
-				if v.Data != nil {
-					continue
-				}
-
-				data, ok := _allEmployeesMap[RowID(v.RowID)]
-
-				if ok {
-					shallow[ii].Employee.Values[vi].Data = &data
-				}
-			}
-		}
 		if rels.BankDetails {
 			for vi, v := range item.RecipientDetails.Values {
 				if v.Data != nil {
@@ -9416,6 +9654,32 @@ func (doc *CodaDocument) LoadRelationsInvoice(ctx context.Context, shallow map[R
 
 				if ok {
 					shallow[ii].SenderDetails.Values[vi].Data = &data
+				}
+			}
+		}
+		if rels.Months {
+			for vi, v := range item.Month.Values {
+				if v.Data != nil {
+					continue
+				}
+
+				data, ok := _monthsMap[RowID(v.RowID)]
+
+				if ok {
+					shallow[ii].Month.Values[vi].Data = &data
+				}
+			}
+		}
+		if rels.AllEmployees {
+			for vi, v := range item.Employee.Values {
+				if v.Data != nil {
+					continue
+				}
+
+				data, ok := _allEmployeesMap[RowID(v.RowID)]
+
+				if ok {
+					shallow[ii].Employee.Values[vi].Data = &data
 				}
 			}
 		}
@@ -9445,19 +9709,6 @@ func (doc *CodaDocument) LoadRelationsEntries(ctx context.Context, shallow map[R
 	}
 
 	for ii, item := range shallow {
-		if rels.EntryType {
-			for vi, v := range item.Type.Values {
-				if v.Data != nil {
-					continue
-				}
-
-				data, ok := _entryTypeMap[RowID(v.RowID)]
-
-				if ok {
-					shallow[ii].Type.Values[vi].Data = &data
-				}
-			}
-		}
 		if rels.Invoice {
 			for vi, v := range item.Invoice.Values {
 				if v.Data != nil {
@@ -9468,6 +9719,19 @@ func (doc *CodaDocument) LoadRelationsEntries(ctx context.Context, shallow map[R
 
 				if ok {
 					shallow[ii].Invoice.Values[vi].Data = &data
+				}
+			}
+		}
+		if rels.EntryType {
+			for vi, v := range item.Type.Values {
+				if v.Data != nil {
+					continue
+				}
+
+				data, ok := _entryTypeMap[RowID(v.RowID)]
+
+				if ok {
+					shallow[ii].Type.Values[vi].Data = &data
 				}
 			}
 		}
@@ -9816,6 +10080,19 @@ func (doc *CodaDocument) LoadRelationsTemplateEntries(ctx context.Context, shall
 	}
 
 	for ii, item := range shallow {
+		if rels.EntryType {
+			for vi, v := range item.Type.Values {
+				if v.Data != nil {
+					continue
+				}
+
+				data, ok := _entryTypeMap[RowID(v.RowID)]
+
+				if ok {
+					shallow[ii].Type.Values[vi].Data = &data
+				}
+			}
+		}
 		if rels.AllEmployees {
 			for vi, v := range item.Employee.Values {
 				if v.Data != nil {
@@ -9850,19 +10127,6 @@ func (doc *CodaDocument) LoadRelationsTemplateEntries(ctx context.Context, shall
 
 				if ok {
 					shallow[ii].MonthTo.Values[vi].Data = &data
-				}
-			}
-		}
-		if rels.EntryType {
-			for vi, v := range item.Type.Values {
-				if v.Data != nil {
-					continue
-				}
-
-				data, ok := _entryTypeMap[RowID(v.RowID)]
-
-				if ok {
-					shallow[ii].Type.Values[vi].Data = &data
 				}
 			}
 		}
@@ -9900,30 +10164,6 @@ func (doc *CodaDocument) LoadRelationsBankDetails(ctx context.Context, shallow m
 	}
 
 	for ii, item := range shallow {
-		if rels.Months {
-			for vi, v := range item.MonthFrom.Values {
-				if v.Data != nil {
-					continue
-				}
-
-				data, ok := _monthsMap[RowID(v.RowID)]
-
-				if ok {
-					shallow[ii].MonthFrom.Values[vi].Data = &data
-				}
-			}
-			for vi, v := range item.MonthTo.Values {
-				if v.Data != nil {
-					continue
-				}
-
-				data, ok := _monthsMap[RowID(v.RowID)]
-
-				if ok {
-					shallow[ii].MonthTo.Values[vi].Data = &data
-				}
-			}
-		}
 		if rels.AllEmployees {
 			for vi, v := range item.Employee.Values {
 				if v.Data != nil {
@@ -9947,6 +10187,30 @@ func (doc *CodaDocument) LoadRelationsBankDetails(ctx context.Context, shallow m
 
 				if ok {
 					shallow[ii].BeneficiaryBank.Values[vi].Data = &data
+				}
+			}
+		}
+		if rels.Months {
+			for vi, v := range item.MonthFrom.Values {
+				if v.Data != nil {
+					continue
+				}
+
+				data, ok := _monthsMap[RowID(v.RowID)]
+
+				if ok {
+					shallow[ii].MonthFrom.Values[vi].Data = &data
+				}
+			}
+			for vi, v := range item.MonthTo.Values {
+				if v.Data != nil {
+					continue
+				}
+
+				data, ok := _monthsMap[RowID(v.RowID)]
+
+				if ok {
+					shallow[ii].MonthTo.Values[vi].Data = &data
 				}
 			}
 		}
@@ -10082,6 +10346,14 @@ func (doc *CodaDocument) LoadRelationsPensionFundPercent(ctx context.Context, sh
 // LoadRelationsPerDayCalculations loads data into lookup fields of the PerDayCalculations struct
 func (doc *CodaDocument) LoadRelationsPerDayCalculations(ctx context.Context, shallow map[RowID]PerDayCalculations, rels Tables) (err error) {
 	var ok bool
+	var _perDayPoliciesMap map[RowID]PerDayPolicies
+	if _perDayPoliciesMap, ok = doc.relationsCache["PerDayPolicies"].(map[RowID]PerDayPolicies); rels.PerDayPolicies && !ok {
+		_perDayPoliciesMap, _, err = doc.MapOfPerDayPolicies(ctx)
+		if err != nil {
+			return err
+		}
+		doc.relationsCache["PerDayPolicies"] = _perDayPoliciesMap
+	}
 	var _invoiceMap map[RowID]Invoice
 	if _invoiceMap, ok = doc.relationsCache["Invoice"].(map[RowID]Invoice); rels.Invoice && !ok {
 		_invoiceMap, _, err = doc.MapOfInvoice(ctx)
@@ -10097,14 +10369,6 @@ func (doc *CodaDocument) LoadRelationsPerDayCalculations(ctx context.Context, sh
 			return err
 		}
 		doc.relationsCache["Months"] = _monthsMap
-	}
-	var _perDayPoliciesMap map[RowID]PerDayPolicies
-	if _perDayPoliciesMap, ok = doc.relationsCache["PerDayPolicies"].(map[RowID]PerDayPolicies); rels.PerDayPolicies && !ok {
-		_perDayPoliciesMap, _, err = doc.MapOfPerDayPolicies(ctx)
-		if err != nil {
-			return err
-		}
-		doc.relationsCache["PerDayPolicies"] = _perDayPoliciesMap
 	}
 
 	for ii, item := range shallow {
