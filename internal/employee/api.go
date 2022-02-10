@@ -14,9 +14,9 @@ import (
 )
 
 type With struct {
-	Corrections   bool
+	Entries       bool
 	PrevInvoice   bool
-	Employees     bool
+	Employee      bool
 	BankDetails   bool
 	LegalEntities bool
 }
@@ -74,14 +74,14 @@ func uniqueInvoiceById(invoices dto.Invoices) map[string]*dto.Invoice {
 	result := make(map[string]*dto.Invoice)
 
 	for _, v := range invoices {
-		result[v.Id] = v
+		result[v.ID] = v
 	}
 
 	return result
 }
 
 func (api *API) GetInvoiceForMonthAndEmployee(month, employee string) (*dto.Invoice, error) {
-	invoices, err := api.GetInvoices(month, With{Employees: true})
+	invoices, err := api.GetInvoices(month, With{Employee: true, BankDetails: true, LegalEntities: true})
 	if err != nil {
 		return nil, err
 	}
@@ -108,18 +108,19 @@ func (api *API) GetInvoices(month string, with With) (invoices dto.Invoices, err
 	numRows := len(resp.Rows)
 	invoices = make(dto.Invoices, 0, numRows)
 
-	var corrs map[string][]*dto.Correction
+	var entries map[string]dto.Entries
 	var employees map[string]*dto.Employee
 	var bankDetails map[string]dto.BankDetails
+	var legalEntities map[string]dto.LegalEntity
 
-	if numRows > 0 && with.Corrections {
-		corrs, err = api.getCorrectionsIndexedByInvoice(month)
+	if numRows > 0 && with.Entries {
+		entries, err = api.getEntriesForMonthIndexedByInvoice(month)
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	if numRows > 0 && with.Employees {
+	if numRows > 0 && with.Employee {
 		employees, err = api.GetAllEmployees(with)
 		if err != nil {
 			return nil, err
@@ -127,14 +128,14 @@ func (api *API) GetInvoices(month string, with With) (invoices dto.Invoices, err
 	}
 
 	thisMonth, prevMonth, err := api.getMonthsData(month)
-	if err != nil {
+	if err != nil || thisMonth == nil {
 		return nil, err
 	}
 
 	var prevInvoices map[string]*dto.Invoice
 
-	if numRows > 0 && with.PrevInvoice {
-		prevInvoicesList, err := api.GetInvoices(prevMonth.ID, With{})
+	if numRows > 0 && with.PrevInvoice && prevMonth != nil {
+		prevInvoicesList, err := api.GetInvoices(prevMonth.ID, With{Entries: true})
 		if err != nil {
 			return nil, err
 		}
@@ -148,23 +149,37 @@ func (api *API) GetInvoices(month string, with With) (invoices dto.Invoices, err
 		}
 	}
 
+	if numRows > 0 && with.LegalEntities {
+		legalEntities, err = api.GetAllLegalEntities()
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	for _, row := range resp.Rows {
-		invoice := dto.NewInvoiceFromRow(&row)
-		if with.Corrections {
-			invoice.Corrections = corrs[invoice.Id]
+		invoice, err := dto.NewInvoiceFromRow(&row)
+		if err != nil {
+			return nil, err
+		}
+		if with.Entries {
+			invoice.Entries = entries[invoice.ID]
+			sort.Sort(invoice.Entries)
 		}
 		if with.PrevInvoice {
-			invoice.PrevInvoice = prevInvoices[invoice.PreviousInvoiceId]
+			invoice.PrevInvoice = prevInvoices[invoice.PrevInvoiceID]
 		}
-		if with.Employees {
+		if with.Employee {
 			invoice.Employee = employees[invoice.EmployeeName]
 		}
 
-		if invoiceBankDetails, detailsOk := bankDetails[invoice.BankDetailsID]; with.BankDetails && detailsOk {
-			invoice.BankDetails = &invoiceBankDetails
+		if data, ok := bankDetails[invoice.RecipientDetailsID]; with.BankDetails && ok {
+			invoice.RecipientDetails = &data
+		}
+		if data, ok := legalEntities[invoice.SenderEntityName]; with.LegalEntities && ok {
+			invoice.SenderDetails = &data
 		}
 
-		invoice.MonthData = thisMonth
+		invoice.Month = thisMonth
 
 		invoices = append(invoices, invoice)
 	}
@@ -182,33 +197,46 @@ func (api *API) getMonthsData(month string) (*dto.Month, *dto.Month, error) {
 	}
 	var thisMonth *dto.Month
 	if thisMonth, err = months.FindByName(month); err != nil {
-		return nil, nil, err
+		return nil, nil, fmt.Errorf("getMonthsData thisMonth: %w", err)
 	}
 
 	prevMonthName := thisMonth.PreviousMonthLink
 	var prevMonth *dto.Month
 
 	if prevMonth, err = months.FindByName(prevMonthName); err != nil {
-		return nil, nil, err
+		return thisMonth, nil, nil
 	}
 
 	return thisMonth, prevMonth, nil
 }
 
-func (api *API) getCorrectionsIndexedByInvoice(month string) (map[string][]*dto.Correction, error) {
-	resp, err := api.Client.ListTableRows(api.DocId, codaschema.ID.Table.Corrections.ID, coda.ListRowsParameters{})
+func (api *API) getEntriesForMonthIndexedByInvoice(month string) (map[string]dto.Entries, error) {
+	nextToken := "initial"
+	result := make(map[string]dto.Entries)
 
-	if err != nil {
-		return nil, err
-	}
-
-	result := make(map[string][]*dto.Correction)
-
-	for _, row := range resp.Rows {
-		corr := dto.NewCorrectionFromRow(&row)
-		if strings.Contains(corr.PaymentInvoice, month) {
-			result[corr.PaymentInvoice] = append(result[corr.PaymentInvoice], corr)
+	for nextToken != "" {
+		if nextToken == "initial" {
+			nextToken = ""
 		}
+		resp, err := api.Client.ListViewRows(api.DocId, codaschema.ID.Table.Entries.ID, coda.ListViewRowsParameters{
+			PaginationPayload: coda.PaginationPayload{PageToken: nextToken},
+		})
+
+		if err != nil {
+			return nil, err
+		}
+
+		for _, row := range resp.Rows {
+			entry, err := dto.NewEntryFromRow(&row)
+			if err != nil {
+				return nil, err
+			}
+			if strings.Contains(entry.Invoice, month) {
+				result[entry.Invoice] = append(result[entry.Invoice], entry)
+			}
+		}
+
+		nextToken = resp.NextPageToken
 	}
 
 	return result, nil
@@ -232,7 +260,10 @@ func (api *API) GetAllEmployees(with With) (map[string]*dto.Employee, error) {
 	result := make(map[string]*dto.Employee)
 
 	for _, row := range resp.Rows {
-		empl := dto.NewEmployeeFromRow(&row)
+		empl, err := dto.NewEmployeeFromRow(&row)
+		if err != nil {
+			return nil, err
+		}
 
 		if legalEntity, found := legalEntities[empl.LegalEntityName]; found && with.LegalEntities {
 			empl.LegalEntity = &legalEntity
@@ -262,7 +293,10 @@ func (api *API) GetAllBankDetails() (map[string]dto.BankDetails, error) {
 	result := make(map[string]dto.BankDetails)
 
 	for _, row := range bankDetailsResp.Rows {
-		d := dto.NewBankDetailsFromRow(&row)
+		d, err := dto.NewBankDetailsFromRow(&row)
+		if err != nil {
+			return nil, err
+		}
 
 		if bank, ok := banks[d.Bank.RowID]; ok {
 			d.Bank = bank
@@ -300,7 +334,10 @@ func (api *API) GetAllLegalEntities() (map[string]dto.LegalEntity, error) {
 	result := make(map[string]dto.LegalEntity)
 
 	for _, row := range resp.Rows {
-		d := dto.NewLegalEntityFromRow(&row)
+		d, err := dto.NewLegalEntityFromRow(&row)
+		if err != nil {
+			return nil, err
+		}
 		result[d.EntityName] = d
 	}
 

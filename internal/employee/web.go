@@ -76,7 +76,16 @@ func (h Handler) Month(vars map[string]string, req *http.Request) interface{} {
 		return h.Home(vars, req)
 	}
 
-	invoices, err := h.api.GetInvoices(month, With{Corrections: true, PrevInvoice: true, Employees: true})
+	invoices, err := h.api.GetInvoices(
+		month,
+		With{
+			Entries:       true,
+			PrevInvoice:   true,
+			Employee:      true,
+			BankDetails:   true,
+			LegalEntities: true,
+		},
+	)
 	if err != nil {
 		return NewErrorPage(err)
 	}
@@ -129,7 +138,7 @@ func (h Handler) DownloadPayrollReport(resp http.ResponseWriter, request *http.R
 		fmt.Fprint(resp, "no month provided")
 		return
 	}
-	invoices, err := h.api.GetInvoices(month, With{Employees: true, PrevInvoice: true, Corrections: true})
+	invoices, err := h.api.GetInvoices(month, With{Entries: true})
 	if err != nil {
 		resp.WriteHeader(http.StatusInternalServerError)
 		fmt.Fprint(resp, err)
@@ -156,7 +165,7 @@ func (h Handler) DownloadHellenicPayroll(resp http.ResponseWriter, request *http
 		fmt.Fprint(resp, "no month provided")
 		return
 	}
-	allInvoices, err := h.api.GetInvoices(month, With{Employees: true, BankDetails: true, LegalEntities: true})
+	allInvoices, err := h.api.GetInvoices(month, With{Employee: true, BankDetails: true, LegalEntities: true})
 	payableInvoices := make(dto.Invoices, 0, len(allInvoices))
 	for _, inv := range allInvoices {
 		if inv.PaymentChecksPassed {
@@ -200,7 +209,7 @@ func (h Handler) DownloadAllInvoices(resp http.ResponseWriter, request *http.Req
 
 	common.WriteMemProfile("before_getinvoices")
 
-	invoices, err := h.api.GetInvoices(month, With{Employees: true})
+	invoices, err := h.api.GetInvoices(month, With{Employee: true, BankDetails: true, LegalEntities: true})
 	if err != nil {
 		resp.WriteHeader(http.StatusInternalServerError)
 		fmt.Fprint(resp, err)

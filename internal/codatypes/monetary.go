@@ -27,7 +27,7 @@ func (v MoneyEur) Humanize(format string) string {
 	return humanize.FormatFloat(format, float64(v)/100)
 }
 
-func (v MoneyEur) Number() interface{} {
+func (v MoneyEur) Number() float64 {
 	return float64(v) / 100
 }
 

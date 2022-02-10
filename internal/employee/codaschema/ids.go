@@ -13,7 +13,7 @@ type _codaEntity struct {
 	Name string
 }
 
-func (e *_codaEntity) String() string {
+func (e _codaEntity) String() string {
 	return e.ID
 }
 
@@ -21,31 +21,25 @@ type _tableSchema struct {
 	AllEmployees                      _allEmployeesTable                      // All employees
 	Invoice                           _invoiceTable                           // Invoice
 	Months                            _monthsTable                            // Months
-	Corrections                       _correctionsTable                       // Corrections
+	Entries                           _entriesTable                           // Entries
 	WorkingEmployees                  _workingEmployeesTable                  // Working Employees
 	WorkingEmployeesNames             _workingEmployeesNamesTable             // Working employees names
-	AllSalaries                       _allSalariesTable                       // All salaries
 	InvoicesOverview                  _invoicesOverviewTable                  // Invoices overview
-	Taxes                             _taxesTable                             // Taxes
-	PatentPayments                    _patentPaymentsTable                    // Patent Payments
-	CorrectionCategory                _correctionCategoryTable                // Correction Category
-	TaxesOverview                     _taxesOverviewTable                     // Taxes overview
+	PatentCompensation                _patentCompensationTable                // Patent compensation
+	EntryType                         _entryTypeTable                         // Entry Type
 	PatentsOverview                   _patentsOverviewTable                   // Patents overview
 	LegalEntity                       _legalEntityTable                       // Legal entity
 	SalariesReport                    _salariesReportTable                    // Salaries report
 	TaxYears                          _taxYearsTable                          // Tax years
 	EmployeePatents                   _employeePatentsTable                   // Employee Patents
 	FullPayrollReport                 _fullPayrollReportTable                 // Full payroll report
-	InvoicableEmployees               _invoicableEmployeesTable               // Invoicable Employees
 	EmptyActualRates                  _emptyActualRatesTable                  // Empty actual rates
 	CorrectionsByType                 _correctionsByTypeTable                 // Corrections by type
-	WorkingSalaries                   _workingSalariesTable                   // Working Salaries
 	PayrollReportToAdd                _payrollReportToAddTable                // Payroll report to add
-	BankFees                          _bankFeesTable                          // Bank fees
+	BankTariffs                       _bankTariffsTable                       // Bank tariffs
 	PHCorrections                     _pHCorrectionsTable                     // PH corrections
 	PHMonthlyReport                   _pHMonthlyReportTable                   // PH Monthly Report
 	Location                          _locationTable                          // Location
-	PaymentNotesCorrectionAdding      _paymentNotesCorrectionAddingTable      // Payment Notes Correction Adding
 	CompanyRates                      _companyRatesTable                      // Company rates
 	SummaryForCurrentPeriod3          _summaryForCurrentPeriod3Table          // Summary for current period 3
 	CurrentPayrollV2                  _currentPayrollV2Table                  // Current payroll v2
@@ -54,26 +48,39 @@ type _tableSchema struct {
 	WorkDays                          _workDaysTable                          // Work days
 	CorrectionsByEmployee             _correctionsByEmployeeTable             // Corrections by employee
 	EnterCompanyRatesForSelectedMonth _enterCompanyRatesForSelectedMonthTable // Enter company rates for selected month
-	CorrectionTemplates               _correctionTemplatesTable               // Correction Templates
+	TemplateEntries                   _templateEntriesTable                   // Template Entries
 	AllEmployeesNames                 _allEmployeesNamesTable                 // All employees names
 	BankDetails                       _bankDetailsTable                       // Bank details
 	BeneficiaryBank                   _beneficiaryBankTable                   // Beneficiary Bank
 	PayrollSchedule                   _payrollScheduleTable                   // Payroll Schedule
+	PensionFundFixed                  _pensionFundFixedTable                  // Pension Fund fixed
+	SocialInsurance                   _socialInsuranceTable                   // Social Insurance
+	PensionFundPercent                _pensionFundPercentTable                // Pension fund percent
+	PerDayCalculations                _perDayCalculationsTable                // Per Day Calculations
+	PerDayPolicies                    _perDayPoliciesTable                    // Per Day Policies
+	Salaries                          _salariesTable                          // Salaries
+	PayableEmployees                  _payableEmployeesTable                  // Payable employees
+	QuickManualEntry                  _quickManualEntryTable                  // Quick Manual Entry
+	NewInvoiceEntriesPerType          _newInvoiceEntriesPerTypeTable          // New invoice entries per type
 }
 type _formulaSchema struct {
-	CurrentMonth         _codaEntity // currentMonth
-	PayrollReportCurRate _codaEntity // payrollReportCurRate
-	InvoiceAddingRate    _codaEntity // invoiceAddingRate
+	CurrentMonth                  _codaEntity // currentMonth
+	PayrollReportCurRate          _codaEntity // payrollReportCurRate
+	InvoiceAddingRate             _codaEntity // invoiceAddingRate
+	NewInvoiceValidation          _codaEntity // newInvoiceValidation
+	NewInvoiceValidationIcon      _codaEntity // newInvoiceValidationIcon
+	NewInvoiceRate                _codaEntity // newInvoiceRate
+	NewInvoicePreviousRatesFilled _codaEntity // newInvoicePreviousRatesFilled
 }
 type _controlSchema struct {
-	SelectOverviewMonth     _codaEntity // selectOverviewMonth
-	SelectOverviewEmployee  _codaEntity // selectOverviewEmployee
-	WorkingSalariesCheckbox _codaEntity // workingSalariesCheckbox
-	InvoiceAddingMonth      _codaEntity // invoiceAddingMonth
-	PayrollReportCurPeriod  _codaEntity // payrollReportCurPeriod
-	PayrollReportAddReport  _codaEntity // payrollReportAddReport
-	FillRatesShowFilled     _codaEntity // fillRatesShowFilled
-	ChkSalariesOnlyCurrent  _codaEntity // chkSalariesOnlyCurrent
+	SelectOverviewMonth    _codaEntity // selectOverviewMonth
+	SelectOverviewEmployee _codaEntity // selectOverviewEmployee
+	InvoiceAddingMonth     _codaEntity // invoiceAddingMonth
+	PayrollReportCurPeriod _codaEntity // payrollReportCurPeriod
+	PayrollReportAddReport _codaEntity // payrollReportAddReport
+	FillRatesShowFilled    _codaEntity // fillRatesShowFilled
+	NewInvoiceBtn          _codaEntity // newInvoiceBtn
+	NewInvoiceMonth        _codaEntity // newInvoiceMonth
 }
 
 // Table All employees
@@ -82,48 +89,24 @@ type _allEmployeesTable struct {
 	Cols _allEmployeesTableColumns
 }
 type _allEmployeesTableColumns struct {
-	Name                    _codaEntity // Name
-	StartDate               _codaEntity // Start date
-	ProbationEnd            _codaEntity // Probation end
-	AnnualLeaveFrom         _codaEntity // Annual leave from
-	SalaryBeforeIP          _codaEntity // Salary before IP
-	SalaryAfterIP           _codaEntity // Salary after IP
-	NetSalaryAfterProbation _codaEntity // Net salary after probation
-	EndDate                 _codaEntity // End date
-	HourRate                _codaEntity // Hour rate
-	BankCC                  _codaEntity // Bank:CC
-	BankService             _codaEntity // Bank:Service
-	BankTotalFees           _codaEntity // Bank:Total Fees
-	Address                 _codaEntity // Address
-	OpeningDateIP           _codaEntity // Opening date IP
-	StartMonth              _codaEntity // Start month
-	MattermostLogin         _codaEntity // Mattermost login
-	RussianFullName         _codaEntity // Russian full name
-	Position                _codaEntity // Position
-	INN                     _codaEntity // INN
-	WorkingNow              _codaEntity // Working now?
-	AllSalaries             _codaEntity // All salaries
-	CurrentSalaryNet        _codaEntity // Current Salary Net
-	EnglishFullName         _codaEntity // English full name
-	BankRequisites          _codaEntity // Bank requisites
-	BillTo                  _codaEntity // Bill To
-	LegalEntity             _codaEntity // Legal entity
-	Location                _codaEntity // Location
-	PaymentNotes            _codaEntity // Payment notes
-	ACLSD                   _codaEntity // ACL SD
-	FinanceSD               _codaEntity // Finance SD
-	GeneralSD               _codaEntity // General SD
-	PersonnelSD             _codaEntity // Personnel SD
-	ContractNumber          _codaEntity // Contract Number
-	ContractDate            _codaEntity // Contract Date
-	LegalForm               _codaEntity // Legal form
-	InvoiceAdd              _codaEntity // Invoice Add
-	PendingInvoice          _codaEntity // Pending Invoice
-	InvoiceFieldsErrors     _codaEntity // Invoice fields errors
-	PaymentFieldsErrors     _codaEntity // Payment fields errors
-	Bank                    _codaEntity // Bank
-	Rounding                _codaEntity // Rounding
-	BankDetails             _codaEntity // Bank details
+	Name                 _codaEntity // Name
+	StartDate            _codaEntity // Start date
+	EndDate              _codaEntity // End date
+	ContractHourRate     _codaEntity // Contract hour rate
+	OpeningDateIP        _codaEntity // Opening date IP
+	WorkingNow           _codaEntity // Working now?
+	EnglishFullName      _codaEntity // English full name
+	LegalEntity          _codaEntity // Legal entity
+	Location             _codaEntity // Location
+	FinanceSD            _codaEntity // Finance SD
+	GeneralSD            _codaEntity // General SD
+	ContractNumber       _codaEntity // Contract Number
+	ContractDate         _codaEntity // Contract Date
+	LegalForm            _codaEntity // Legal form
+	BankTariff           _codaEntity // Bank tariff
+	Rounding             _codaEntity // Rounding
+	BankDetails          _codaEntity // Bank details
+	SpecialPaymentPolicy _codaEntity // Special payment policy
 }
 
 // Table Invoice
@@ -132,46 +115,32 @@ type _invoiceTable struct {
 	Cols _invoiceTableColumns
 }
 type _invoiceTableColumns struct {
-	ID                   _codaEntity // ID
-	InvoiceHash          _codaEntity // Invoice #
-	Month                _codaEntity // Month
-	Employee             _codaEntity // Employee
-	PreviousInvoice      _codaEntity // Previous invoice
-	EURRUBExpected       _codaEntity // EURRUB expected
-	RequestedSubtotalEUR _codaEntity // Requested subtotal, EUR
-	RoundingPrevMonEUR   _codaEntity // Rounding PrevMon, EUR
-	Rounding             _codaEntity // Rounding
-	RequestedTotalEUR    _codaEntity // Requested total, EUR
-	Hours                _codaEntity // Hours
-	EURRUBActual         _codaEntity // EURRUB actual
-	AmountRUBActual      _codaEntity // Amount RUB actual
-	RateErrorRUB         _codaEntity // Rate Error, RUB
-	CostOfDay            _codaEntity // Cost of day
-	OpeningDateIP        _codaEntity // Opening date IP
-	CorrectionRefs       _codaEntity // Correction Refs
-	CorrectionRUB        _codaEntity // Correction, RUB
-	PatentRUB            _codaEntity // Patent, RUB
-	TaxesRUB             _codaEntity // Taxes, RUB
-	PatentRefs           _codaEntity // Patent Refs
-	TaxesRefs            _codaEntity // Taxes Refs
-	BaseSalaryRUB        _codaEntity // Base Salary, RUB
-	BankFees             _codaEntity // Bank fees
-	Correction           _codaEntity // Correction
-	RateErrorPM          _codaEntity // Rate error PM
-	Alerts               _codaEntity // Alerts
-	Reconciled           _codaEntity // Reconciled
-	ToPay                _codaEntity // To Pay
-	CurrentSalaryRef     _codaEntity // Current Salary Ref
-	PaymentNotes         _codaEntity // Payment notes
-	AddToPayrollReport   _codaEntity // Add to payroll report
-	RUBSubtotal          _codaEntity // RUB subtotal
-	GeneralSD            _codaEntity // General SD
-	WorkDaysRef          _codaEntity // Work days ref
-	CompanyRate          _codaEntity // Company rate
-	BaseSalaryEUR        _codaEntity // Base Salary, EUR
-	Template             _codaEntity // Template
-	TemplatesRefs        _codaEntity // Templates Refs
-	BankDetails          _codaEntity // Bank details
+	ID                  _codaEntity // ID
+	InvoiceHash         _codaEntity // Invoice #
+	Month               _codaEntity // Month
+	Employee            _codaEntity // Employee
+	PreviousInvoice     _codaEntity // Previous invoice
+	EURRUBExpected      _codaEntity // EURRUB expected
+	EURSubtotal         _codaEntity // EUR Subtotal
+	EURRounding         _codaEntity // EUR Rounding
+	EUREntries          _codaEntity // EUR Entries
+	Hours               _codaEntity // Hours
+	EURRUBActual        _codaEntity // EURRUB actual
+	RUBActual           _codaEntity // RUB Actual
+	RUBRateError        _codaEntity // RUB Rate Error
+	InvoiceEntries      _codaEntity // Invoice Entries
+	RUBEntries          _codaEntity // RUB Entries
+	PaymentChecksPassed _codaEntity // Payment Checks Passed
+	TemplatesRefs       _codaEntity // Templates Refs
+	RecipientDetails    _codaEntity // Recipient details
+	EURTotal            _codaEntity // EUR Total
+	ApprovedManually    _codaEntity // Approved manually
+	SenderDetails       _codaEntity // Sender details
+	RUBTotal            _codaEntity // RUB Total
+	HourRate            _codaEntity // Hour Rate
+	WorkDays            _codaEntity // Work days
+	ContractDate        _codaEntity // Contract Date
+	ContractNumber      _codaEntity // Contract Number
 }
 
 // Table Months
@@ -191,35 +160,24 @@ type _monthsTableColumns struct {
 	Upcoming          _codaEntity // Upcoming?
 }
 
-// Table Corrections
-type _correctionsTable struct {
+// Table Entries
+type _entriesTable struct {
 	_codaEntity
-	Cols _correctionsTableColumns
+	Cols _entriesTableColumns
 }
-type _correctionsTableColumns struct {
-	Comment                  _codaEntity // Comment
-	AbsoluteCorrectionEUR    _codaEntity // Absolute Correction,EUR
-	AbsoluteCorrectionRUB    _codaEntity // Absolute Correction, RUB
-	EURRUBExpected           _codaEntity // EURRUB expected
-	AbsCorrectionEURInRUB    _codaEntity // Abs Correction, EUR in RUB
-	PerDayType               _codaEntity // Per Day Type
-	NumberOfDays             _codaEntity // Number of days
-	CostOfDay                _codaEntity // Cost of day
-	PerDay                   _codaEntity // Per Day
-	TotalCorrectionRUB       _codaEntity // Total Correction, RUB
-	PaymentInvoice           _codaEntity // Payment Invoice
-	PerDayCoefficient        _codaEntity // PerDay Coefficient
-	PerDayCalculationInvoice _codaEntity // PerDay calculation invoice
-	Display                  _codaEntity // Display
-	Category                 _codaEntity // Category
-	Month                    _codaEntity // Month
-	PaymentNotes             _codaEntity // Payment notes
-	EmployeeName             _codaEntity // Employee name
-	PercentCorrectionPercent _codaEntity // Percent Correction, %
-	PercentCorrectionRUB     _codaEntity // Percent Correction, RUB
-	TotalCorrectionEUR       _codaEntity // Total Correction, EUR
-	ModifiedOn               _codaEntity // Modified on
-	CreatedOn                _codaEntity // Created on
+type _entriesTableColumns struct {
+	Comment        _codaEntity // Comment
+	EURAmount      _codaEntity // EUR Amount
+	RUBAmount      _codaEntity // RUB Amount
+	Invoice        _codaEntity // Invoice
+	Display        _codaEntity // Display
+	Type           _codaEntity // Type
+	ModifiedOn     _codaEntity // Modified on
+	CreatedOn      _codaEntity // Created on
+	Origin         _codaEntity // Origin
+	ModifiedBy     _codaEntity // Modified by
+	Sort           _codaEntity // Sort
+	RUBAmountInEUR _codaEntity // RUB Amount in EUR
 }
 
 // Table Working Employees
@@ -228,31 +186,19 @@ type _workingEmployeesTable struct {
 	Cols _workingEmployeesTableColumns
 }
 type _workingEmployeesTableColumns struct {
-	Name                _codaEntity // Name
-	CurrentSalaryNet    _codaEntity // Current Salary Net
-	StartDate           _codaEntity // Start date
-	GeneralSD           _codaEntity // General SD
-	PersonnelSD         _codaEntity // Personnel SD
-	FinanceSD           _codaEntity // Finance SD
-	ACLSD               _codaEntity // ACL SD
-	ProbationEnd        _codaEntity // Probation end
-	AnnualLeaveFrom     _codaEntity // Annual leave from
-	Location            _codaEntity // Location
-	LegalEntity         _codaEntity // Legal entity
-	LegalForm           _codaEntity // Legal form
-	Position            _codaEntity // Position
-	Bank                _codaEntity // Bank
-	EnglishFullName     _codaEntity // English full name
-	InvoiceFieldsErrors _codaEntity // Invoice fields errors
-	PaymentFieldsErrors _codaEntity // Payment fields errors
-	ContractNumber      _codaEntity // Contract Number
-	ContractDate        _codaEntity // Contract Date
-	BankDetails         _codaEntity // Bank details
-	BankRequisites      _codaEntity // Bank requisites
-	BankTotalFees       _codaEntity // Bank:Total Fees
-	PaymentNotes        _codaEntity // Payment notes
-	BankCC              _codaEntity // Bank:CC
-	BankService         _codaEntity // Bank:Service
+	Name                 _codaEntity // Name
+	StartDate            _codaEntity // Start date
+	GeneralSD            _codaEntity // General SD
+	FinanceSD            _codaEntity // Finance SD
+	Location             _codaEntity // Location
+	LegalEntity          _codaEntity // Legal entity
+	LegalForm            _codaEntity // Legal form
+	BankTariff           _codaEntity // Bank tariff
+	SpecialPaymentPolicy _codaEntity // Special payment policy
+	EnglishFullName      _codaEntity // English full name
+	ContractNumber       _codaEntity // Contract Number
+	ContractDate         _codaEntity // Contract Date
+	BankDetails          _codaEntity // Bank details
 }
 
 // Table Working employees names
@@ -262,29 +208,8 @@ type _workingEmployeesNamesTable struct {
 }
 type _workingEmployeesNamesTableColumns struct {
 	Name      _codaEntity // Name
-	Position  _codaEntity // Position
 	StartDate _codaEntity // Start date
 	Location  _codaEntity // Location
-}
-
-// Table All salaries
-type _allSalariesTable struct {
-	_codaEntity
-	Cols _allSalariesTableColumns
-}
-type _allSalariesTableColumns struct {
-	Employee       _codaEntity // Employee
-	PeriodFrom     _codaEntity // Period from
-	PeriodTo       _codaEntity // Period to
-	Salary         _codaEntity // Salary
-	PeriodFromReal _codaEntity // Period from real
-	PeriodToReal   _codaEntity // Period to real
-	ModifiedBy     _codaEntity // Modified by
-	ModifiedOn     _codaEntity // Modified on
-	CreatedOn      _codaEntity // Created on
-	Currency       _codaEntity // Currency
-	IsRUB          _codaEntity // IsRUB
-	IsEUR          _codaEntity // IsEUR
 }
 
 // Table Invoices overview
@@ -293,91 +218,44 @@ type _invoicesOverviewTable struct {
 	Cols _invoicesOverviewTableColumns
 }
 type _invoicesOverviewTableColumns struct {
-	Employee             _codaEntity // Employee
-	Correction           _codaEntity // Correction
-	Template             _codaEntity // Template
-	Month                _codaEntity // Month
-	ToPay                _codaEntity // To Pay
-	Reconciled           _codaEntity // Reconciled
-	Alerts               _codaEntity // Alerts
-	RUBSubtotal          _codaEntity // RUB subtotal
-	BaseSalaryRUB        _codaEntity // Base Salary, RUB
-	BaseSalaryEUR        _codaEntity // Base Salary, EUR
-	BankFees             _codaEntity // Bank fees
-	RateErrorPM          _codaEntity // Rate error PM
-	CorrectionRUB        _codaEntity // Correction, RUB
-	CorrectionRefs       _codaEntity // Correction Refs
-	PatentRUB            _codaEntity // Patent, RUB
-	TaxesRUB             _codaEntity // Taxes, RUB
-	EURRUBExpected       _codaEntity // EURRUB expected
-	EURRUBActual         _codaEntity // EURRUB actual
-	RequestedSubtotalEUR _codaEntity // Requested subtotal, EUR
-	RoundingPrevMonEUR   _codaEntity // Rounding PrevMon, EUR
-	Rounding             _codaEntity // Rounding
-	RequestedTotalEUR    _codaEntity // Requested total, EUR
-	RateErrorRUB         _codaEntity // Rate Error, RUB
-	CostOfDay            _codaEntity // Cost of day
-	BankDetails          _codaEntity // Bank details
+	Employee            _codaEntity // Employee
+	Month               _codaEntity // Month
+	PaymentChecksPassed _codaEntity // Payment Checks Passed
+	RUBEntries          _codaEntity // RUB Entries
+	InvoiceEntries      _codaEntity // Invoice Entries
+	EURRUBExpected      _codaEntity // EURRUB expected
+	EURRUBActual        _codaEntity // EURRUB actual
+	EURSubtotal         _codaEntity // EUR Subtotal
+	EURRounding         _codaEntity // EUR Rounding
+	EUREntries          _codaEntity // EUR Entries
+	RUBRateError        _codaEntity // RUB Rate Error
+	RecipientDetails    _codaEntity // Recipient details
 }
 
-// Table Taxes
-type _taxesTable struct {
+// Table Patent compensation
+type _patentCompensationTable struct {
 	_codaEntity
-	Cols _taxesTableColumns
+	Cols _patentCompensationTableColumns
 }
-type _taxesTableColumns struct {
-	Invoice               _codaEntity // Invoice
-	OpeningDateIP         _codaEntity // Opening date IP
-	PeriodStart           _codaEntity // Period Start
-	PeriodEnd             _codaEntity // Period End
-	AmountIPDays          _codaEntity // Amount IP days
-	SocialInsuranceToPay  _codaEntity // Social Insurance - to pay
-	PensionFundFixedToPay _codaEntity // Pension fund fixed - to pay
-	PensionFundPercent    _codaEntity // Pension fund percent
-	Amount                _codaEntity // Amount
-	SocialInsuranceTotal  _codaEntity // Social Insurance - total
-	PensionFundFixedTotal _codaEntity // Pension Fund fixed - total
-	Year                  _codaEntity // Year
+type _patentCompensationTableColumns struct {
+	PaymentInvoice     _codaEntity // Payment Invoice
+	PeriodCost         _codaEntity // Period cost
+	Period             _codaEntity // Period
+	PeriodCostOverride _codaEntity // Period cost override
+	EmployeePatentRef  _codaEntity // Employee patent ref
+	Apply              _codaEntity // Apply
 }
 
-// Table Patent Payments
-type _patentPaymentsTable struct {
+// Table Entry Type
+type _entryTypeTable struct {
 	_codaEntity
-	Cols _patentPaymentsTableColumns
+	Cols _entryTypeTableColumns
 }
-type _patentPaymentsTableColumns struct {
-	Invoice           _codaEntity // Invoice
-	PeriodCost        _codaEntity // Period cost
-	Period            _codaEntity // Period
-	PeriodCostManual  _codaEntity // Period cost manual
-	EmployeePatentRef _codaEntity // Employee patent ref
-}
-
-// Table Correction Category
-type _correctionCategoryTable struct {
-	_codaEntity
-	Cols _correctionCategoryTableColumns
-}
-type _correctionCategoryTableColumns struct {
-	Category _codaEntity // Category
-	Comment  _codaEntity // Comment
-}
-
-// Table Taxes overview
-type _taxesOverviewTable struct {
-	_codaEntity
-	Cols _taxesOverviewTableColumns
-}
-type _taxesOverviewTableColumns struct {
-	Invoice               _codaEntity // Invoice
-	Amount                _codaEntity // Amount
-	OpeningDateIP         _codaEntity // Opening date IP
-	PeriodStart           _codaEntity // Period Start
-	PeriodEnd             _codaEntity // Period End
-	AmountIPDays          _codaEntity // Amount IP days
-	SocialInsuranceToPay  _codaEntity // Social Insurance - to pay
-	PensionFundFixedToPay _codaEntity // Pension fund fixed - to pay
-	PensionFundPercent    _codaEntity // Pension fund percent
+type _entryTypeTableColumns struct {
+	Type      _codaEntity // Type
+	Comment   _codaEntity // Comment
+	Archetype _codaEntity // Archetype
+	Sort      _codaEntity // Sort
 }
 
 // Table Patents overview
@@ -386,9 +264,9 @@ type _patentsOverviewTable struct {
 	Cols _patentsOverviewTableColumns
 }
 type _patentsOverviewTableColumns struct {
-	Invoice    _codaEntity // Invoice
-	PeriodCost _codaEntity // Period cost
-	Period     _codaEntity // Period
+	PaymentInvoice _codaEntity // Payment Invoice
+	PeriodCost     _codaEntity // Period cost
+	Period         _codaEntity // Period
 }
 
 // Table Legal entity
@@ -410,11 +288,8 @@ type _salariesReportTable struct {
 	Cols _salariesReportTableColumns
 }
 type _salariesReportTableColumns struct {
-	Name             _codaEntity // Name
-	StartDate        _codaEntity // Start date
-	ProbationEnd     _codaEntity // Probation end
-	CurrentSalaryNet _codaEntity // Current Salary Net
-	Position         _codaEntity // Position
+	Name      _codaEntity // Name
+	StartDate _codaEntity // Start date
 }
 
 // Table Tax years
@@ -481,20 +356,6 @@ type _fullPayrollReportTableColumns struct {
 	Location              _codaEntity // Location
 }
 
-// Table Invoicable Employees
-type _invoicableEmployeesTable struct {
-	_codaEntity
-	Cols _invoicableEmployeesTableColumns
-}
-type _invoicableEmployeesTableColumns struct {
-	Name                _codaEntity // Name
-	LegalForm           _codaEntity // Legal form
-	InvoiceAdd          _codaEntity // Invoice Add
-	PendingInvoice      _codaEntity // Pending Invoice
-	InvoiceFieldsErrors _codaEntity // Invoice fields errors
-	PaymentFieldsErrors _codaEntity // Payment fields errors
-}
-
 // Table Empty actual rates
 type _emptyActualRatesTable struct {
 	_codaEntity
@@ -503,7 +364,6 @@ type _emptyActualRatesTable struct {
 type _emptyActualRatesTableColumns struct {
 	Month          _codaEntity // Month
 	Employee       _codaEntity // Employee
-	GeneralSD      _codaEntity // General SD
 	EURRUBExpected _codaEntity // EURRUB expected
 	EURRUBActual   _codaEntity // EURRUB actual
 }
@@ -514,37 +374,11 @@ type _correctionsByTypeTable struct {
 	Cols _correctionsByTypeTableColumns
 }
 type _correctionsByTypeTableColumns struct {
-	Month                    _codaEntity // Month
-	PaymentInvoice           _codaEntity // Payment Invoice
-	Category                 _codaEntity // Category
-	Comment                  _codaEntity // Comment
-	TotalCorrectionRUB       _codaEntity // Total Correction, RUB
-	AbsoluteCorrectionRUB    _codaEntity // Absolute Correction, RUB
-	AbsoluteCorrectionEUR    _codaEntity // Absolute Correction,EUR
-	PercentCorrectionPercent _codaEntity // Percent Correction, %
-	PerDayType               _codaEntity // Per Day Type
-	PerDayCoefficient        _codaEntity // PerDay Coefficient
-	PerDayCalculationInvoice _codaEntity // PerDay calculation invoice
-	NumberOfDays             _codaEntity // Number of days
-	PerDay                   _codaEntity // Per Day
-}
-
-// Table Working Salaries
-type _workingSalariesTable struct {
-	_codaEntity
-	Cols _workingSalariesTableColumns
-}
-type _workingSalariesTableColumns struct {
-	Employee   _codaEntity // Employee
-	PeriodFrom _codaEntity // Period from
-	PeriodTo   _codaEntity // Period to
-	Salary     _codaEntity // Salary
-	Currency   _codaEntity // Currency
-	IsRUB      _codaEntity // IsRUB
-	IsEUR      _codaEntity // IsEUR
-	ModifiedBy _codaEntity // Modified by
-	CreatedOn  _codaEntity // Created on
-	ModifiedOn _codaEntity // Modified on
+	Invoice   _codaEntity // Invoice
+	Type      _codaEntity // Type
+	Comment   _codaEntity // Comment
+	RUBAmount _codaEntity // RUB Amount
+	EURAmount _codaEntity // EUR Amount
 }
 
 // Table Payroll report to add
@@ -553,17 +387,16 @@ type _payrollReportToAddTable struct {
 	Cols _payrollReportToAddTableColumns
 }
 type _payrollReportToAddTableColumns struct {
-	Month              _codaEntity // Month
-	Employee           _codaEntity // Employee
-	AddToPayrollReport _codaEntity // Add to payroll report
+	Month    _codaEntity // Month
+	Employee _codaEntity // Employee
 }
 
-// Table Bank fees
-type _bankFeesTable struct {
+// Table Bank tariffs
+type _bankTariffsTable struct {
 	_codaEntity
-	Cols _bankFeesTableColumns
+	Cols _bankTariffsTableColumns
 }
-type _bankFeesTableColumns struct {
+type _bankTariffsTableColumns struct {
 	Name              _codaEntity // Name
 	DefaultCCFee      _codaEntity // Default CC Fee
 	DefaultServiceFee _codaEntity // Default Service Fee
@@ -575,11 +408,7 @@ type _pHCorrectionsTable struct {
 	Cols _pHCorrectionsTableColumns
 }
 type _pHCorrectionsTableColumns struct {
-	Month              _codaEntity // Month
-	Comment            _codaEntity // Comment
-	TotalCorrectionRUB _codaEntity // Total Correction, RUB
-	EURRUBExpected     _codaEntity // EURRUB expected
-	TotalCorrectionEUR _codaEntity // Total Correction, EUR
+	Comment _codaEntity // Comment
 }
 
 // Table PH Monthly Report
@@ -602,27 +431,14 @@ type _locationTableColumns struct {
 	Location _codaEntity // Location
 }
 
-// Table Payment Notes Correction Adding
-type _paymentNotesCorrectionAddingTable struct {
-	_codaEntity
-	Cols _paymentNotesCorrectionAddingTableColumns
-}
-type _paymentNotesCorrectionAddingTableColumns struct {
-	Month          _codaEntity // Month
-	Employee       _codaEntity // Employee
-	Correction     _codaEntity // Correction
-	CorrectionRefs _codaEntity // Correction Refs
-	PaymentNotes   _codaEntity // Payment notes
-}
-
 // Table Company rates
 type _companyRatesTable struct {
 	_codaEntity
 	Cols _companyRatesTableColumns
 }
 type _companyRatesTableColumns struct {
-	Month _codaEntity // Month
-	Rate  _codaEntity // Rate
+	Month  _codaEntity // Month
+	EURRUB _codaEntity // EURRUB
 }
 
 // Table Summary for current period 3
@@ -689,7 +505,6 @@ type _suspiciousRatesTable struct {
 type _suspiciousRatesTableColumns struct {
 	Month          _codaEntity // Month
 	Employee       _codaEntity // Employee
-	GeneralSD      _codaEntity // General SD
 	EURRUBExpected _codaEntity // EURRUB expected
 	EURRUBActual   _codaEntity // EURRUB actual
 }
@@ -711,19 +526,10 @@ type _correctionsByEmployeeTable struct {
 	Cols _correctionsByEmployeeTableColumns
 }
 type _correctionsByEmployeeTableColumns struct {
-	Month                    _codaEntity // Month
-	Category                 _codaEntity // Category
-	Comment                  _codaEntity // Comment
-	TotalCorrectionRUB       _codaEntity // Total Correction, RUB
-	AbsoluteCorrectionRUB    _codaEntity // Absolute Correction, RUB
-	AbsoluteCorrectionEUR    _codaEntity // Absolute Correction,EUR
-	PercentCorrectionPercent _codaEntity // Percent Correction, %
-	PerDayType               _codaEntity // Per Day Type
-	PerDayCoefficient        _codaEntity // PerDay Coefficient
-	PerDayCalculationInvoice _codaEntity // PerDay calculation invoice
-	NumberOfDays             _codaEntity // Number of days
-	PerDay                   _codaEntity // Per Day
-	EmployeeName             _codaEntity // Employee name
+	Type      _codaEntity // Type
+	Comment   _codaEntity // Comment
+	RUBAmount _codaEntity // RUB Amount
+	EURAmount _codaEntity // EUR Amount
 }
 
 // Table Enter company rates for selected month
@@ -732,23 +538,27 @@ type _enterCompanyRatesForSelectedMonthTable struct {
 	Cols _enterCompanyRatesForSelectedMonthTableColumns
 }
 type _enterCompanyRatesForSelectedMonthTableColumns struct {
-	Month _codaEntity // Month
-	Rate  _codaEntity // Rate
+	Month  _codaEntity // Month
+	EURRUB _codaEntity // EURRUB
 }
 
-// Table Correction Templates
-type _correctionTemplatesTable struct {
+// Table Template Entries
+type _templateEntriesTable struct {
 	_codaEntity
-	Cols _correctionTemplatesTableColumns
+	Cols _templateEntriesTableColumns
 }
-type _correctionTemplatesTableColumns struct {
-	Employee          _codaEntity // Employee
-	MonthFrom         _codaEntity // Month from
-	MonthTo           _codaEntity // Month to
-	Category          _codaEntity // Category
-	Comment           _codaEntity // Comment
-	TemplateAmountRUB _codaEntity // Template amount, RUB
-	TemplateAmountEUR _codaEntity // Template amount, EUR
+type _templateEntriesTableColumns struct {
+	Employee   _codaEntity // Employee
+	MonthFrom  _codaEntity // Month from
+	MonthTo    _codaEntity // Month to
+	Type       _codaEntity // Type
+	Comment    _codaEntity // Comment
+	RUBAmount  _codaEntity // RUB Amount
+	EURAmount  _codaEntity // EUR Amount
+	ModifiedBy _codaEntity // Modified by
+	CreatedOn  _codaEntity // Created on
+	ModifiedOn _codaEntity // Modified on
+	Display    _codaEntity // Display
 }
 
 // Table All employees names
@@ -758,7 +568,6 @@ type _allEmployeesNamesTable struct {
 }
 type _allEmployeesNamesTableColumns struct {
 	Name      _codaEntity // Name
-	Position  _codaEntity // Position
 	StartDate _codaEntity // Start date
 	Location  _codaEntity // Location
 }
@@ -778,6 +587,7 @@ type _bankDetailsTableColumns struct {
 	MonthTo         _codaEntity // Month to
 	ID              _codaEntity // ID
 	Text            _codaEntity // Text
+	BankRequisites  _codaEntity // Bank requisites
 }
 
 // Table Beneficiary Bank
@@ -804,6 +614,136 @@ type _payrollScheduleTableColumns struct {
 	ExecutionDate _codaEntity // Execution date
 }
 
+// Table Pension Fund fixed
+type _pensionFundFixedTable struct {
+	_codaEntity
+	Cols _pensionFundFixedTableColumns
+}
+type _pensionFundFixedTableColumns struct {
+	Invoice               _codaEntity // Invoice
+	OpeningDateIP         _codaEntity // Opening date IP
+	PeriodStart           _codaEntity // Period Start
+	PeriodEnd             _codaEntity // Period End
+	AmountIPDays          _codaEntity // Amount IP days
+	PensionFundFixedToPay _codaEntity // Pension fund fixed - to pay
+	PensionFundFixedTotal _codaEntity // Pension Fund fixed - total
+	Year                  _codaEntity // Year
+}
+
+// Table Social Insurance
+type _socialInsuranceTable struct {
+	_codaEntity
+	Cols _socialInsuranceTableColumns
+}
+type _socialInsuranceTableColumns struct {
+	Invoice              _codaEntity // Invoice
+	OpeningDateIP        _codaEntity // Opening date IP
+	PeriodStart          _codaEntity // Period Start
+	PeriodEnd            _codaEntity // Period End
+	AmountIPDays         _codaEntity // Amount IP days
+	SocialInsuranceToPay _codaEntity // Social Insurance - to pay
+	SocialInsuranceTotal _codaEntity // Social Insurance - total
+	Year                 _codaEntity // Year
+}
+
+// Table Pension fund percent
+type _pensionFundPercentTable struct {
+	_codaEntity
+	Cols _pensionFundPercentTableColumns
+}
+type _pensionFundPercentTableColumns struct {
+	Invoice            _codaEntity // Invoice
+	PensionFundPercent _codaEntity // Pension fund percent
+	Year               _codaEntity // Year
+}
+
+// Table Per Day Calculations
+type _perDayCalculationsTable struct {
+	_codaEntity
+	Cols _perDayCalculationsTableColumns
+}
+type _perDayCalculationsTableColumns struct {
+	Type               _codaEntity // Type
+	NumberOfDays       _codaEntity // Number of days
+	CostOfDay          _codaEntity // Cost of day
+	Total              _codaEntity // Total
+	PaymentInvoice     _codaEntity // Payment invoice
+	CalculationPeriod  _codaEntity // Calculation period
+	CalculationInvoice _codaEntity // Calculation invoice
+	Salary             _codaEntity // Salary
+	Apply              _codaEntity // Apply
+}
+
+// Table Per Day Policies
+type _perDayPoliciesTable struct {
+	_codaEntity
+	Cols _perDayPoliciesTableColumns
+}
+type _perDayPoliciesTableColumns struct {
+	Name        _codaEntity // Name
+	Coefficient _codaEntity // Coefficient
+	EntryType   _codaEntity // Entry Type
+}
+
+// Table Salaries
+type _salariesTable struct {
+	_codaEntity
+	Cols _salariesTableColumns
+}
+type _salariesTableColumns struct {
+	Employee  _codaEntity // Employee
+	MonthFrom _codaEntity // Month from
+	MonthTo   _codaEntity // Month to
+	Comment   _codaEntity // Comment
+	RUBAmount _codaEntity // RUB Amount
+	EURAmount _codaEntity // EUR Amount
+}
+
+// Table Payable employees
+type _payableEmployeesTable struct {
+	_codaEntity
+	Cols _payableEmployeesTableColumns
+}
+type _payableEmployeesTableColumns struct {
+	Employee           _codaEntity // Employee
+	BonusQuarter       _codaEntity // Bonus Quarter
+	TargetInvoice      _codaEntity // Target invoice
+	AddAny             _codaEntity // Add any
+	FlexBenefit        _codaEntity // Flex benefit
+	SelfEmplTax        _codaEntity // Self-Empl Tax
+	IE6PercentTax      _codaEntity // IE 6% Tax
+	ManualEntries      _codaEntity // Manual Entries
+	ExcludedEntryTypes _codaEntity // Excluded Entry Types
+}
+
+// Table Quick Manual Entry
+type _quickManualEntryTable struct {
+	_codaEntity
+	Cols _quickManualEntryTableColumns
+}
+type _quickManualEntryTableColumns struct {
+	TargetInvoice _codaEntity // Target invoice
+	ManualEntries _codaEntity // Manual Entries
+	AddAny        _codaEntity // Add any
+	BonusQuarter  _codaEntity // Bonus Quarter
+	FlexBenefit   _codaEntity // Flex benefit
+	SelfEmplTax   _codaEntity // Self-Empl Tax
+	IE6PercentTax _codaEntity // IE 6% Tax
+}
+
+// Table New invoice entries per type
+type _newInvoiceEntriesPerTypeTable struct {
+	_codaEntity
+	Cols _newInvoiceEntriesPerTypeTableColumns
+}
+type _newInvoiceEntriesPerTypeTableColumns struct {
+	Invoice   _codaEntity // Invoice
+	Type      _codaEntity // Type
+	Comment   _codaEntity // Comment
+	RUBAmount _codaEntity // RUB Amount
+	EURAmount _codaEntity // EUR Amount
+}
+
 var ID _schema
 
 func init() {
@@ -823,97 +763,25 @@ func init() {
 						ID:   "c-Zs7oQbj-_J",
 						Name: "Start date",
 					},
-					ProbationEnd: _codaEntity{
-						ID:   "c-35cUDxDnAo",
-						Name: "Probation end",
-					},
-					AnnualLeaveFrom: _codaEntity{
-						ID:   "c-uzP6UrJs3a",
-						Name: "Annual leave from",
-					},
-					SalaryBeforeIP: _codaEntity{
-						ID:   "c-MZLKSGSxFn",
-						Name: "Salary before IP",
-					},
-					SalaryAfterIP: _codaEntity{
-						ID:   "c-5asgm6tqZs",
-						Name: "Salary after IP",
-					},
-					NetSalaryAfterProbation: _codaEntity{
-						ID:   "c-fvHtrLntTN",
-						Name: "Net salary after probation",
-					},
 					EndDate: _codaEntity{
 						ID:   "c-7OoHuXqt8n",
 						Name: "End date",
 					},
-					HourRate: _codaEntity{
+					ContractHourRate: _codaEntity{
 						ID:   "c-SItGvyE3ie",
-						Name: "Hour rate",
-					},
-					BankCC: _codaEntity{
-						ID:   "c-HbuzOpvaPf",
-						Name: "Bank:CC",
-					},
-					BankService: _codaEntity{
-						ID:   "c-214wDdnGtE",
-						Name: "Bank:Service",
-					},
-					BankTotalFees: _codaEntity{
-						ID:   "c-156kDMsJzb",
-						Name: "Bank:Total Fees",
-					},
-					Address: _codaEntity{
-						ID:   "c-lEdEHoijqv",
-						Name: "Address",
+						Name: "Contract hour rate",
 					},
 					OpeningDateIP: _codaEntity{
 						ID:   "c-uU3-6piESs",
 						Name: "Opening date IP",
 					},
-					StartMonth: _codaEntity{
-						ID:   "c-pnvQkCAJ7U",
-						Name: "Start month",
-					},
-					MattermostLogin: _codaEntity{
-						ID:   "c-BmjWOCSXHd",
-						Name: "Mattermost login",
-					},
-					RussianFullName: _codaEntity{
-						ID:   "c-7N8qU2h-Zv",
-						Name: "Russian full name",
-					},
-					Position: _codaEntity{
-						ID:   "c-4nDWkuySVp",
-						Name: "Position",
-					},
-					INN: _codaEntity{
-						ID:   "c-Gsx7-a_kGU",
-						Name: "INN",
-					},
 					WorkingNow: _codaEntity{
 						ID:   "c-QfV5QzjuJP",
 						Name: "Working now?",
 					},
-					AllSalaries: _codaEntity{
-						ID:   "c-P0cTAu016r",
-						Name: "All salaries",
-					},
-					CurrentSalaryNet: _codaEntity{
-						ID:   "c-Is6fozVp1a",
-						Name: "Current Salary Net",
-					},
 					EnglishFullName: _codaEntity{
 						ID:   "c-TAlfzDcFzQ",
 						Name: "English full name",
-					},
-					BankRequisites: _codaEntity{
-						ID:   "c-OlCoWd7n4S",
-						Name: "Bank requisites",
-					},
-					BillTo: _codaEntity{
-						ID:   "c-XnSDzWgAgQ",
-						Name: "Bill To",
 					},
 					LegalEntity: _codaEntity{
 						ID:   "c-smk4a68He5",
@@ -923,14 +791,6 @@ func init() {
 						ID:   "c-WcmDQXPChx",
 						Name: "Location",
 					},
-					PaymentNotes: _codaEntity{
-						ID:   "c-PkLgxjZRQL",
-						Name: "Payment notes",
-					},
-					ACLSD: _codaEntity{
-						ID:   "c-aKn3TiCF_A",
-						Name: "ACL SD",
-					},
 					FinanceSD: _codaEntity{
 						ID:   "c-NeQmHu-raB",
 						Name: "Finance SD",
@@ -938,10 +798,6 @@ func init() {
 					GeneralSD: _codaEntity{
 						ID:   "c-EMbqnhOkkr",
 						Name: "General SD",
-					},
-					PersonnelSD: _codaEntity{
-						ID:   "c-6L5oS7LZ4a",
-						Name: "Personnel SD",
 					},
 					ContractNumber: _codaEntity{
 						ID:   "c-XX2OkCkOSR",
@@ -955,25 +811,9 @@ func init() {
 						ID:   "c-w8WTgIbQ7H",
 						Name: "Legal form",
 					},
-					InvoiceAdd: _codaEntity{
-						ID:   "c-F8kuFeh0JE",
-						Name: "Invoice Add",
-					},
-					PendingInvoice: _codaEntity{
-						ID:   "c-Saw2_PL8gv",
-						Name: "Pending Invoice",
-					},
-					InvoiceFieldsErrors: _codaEntity{
-						ID:   "c-EDwQy_l7fS",
-						Name: "Invoice fields errors",
-					},
-					PaymentFieldsErrors: _codaEntity{
-						ID:   "c-UcN9cnw7y0",
-						Name: "Payment fields errors",
-					},
-					Bank: _codaEntity{
+					BankTariff: _codaEntity{
 						ID:   "c-Hx-nCcWt2v",
-						Name: "Bank",
+						Name: "Bank tariff",
 					},
 					Rounding: _codaEntity{
 						ID:   "c-xvCHSSPdHb",
@@ -982,6 +822,10 @@ func init() {
 					BankDetails: _codaEntity{
 						ID:   "c-wSSi6yT6d4",
 						Name: "Bank details",
+					},
+					SpecialPaymentPolicy: _codaEntity{
+						ID:   "c-FOuDAl0Fmk",
+						Name: "Special payment policy",
 					},
 				},
 			},
@@ -1015,21 +859,17 @@ func init() {
 						ID:   "c-tvtGu9juVL",
 						Name: "EURRUB expected",
 					},
-					RequestedSubtotalEUR: _codaEntity{
+					EURSubtotal: _codaEntity{
 						ID:   "c-9rnJJZ6gA7",
-						Name: "Requested subtotal, EUR",
+						Name: "EUR Subtotal",
 					},
-					RoundingPrevMonEUR: _codaEntity{
-						ID:   "c-hLrmDsk89g",
-						Name: "Rounding PrevMon, EUR",
-					},
-					Rounding: _codaEntity{
+					EURRounding: _codaEntity{
 						ID:   "c-Tri-EGUP_n",
-						Name: "Rounding",
+						Name: "EUR Rounding",
 					},
-					RequestedTotalEUR: _codaEntity{
+					EUREntries: _codaEntity{
 						ID:   "c-bJpHVxywXD",
-						Name: "Requested total, EUR",
+						Name: "EUR Entries",
 					},
 					Hours: _codaEntity{
 						ID:   "c-KtVV9if8P7",
@@ -1039,117 +879,65 @@ func init() {
 						ID:   "c-kLIyv9EvyH",
 						Name: "EURRUB actual",
 					},
-					AmountRUBActual: _codaEntity{
+					RUBActual: _codaEntity{
 						ID:   "c-AxLSgrt7e3",
-						Name: "Amount RUB actual",
+						Name: "RUB Actual",
 					},
-					RateErrorRUB: _codaEntity{
+					RUBRateError: _codaEntity{
 						ID:   "c-SsHRhKa_uC",
-						Name: "Rate Error, RUB",
+						Name: "RUB Rate Error",
 					},
-					CostOfDay: _codaEntity{
-						ID:   "c-yJnq9stsgi",
-						Name: "Cost of day",
-					},
-					OpeningDateIP: _codaEntity{
-						ID:   "c-hI1iZG3xzY",
-						Name: "Opening date IP",
-					},
-					CorrectionRefs: _codaEntity{
+					InvoiceEntries: _codaEntity{
 						ID:   "c-tpeCMU21_I",
-						Name: "Correction Refs",
+						Name: "Invoice Entries",
 					},
-					CorrectionRUB: _codaEntity{
+					RUBEntries: _codaEntity{
 						ID:   "c-jNcl4nZe_h",
-						Name: "Correction, RUB",
+						Name: "RUB Entries",
 					},
-					PatentRUB: _codaEntity{
-						ID:   "c-qA_pPM9kuZ",
-						Name: "Patent, RUB",
-					},
-					TaxesRUB: _codaEntity{
-						ID:   "c-ug709va8_K",
-						Name: "Taxes, RUB",
-					},
-					PatentRefs: _codaEntity{
-						ID:   "c-bkVlencAZt",
-						Name: "Patent Refs",
-					},
-					TaxesRefs: _codaEntity{
-						ID:   "c-aYkpi97eXt",
-						Name: "Taxes Refs",
-					},
-					BaseSalaryRUB: _codaEntity{
-						ID:   "c-wqNhZf9EQY",
-						Name: "Base Salary, RUB",
-					},
-					BankFees: _codaEntity{
-						ID:   "c-sRGR6jYC7g",
-						Name: "Bank fees",
-					},
-					Correction: _codaEntity{
-						ID:   "c-cjYMwmv-1m",
-						Name: "Correction",
-					},
-					RateErrorPM: _codaEntity{
-						ID:   "c-_9tuuG4RIN",
-						Name: "Rate error PM",
-					},
-					Alerts: _codaEntity{
-						ID:   "c-jkrvvE_SNm",
-						Name: "Alerts",
-					},
-					Reconciled: _codaEntity{
-						ID:   "c--A1RtCy-NA",
-						Name: "Reconciled",
-					},
-					ToPay: _codaEntity{
+					PaymentChecksPassed: _codaEntity{
 						ID:   "c-DRPGK3XTmD",
-						Name: "To Pay",
-					},
-					CurrentSalaryRef: _codaEntity{
-						ID:   "c-KWyHMAHqoq",
-						Name: "Current Salary Ref",
-					},
-					PaymentNotes: _codaEntity{
-						ID:   "c-f4weK3W_gH",
-						Name: "Payment notes",
-					},
-					AddToPayrollReport: _codaEntity{
-						ID:   "c-FqZuQ1JQN0",
-						Name: "Add to payroll report",
-					},
-					RUBSubtotal: _codaEntity{
-						ID:   "c-WLMdyl4WqI",
-						Name: "RUB subtotal",
-					},
-					GeneralSD: _codaEntity{
-						ID:   "c-Gkt52a0fjj",
-						Name: "General SD",
-					},
-					WorkDaysRef: _codaEntity{
-						ID:   "c-C5AayqIolt",
-						Name: "Work days ref",
-					},
-					CompanyRate: _codaEntity{
-						ID:   "c-lsF3Cc0ng3",
-						Name: "Company rate",
-					},
-					BaseSalaryEUR: _codaEntity{
-						ID:   "c-B0nU6ZI_Z4",
-						Name: "Base Salary, EUR",
-					},
-					Template: _codaEntity{
-						ID:   "c-z0Irm78xhQ",
-						Name: "Template",
+						Name: "Payment Checks Passed",
 					},
 					TemplatesRefs: _codaEntity{
 						ID:   "c-esVje33Tt-",
 						Name: "Templates Refs",
 					},
-					BankDetails: _codaEntity{
+					RecipientDetails: _codaEntity{
 						ID:   "c-2TxWM7vHls",
-						Name: "Bank details",
+						Name: "Recipient details",
+					},
+					EURTotal: _codaEntity{
+						ID:   "c-Y5fNzlzJXF",
+						Name: "EUR Total",
+					},
+					ApprovedManually: _codaEntity{
+						ID:   "c-9Zy6wPmcmR",
+						Name: "Approved manually",
+					},
+					SenderDetails: _codaEntity{
+						ID:   "c-GT8GvOJE1C",
+						Name: "Sender details",
+					},
+					RUBTotal: _codaEntity{
+						ID:   "c-WWb4V9ETtt",
+						Name: "RUB Total",
+					},
+					HourRate: _codaEntity{
+						ID:   "c-BXmgrJUyUd",
+						Name: "Hour Rate",
+					},
+					WorkDays: _codaEntity{
+						ID:   "c-ovkSZVew-L",
+						Name: "Work days",
+					},
+					ContractDate: _codaEntity{
+						ID:   "c-keT0IA7CqE",
+						Name: "Contract Date",
+					},
+					ContractNumber: _codaEntity{
+						ID:   "c-QntkvMYxT-",
+						Name: "Contract Number",
 					},
 				},
 			},
@@ -1197,95 +985,35 @@ func init() {
 					},
 				},
 			},
-			Corrections: _correctionsTable{
+			Entries: _entriesTable{
 				_codaEntity: _codaEntity{
 					ID:   "grid-wBmvgFgaGi",
-					Name: "Corrections",
+					Name: "Entries",
 				},
-				Cols: _correctionsTableColumns{
+				Cols: _entriesTableColumns{
 					Comment: _codaEntity{
 						ID:   "c--_r48PQnSn",
 						Name: "Comment",
 					},
-					AbsoluteCorrectionEUR: _codaEntity{
+					EURAmount: _codaEntity{
 						ID:   "c-pRmEece9pf",
-						Name: "Absolute Correction,EUR",
+						Name: "EUR Amount",
 					},
-					AbsoluteCorrectionRUB: _codaEntity{
+					RUBAmount: _codaEntity{
 						ID:   "c-P2x5IJuMXN",
-						Name: "Absolute Correction, RUB",
+						Name: "RUB Amount",
 					},
-					EURRUBExpected: _codaEntity{
-						ID:   "c-8LD34cnmCh",
-						Name: "EURRUB expected",
-					},
-					AbsCorrectionEURInRUB: _codaEntity{
-						ID:   "c-_GvG9w3Qs7",
-						Name: "Abs Correction, EUR in RUB",
-					},
-					PerDayType: _codaEntity{
-						ID:   "c-3Ivn-M1j7-",
-						Name: "Per Day Type",
-					},
-					NumberOfDays: _codaEntity{
-						ID:   "c-gDOyigH1cm",
-						Name: "Number of days",
-					},
-					CostOfDay: _codaEntity{
-						ID:   "c-K_Iy0iERKR",
-						Name: "Cost of day",
-					},
-					PerDay: _codaEntity{
-						ID:   "c-Y2E1Vwe2_-",
-						Name: "Per Day",
-					},
-					TotalCorrectionRUB: _codaEntity{
-						ID:   "c-0arkfr4qXv",
-						Name: "Total Correction, RUB",
-					},
-					PaymentInvoice: _codaEntity{
+					Invoice: _codaEntity{
 						ID:   "c-7SU0iOBY9J",
-						Name: "Payment Invoice",
-					},
-					PerDayCoefficient: _codaEntity{
-						ID:   "c-pz6W2IRzFR",
-						Name: "PerDay Coefficient",
-					},
-					PerDayCalculationInvoice: _codaEntity{
-						ID:   "c-bK4qXZUCqs",
-						Name: "PerDay calculation invoice",
+						Name: "Invoice",
 					},
 					Display: _codaEntity{
 						ID:   "c-FVW_9PPzZ2",
 						Name: "Display",
 					},
-					Category: _codaEntity{
+					Type: _codaEntity{
 						ID:   "c-zDY58PF0P6",
-						Name: "Category",
-					},
-					Month: _codaEntity{
-						ID:   "c-nK3Ad6VblR",
-						Name: "Month",
-					},
-					PaymentNotes: _codaEntity{
-						ID:   "c-wa7LZUCn0b",
-						Name: "Payment notes",
-					},
-					EmployeeName: _codaEntity{
-						ID:   "c-OrAvunmGm4",
-						Name: "Employee name",
-					},
-					PercentCorrectionPercent: _codaEntity{
-						ID:   "c-Wh_7DYRQYP",
-						Name: "Percent Correction, %",
-					},
-					PercentCorrectionRUB: _codaEntity{
-						ID:   "c-OCz4oqs3YR",
-						Name: "Percent Correction, RUB",
-					},
-					TotalCorrectionEUR: _codaEntity{
-						ID:   "c-U8Bjm-cpmW",
-						Name: "Total Correction, EUR",
+						Name: "Type",
 					},
 					ModifiedOn: _codaEntity{
 						ID:   "c-7HSE88Op0l",
@@ -1294,6 +1022,22 @@ func init() {
 					CreatedOn: _codaEntity{
 						ID:   "c-pKkFDJQXHe",
 						Name: "Created on",
+					},
+					Origin: _codaEntity{
+						ID:   "c-aJp16HyPKx",
+						Name: "Origin",
+					},
+					ModifiedBy: _codaEntity{
+						ID:   "c-VwCxsKPCnl",
+						Name: "Modified by",
+					},
+					Sort: _codaEntity{
+						ID:   "c-7rE4nrnOXc",
+						Name: "Sort",
+					},
+					RUBAmountInEUR: _codaEntity{
+						ID:   "c-jVyYfeGaZ8",
+						Name: "RUB Amount in EUR",
 					},
 				},
 			},
@@ -1307,10 +1051,6 @@ func init() {
 						ID:   "c-tCDt6yt4Ix",
 						Name: "Name",
 					},
-					CurrentSalaryNet: _codaEntity{
-						ID:   "c-Is6fozVp1a",
-						Name: "Current Salary Net",
-					},
 					StartDate: _codaEntity{
 						ID:   "c-Zs7oQbj-_J",
 						Name: "Start date",
@@ -1319,25 +1059,9 @@ func init() {
 						ID:   "c-EMbqnhOkkr",
 						Name: "General SD",
 					},
-					PersonnelSD: _codaEntity{
-						ID:   "c-6L5oS7LZ4a",
-						Name: "Personnel SD",
-					},
 					FinanceSD: _codaEntity{
 						ID:   "c-NeQmHu-raB",
 						Name: "Finance SD",
-					},
-					ACLSD: _codaEntity{
-						ID:   "c-aKn3TiCF_A",
-						Name: "ACL SD",
-					},
-					ProbationEnd: _codaEntity{
-						ID:   "c-35cUDxDnAo",
-						Name: "Probation end",
-					},
-					AnnualLeaveFrom: _codaEntity{
-						ID:   "c-uzP6UrJs3a",
-						Name: "Annual leave from",
 					},
 					Location: _codaEntity{
 						ID:   "c-WcmDQXPChx",
@@ -1351,25 +1075,17 @@ func init() {
 						ID:   "c-w8WTgIbQ7H",
 						Name: "Legal form",
 					},
-					Position: _codaEntity{
-						ID:   "c-4nDWkuySVp",
-						Name: "Position",
-					},
-					Bank: _codaEntity{
+					BankTariff: _codaEntity{
 						ID:   "c-Hx-nCcWt2v",
-						Name: "Bank",
+						Name: "Bank tariff",
+					},
+					SpecialPaymentPolicy: _codaEntity{
+						ID:   "c-FOuDAl0Fmk",
+						Name: "Special payment policy",
 					},
 					EnglishFullName: _codaEntity{
 						ID:   "c-TAlfzDcFzQ",
 						Name: "English full name",
-					},
-					InvoiceFieldsErrors: _codaEntity{
-						ID:   "c-EDwQy_l7fS",
-						Name: "Invoice fields errors",
-					},
-					PaymentFieldsErrors: _codaEntity{
-						ID:   "c-UcN9cnw7y0",
-						Name: "Payment fields errors",
 					},
 					ContractNumber: _codaEntity{
 						ID:   "c-XX2OkCkOSR",
@@ -1383,26 +1099,6 @@ func init() {
 						ID:   "c-wSSi6yT6d4",
 						Name: "Bank details",
 					},
-					BankRequisites: _codaEntity{
-						ID:   "c-OlCoWd7n4S",
-						Name: "Bank requisites",
-					},
-					BankTotalFees: _codaEntity{
-						ID:   "c-156kDMsJzb",
-						Name: "Bank:Total Fees",
-					},
-					PaymentNotes: _codaEntity{
-						ID:   "c-PkLgxjZRQL",
-						Name: "Payment notes",
-					},
-					BankCC: _codaEntity{
-						ID:   "c-HbuzOpvaPf",
-						Name: "Bank:CC",
-					},
-					BankService: _codaEntity{
-						ID:   "c-214wDdnGtE",
-						Name: "Bank:Service",
-					},
 				},
 			},
 			WorkingEmployeesNames: _workingEmployeesNamesTable{
@@ -1415,10 +1111,6 @@ func init() {
 						ID:   "c-tCDt6yt4Ix",
 						Name: "Name",
 					},
-					Position: _codaEntity{
-						ID:   "c-4nDWkuySVp",
-						Name: "Position",
-					},
 					StartDate: _codaEntity{
 						ID:   "c-Zs7oQbj-_J",
 						Name: "Start date",
@@ -1426,62 +1118,6 @@ func init() {
 					Location: _codaEntity{
 						ID:   "c-WcmDQXPChx",
 						Name: "Location",
-					},
-				},
-			},
-			AllSalaries: _allSalariesTable{
-				_codaEntity: _codaEntity{
-					ID:   "grid-e85pRRoRmQ",
-					Name: "All salaries",
-				},
-				Cols: _allSalariesTableColumns{
-					Employee: _codaEntity{
-						ID:   "c-jbULjV0Fqy",
-						Name: "Employee",
-					},
-					PeriodFrom: _codaEntity{
-						ID:   "c-TA0eJ7Sp1o",
-						Name: "Period from",
-					},
-					PeriodTo: _codaEntity{
-						ID:   "c-g3fwvRIwO7",
-						Name: "Period to",
-					},
-					Salary: _codaEntity{
-						ID:   "c-3zcX3st-Yw",
-						Name: "Salary",
-					},
-					PeriodFromReal: _codaEntity{
-						ID:   "c--eZiTvXerm",
-						Name: "Period from real",
-					},
-					PeriodToReal: _codaEntity{
-						ID:   "c-V6JzCUTaB1",
-						Name: "Period to real",
-					},
-					ModifiedBy: _codaEntity{
-						ID:   "c-bs4r9N-1Pv",
-						Name: "Modified by",
-					},
-					ModifiedOn: _codaEntity{
-						ID:   "c-bdEdjvzyBx",
-						Name: "Modified on",
-					},
-					CreatedOn: _codaEntity{
-						ID:   "c-yynSxjRXAT",
-						Name: "Created on",
-					},
-					Currency: _codaEntity{
-						ID:   "c-XI2oSaBW6W",
-						Name: "Currency",
-					},
-					IsRUB: _codaEntity{
-						ID:   "c-D83OkDvxKl",
-						Name: "IsRUB",
-					},
-					IsEUR: _codaEntity{
-						ID:   "c-DHm4CICiqD",
-						Name: "IsEUR",
 					},
 				},
 			},
@@ -1495,65 +1131,21 @@ func init() {
 						ID:   "c-bbHUhqlbfN",
 						Name: "Employee",
 					},
-					Correction: _codaEntity{
-						ID:   "c-cjYMwmv-1m",
-						Name: "Correction",
-					},
-					Template: _codaEntity{
-						ID:   "c-z0Irm78xhQ",
-						Name: "Template",
-					},
 					Month: _codaEntity{
 						ID:   "c-wR0IONcxGH",
 						Name: "Month",
 					},
-					ToPay: _codaEntity{
+					PaymentChecksPassed: _codaEntity{
 						ID:   "c-DRPGK3XTmD",
-						Name: "To Pay",
+						Name: "Payment Checks Passed",
 					},
-					Reconciled: _codaEntity{
-						ID:   "c--A1RtCy-NA",
-						Name: "Reconciled",
-					},
-					Alerts: _codaEntity{
-						ID:   "c-jkrvvE_SNm",
-						Name: "Alerts",
-					},
-					RUBSubtotal: _codaEntity{
-						ID:   "c-WLMdyl4WqI",
-						Name: "RUB subtotal",
-					},
-					BaseSalaryRUB: _codaEntity{
-						ID:   "c-wqNhZf9EQY",
-						Name: "Base Salary, RUB",
-					},
-					BaseSalaryEUR: _codaEntity{
-						ID:   "c-B0nU6ZI_Z4",
-						Name: "Base Salary, EUR",
-					},
-					BankFees: _codaEntity{
-						ID:   "c-sRGR6jYC7g",
-						Name: "Bank fees",
-					},
-					RateErrorPM: _codaEntity{
-						ID:   "c-_9tuuG4RIN",
-						Name: "Rate error PM",
-					},
-					CorrectionRUB: _codaEntity{
+					RUBEntries: _codaEntity{
 						ID:   "c-jNcl4nZe_h",
-						Name: "Correction, RUB",
+						Name: "RUB Entries",
 					},
-					CorrectionRefs: _codaEntity{
+					InvoiceEntries: _codaEntity{
 						ID:   "c-tpeCMU21_I",
-						Name: "Correction Refs",
-					},
-					PatentRUB: _codaEntity{
-						ID:   "c-qA_pPM9kuZ",
-						Name: "Patent, RUB",
-					},
-					TaxesRUB: _codaEntity{
-						ID:   "c-ug709va8_K",
-						Name: "Taxes, RUB",
+						Name: "Invoice Entries",
 					},
 					EURRUBExpected: _codaEntity{
 						ID:   "c-tvtGu9juVL",
@@ -1563,101 +1155,37 @@ func init() {
 						ID:   "c-kLIyv9EvyH",
 						Name: "EURRUB actual",
 					},
-					RequestedSubtotalEUR: _codaEntity{
+					EURSubtotal: _codaEntity{
 						ID:   "c-9rnJJZ6gA7",
-						Name: "Requested subtotal, EUR",
+						Name: "EUR Subtotal",
 					},
-					RoundingPrevMonEUR: _codaEntity{
-						ID:   "c-hLrmDsk89g",
-						Name: "Rounding PrevMon, EUR",
-					},
-					Rounding: _codaEntity{
+					EURRounding: _codaEntity{
 						ID:   "c-Tri-EGUP_n",
-						Name: "Rounding",
+						Name: "EUR Rounding",
 					},
-					RequestedTotalEUR: _codaEntity{
+					EUREntries: _codaEntity{
 						ID:   "c-bJpHVxywXD",
-						Name: "Requested total, EUR",
+						Name: "EUR Entries",
 					},
-					RateErrorRUB: _codaEntity{
+					RUBRateError: _codaEntity{
 						ID:   "c-SsHRhKa_uC",
-						Name: "Rate Error, RUB",
+						Name: "RUB Rate Error",
 					},
-					CostOfDay: _codaEntity{
-						ID:   "c-yJnq9stsgi",
-						Name: "Cost of day",
-					},
-					BankDetails: _codaEntity{
+					RecipientDetails: _codaEntity{
 						ID:   "c-2TxWM7vHls",
-						Name: "Bank details",
+						Name: "Recipient details",
 					},
 				},
 			},
-			Taxes: _taxesTable{
-				_codaEntity: _codaEntity{
-					ID:   "grid-057HtXfvYH",
-					Name: "Taxes",
-				},
-				Cols: _taxesTableColumns{
-					Invoice: _codaEntity{
-						ID:   "c-sYkd0N-9Ef",
-						Name: "Invoice",
-					},
-					OpeningDateIP: _codaEntity{
-						ID:   "c-Q83cwaB-vf",
-						Name: "Opening date IP",
-					},
-					PeriodStart: _codaEntity{
-						ID:   "c-UgsMCGn1oX",
-						Name: "Period Start",
-					},
-					PeriodEnd: _codaEntity{
-						ID:   "c-7Bt0dg_odm",
-						Name: "Period End",
-					},
-					AmountIPDays: _codaEntity{
-						ID:   "c-wraB-EUIPu",
-						Name: "Amount IP days",
-					},
-					SocialInsuranceToPay: _codaEntity{
-						ID:   "c-hRpESBxMnx",
-						Name: "Social Insurance - to pay",
-					},
-					PensionFundFixedToPay: _codaEntity{
-						ID:   "c-5Gm9BIf7sa",
-						Name: "Pension fund fixed - to pay",
-					},
-					PensionFundPercent: _codaEntity{
-						ID:   "c-nO-EnVUZSb",
-						Name: "Pension fund percent",
-					},
-					Amount: _codaEntity{
-						ID:   "c-FlQQoKxoau",
-						Name: "Amount",
-					},
-					SocialInsuranceTotal: _codaEntity{
-						ID:   "c-6OpLGjaPb6",
-						Name: "Social Insurance - total",
-					},
-					PensionFundFixedTotal: _codaEntity{
-						ID:   "c-D3jKQu0yHQ",
-						Name: "Pension Fund fixed - total",
-					},
-					Year: _codaEntity{
-						ID:   "c-_hn4kyEKo7",
-						Name: "Year",
-					},
-				},
-			},
-			PatentPayments: _patentPaymentsTable{
+			PatentCompensation: _patentCompensationTable{
 				_codaEntity: _codaEntity{
 					ID:   "grid-_IJllxLQCt",
-					Name: "Patent Payments",
+					Name: "Patent compensation",
 				},
-				Cols: _patentPaymentsTableColumns{
-					Invoice: _codaEntity{
+				Cols: _patentCompensationTableColumns{
+					PaymentInvoice: _codaEntity{
 						ID:   "c-sYkd0N-9Ef",
-						Name: "Invoice",
+						Name: "Payment Invoice",
 					},
 					PeriodCost: _codaEntity{
 						ID:   "c-FlQQoKxoau",
@@ -1667,73 +1195,41 @@ func init() {
 						ID:   "c-gtV-Qz9osQ",
 						Name: "Period",
 					},
-					PeriodCostManual: _codaEntity{
+					PeriodCostOverride: _codaEntity{
 						ID:   "c-iR7HKVaAvK",
-						Name: "Period cost manual",
+						Name: "Period cost override",
 					},
 					EmployeePatentRef: _codaEntity{
 						ID:   "c-oRFcL19X2d",
 						Name: "Employee patent ref",
 					},
+					Apply: _codaEntity{
+						ID:   "c-SVnSxLqAWW",
+						Name: "Apply",
+					},
 				},
 			},
-			CorrectionCategory: _correctionCategoryTable{
+			EntryType: _entryTypeTable{
 				_codaEntity: _codaEntity{
 					ID:   "grid-ZQydbIU73l",
-					Name: "Correction Category",
+					Name: "Entry Type",
 				},
-				Cols: _correctionCategoryTableColumns{
-					Category: _codaEntity{
+				Cols: _entryTypeTableColumns{
+					Type: _codaEntity{
 						ID:   "c-2AJbX_XNUx",
-						Name: "Category",
+						Name: "Type",
 					},
 					Comment: _codaEntity{
 						ID:   "c-y50vUFEVml",
 						Name: "Comment",
 					},
-				},
-			},
-			TaxesOverview: _taxesOverviewTable{
-				_codaEntity: _codaEntity{
-					ID:   "table-X3zgg4jJ8-",
-					Name: "Taxes overview",
-				},
-				Cols: _taxesOverviewTableColumns{
-					Invoice: _codaEntity{
-						ID:   "c-sYkd0N-9Ef",
-						Name: "Invoice",
+					Archetype: _codaEntity{
+						ID:   "c-2C7Vno33Ui",
+						Name: "Archetype",
 					},
-					Amount: _codaEntity{
-						ID:   "c-FlQQoKxoau",
-						Name: "Amount",
-					},
-					OpeningDateIP: _codaEntity{
-						ID:   "c-Q83cwaB-vf",
-						Name: "Opening date IP",
-					},
-					PeriodStart: _codaEntity{
-						ID:   "c-UgsMCGn1oX",
-						Name: "Period Start",
-					},
-					PeriodEnd: _codaEntity{
-						ID:   "c-7Bt0dg_odm",
-						Name: "Period End",
-					},
-					AmountIPDays: _codaEntity{
-						ID:   "c-wraB-EUIPu",
-						Name: "Amount IP days",
-					},
-					SocialInsuranceToPay: _codaEntity{
-						ID:   "c-hRpESBxMnx",
-						Name: "Social Insurance - to pay",
-					},
-					PensionFundFixedToPay: _codaEntity{
-						ID:   "c-5Gm9BIf7sa",
-						Name: "Pension fund fixed - to pay",
-					},
-					PensionFundPercent: _codaEntity{
-						ID:   "c-nO-EnVUZSb",
-						Name: "Pension fund percent",
+					Sort: _codaEntity{
+						ID:   "c-YN77WP5gru",
+						Name: "Sort",
 					},
 				},
 			},
@@ -1743,9 +1239,9 @@ func init() {
 					Name: "Patents overview",
 				},
 				Cols: _patentsOverviewTableColumns{
-					Invoice: _codaEntity{
+					PaymentInvoice: _codaEntity{
 						ID:   "c-sYkd0N-9Ef",
-						Name: "Invoice",
+						Name: "Payment Invoice",
 					},
 					PeriodCost: _codaEntity{
 						ID:   "c-FlQQoKxoau",
@@ -1798,18 +1294,6 @@ func init() {
 					StartDate: _codaEntity{
 						ID:   "c-Zs7oQbj-_J",
 						Name: "Start date",
-					},
-					ProbationEnd: _codaEntity{
-						ID:   "c-35cUDxDnAo",
-						Name: "Probation end",
-					},
-					CurrentSalaryNet: _codaEntity{
-						ID:   "c-Is6fozVp1a",
-						Name: "Current Salary Net",
-					},
-					Position: _codaEntity{
-						ID:   "c-4nDWkuySVp",
-						Name: "Position",
 					},
 				},
 			},
@@ -1997,38 +1481,6 @@ func init() {
 					},
 				},
 			},
-			InvoicableEmployees: _invoicableEmployeesTable{
-				_codaEntity: _codaEntity{
-					ID:   "table-17g3LYb54N",
-					Name: "Invoicable Employees",
-				},
-				Cols: _invoicableEmployeesTableColumns{
-					Name: _codaEntity{
-						ID:   "c-tCDt6yt4Ix",
-						Name: "Name",
-					},
-					LegalForm: _codaEntity{
-						ID:   "c-w8WTgIbQ7H",
-						Name: "Legal form",
-					},
-					InvoiceAdd: _codaEntity{
-						ID:   "c-F8kuFeh0JE",
-						Name: "Invoice Add",
-					},
-					PendingInvoice: _codaEntity{
-						ID:   "c-Saw2_PL8gv",
-						Name: "Pending Invoice",
-					},
-					InvoiceFieldsErrors: _codaEntity{
-						ID:   "c-EDwQy_l7fS",
-						Name: "Invoice fields errors",
-					},
-					PaymentFieldsErrors: _codaEntity{
-						ID:   "c-UcN9cnw7y0",
-						Name: "Payment fields errors",
-					},
-				},
-			},
 			EmptyActualRates: _emptyActualRatesTable{
 				_codaEntity: _codaEntity{
 					ID:   "table-7A_oBrrTkt",
@@ -2042,10 +1494,6 @@ func init() {
 					Employee: _codaEntity{
 						ID:   "c-bbHUhqlbfN",
 						Name: "Employee",
-					},
-					GeneralSD: _codaEntity{
-						ID:   "c-Gkt52a0fjj",
-						Name: "General SD",
 					},
 					EURRUBExpected: _codaEntity{
 						ID:   "c-tvtGu9juVL",
@@ -2063,105 +1511,25 @@ func init() {
 					Name: "Corrections by type",
 				},
 				Cols: _correctionsByTypeTableColumns{
-					Month: _codaEntity{
-						ID:   "c-nK3Ad6VblR",
-						Name: "Month",
-					},
-					PaymentInvoice: _codaEntity{
+					Invoice: _codaEntity{
 						ID:   "c-7SU0iOBY9J",
-						Name: "Payment Invoice",
+						Name: "Invoice",
 					},
-					Category: _codaEntity{
+					Type: _codaEntity{
 						ID:   "c-zDY58PF0P6",
-						Name: "Category",
+						Name: "Type",
 					},
 					Comment: _codaEntity{
 						ID:   "c--_r48PQnSn",
 						Name: "Comment",
 					},
-					TotalCorrectionRUB: _codaEntity{
-						ID:   "c-0arkfr4qXv",
-						Name: "Total Correction, RUB",
-					},
-					AbsoluteCorrectionRUB: _codaEntity{
+					RUBAmount: _codaEntity{
 						ID:   "c-P2x5IJuMXN",
-						Name: "Absolute Correction, RUB",
+						Name: "RUB Amount",
 					},
-					AbsoluteCorrectionEUR: _codaEntity{
+					EURAmount: _codaEntity{
 						ID:   "c-pRmEece9pf",
-						Name: "Absolute Correction,EUR",
-					},
-					PercentCorrectionPercent: _codaEntity{
-						ID:   "c-Wh_7DYRQYP",
-						Name: "Percent Correction, %",
-					},
-					PerDayType: _codaEntity{
-						ID:   "c-3Ivn-M1j7-",
-						Name: "Per Day Type",
-					},
-					PerDayCoefficient: _codaEntity{
-						ID:   "c-pz6W2IRzFR",
-						Name: "PerDay Coefficient",
-					},
-					PerDayCalculationInvoice: _codaEntity{
-						ID:   "c-bK4qXZUCqs",
-						Name: "PerDay calculation invoice",
-					},
-					NumberOfDays: _codaEntity{
-						ID:   "c-gDOyigH1cm",
-						Name: "Number of days",
-					},
-					PerDay: _codaEntity{
-						ID:   "c-Y2E1Vwe2_-",
-						Name: "Per Day",
-					},
-				},
-			},
-			WorkingSalaries: _workingSalariesTable{
-				_codaEntity: _codaEntity{
-					ID:   "table-m2hJO5ZyIz",
-					Name: "Working Salaries",
-				},
-				Cols: _workingSalariesTableColumns{
-					Employee: _codaEntity{
-						ID:   "c-jbULjV0Fqy",
-						Name: "Employee",
-					},
-					PeriodFrom: _codaEntity{
-						ID:   "c-TA0eJ7Sp1o",
-						Name: "Period from",
-					},
-					PeriodTo: _codaEntity{
-						ID:   "c-g3fwvRIwO7",
-						Name: "Period to",
-					},
-					Salary: _codaEntity{
-						ID:   "c-3zcX3st-Yw",
-						Name: "Salary",
-					},
-					Currency: _codaEntity{
-						ID:   "c-XI2oSaBW6W",
-						Name: "Currency",
-					},
-					IsRUB: _codaEntity{
-						ID:   "c-D83OkDvxKl",
-						Name: "IsRUB",
-					},
-					IsEUR: _codaEntity{
-						ID:   "c-DHm4CICiqD",
-						Name: "IsEUR",
-					},
-					ModifiedBy: _codaEntity{
-						ID:   "c-bs4r9N-1Pv",
-						Name: "Modified by",
-					},
-					CreatedOn: _codaEntity{
-						ID:   "c-yynSxjRXAT",
-						Name: "Created on",
-					},
-					ModifiedOn: _codaEntity{
-						ID:   "c-bdEdjvzyBx",
-						Name: "Modified on",
+						Name: "EUR Amount",
 					},
 				},
 			},
@@ -2179,18 +1547,14 @@ func init() {
 						ID:   "c-bbHUhqlbfN",
 						Name: "Employee",
 					},
-					AddToPayrollReport: _codaEntity{
-						ID:   "c-FqZuQ1JQN0",
-						Name: "Add to payroll report",
-					},
 				},
 			},
-			BankFees: _bankFeesTable{
+			BankTariffs: _bankTariffsTable{
 				_codaEntity: _codaEntity{
 					ID:   "grid-FqLroBl9Kk",
-					Name: "Bank fees",
+					Name: "Bank tariffs",
 				},
-				Cols: _bankFeesTableColumns{
+				Cols: _bankTariffsTableColumns{
 					Name: _codaEntity{
 						ID:   "c-lVHmajh8kg",
 						Name: "Name",
@@ -2211,25 +1575,9 @@ func init() {
 					Name: "PH corrections",
 				},
 				Cols: _pHCorrectionsTableColumns{
-					Month: _codaEntity{
-						ID:   "c-nK3Ad6VblR",
-						Name: "Month",
-					},
 					Comment: _codaEntity{
 						ID:   "c--_r48PQnSn",
 						Name: "Comment",
-					},
-					TotalCorrectionRUB: _codaEntity{
-						ID:   "c-0arkfr4qXv",
-						Name: "Total Correction, RUB",
-					},
-					EURRUBExpected: _codaEntity{
-						ID:   "c-8LD34cnmCh",
-						Name: "EURRUB expected",
-					},
-					TotalCorrectionEUR: _codaEntity{
-						ID:   "c-U8Bjm-cpmW",
-						Name: "Total Correction, EUR",
 					},
 				},
 			},
@@ -2265,34 +1613,6 @@ func init() {
 					},
 				},
 			},
-			PaymentNotesCorrectionAdding: _paymentNotesCorrectionAddingTable{
-				_codaEntity: _codaEntity{
-					ID:   "table-JJwP6k3c7a",
-					Name: "Payment Notes Correction Adding",
-				},
-				Cols: _paymentNotesCorrectionAddingTableColumns{
-					Month: _codaEntity{
-						ID:   "c-wR0IONcxGH",
-						Name: "Month",
-					},
-					Employee: _codaEntity{
-						ID:   "c-bbHUhqlbfN",
-						Name: "Employee",
-					},
-					Correction: _codaEntity{
-						ID:   "c-cjYMwmv-1m",
-						Name: "Correction",
-					},
-					CorrectionRefs: _codaEntity{
-						ID:   "c-tpeCMU21_I",
-						Name: "Correction Refs",
-					},
-					PaymentNotes: _codaEntity{
-						ID:   "c-f4weK3W_gH",
-						Name: "Payment notes",
-					},
-				},
-			},
 			CompanyRates: _companyRatesTable{
 				_codaEntity: _codaEntity{
 					ID:   "grid-EKocnbzws-",
@@ -2303,9 +1623,9 @@ func init() {
 						ID:   "c-qTxlDXIGQE",
 						Name: "Month",
 					},
-					Rate: _codaEntity{
+					EURRUB: _codaEntity{
 						ID:   "c-fmUjYXxNxl",
-						Name: "Rate",
+						Name: "EURRUB",
 					},
 				},
 			},
@@ -2475,10 +1795,6 @@ func init() {
 						ID:   "c-bbHUhqlbfN",
 						Name: "Employee",
 					},
-					GeneralSD: _codaEntity{
-						ID:   "c-Gkt52a0fjj",
-						Name: "General SD",
-					},
 					EURRUBExpected: _codaEntity{
 						ID:   "c-tvtGu9juVL",
 						Name: "EURRUB expected",
@@ -2515,57 +1831,21 @@ func init() {
 					Name: "Corrections by employee",
 				},
 				Cols: _correctionsByEmployeeTableColumns{
-					Month: _codaEntity{
-						ID:   "c-nK3Ad6VblR",
-						Name: "Month",
-					},
-					Category: _codaEntity{
+					Type: _codaEntity{
 						ID:   "c-zDY58PF0P6",
-						Name: "Category",
+						Name: "Type",
 					},
 					Comment: _codaEntity{
 						ID:   "c--_r48PQnSn",
 						Name: "Comment",
 					},
-					TotalCorrectionRUB: _codaEntity{
-						ID:   "c-0arkfr4qXv",
-						Name: "Total Correction, RUB",
-					},
-					AbsoluteCorrectionRUB: _codaEntity{
+					RUBAmount: _codaEntity{
 						ID:   "c-P2x5IJuMXN",
-						Name: "Absolute Correction, RUB",
+						Name: "RUB Amount",
 					},
-					AbsoluteCorrectionEUR: _codaEntity{
+					EURAmount: _codaEntity{
 						ID:   "c-pRmEece9pf",
-						Name: "Absolute Correction,EUR",
-					},
-					PercentCorrectionPercent: _codaEntity{
-						ID:   "c-Wh_7DYRQYP",
-						Name: "Percent Correction, %",
-					},
-					PerDayType: _codaEntity{
-						ID:   "c-3Ivn-M1j7-",
-						Name: "Per Day Type",
-					},
-					PerDayCoefficient: _codaEntity{
-						ID:   "c-pz6W2IRzFR",
-						Name: "PerDay Coefficient",
-					},
-					PerDayCalculationInvoice: _codaEntity{
-						ID:   "c-bK4qXZUCqs",
-						Name: "PerDay calculation invoice",
-					},
-					NumberOfDays: _codaEntity{
-						ID:   "c-gDOyigH1cm",
-						Name: "Number of days",
-					},
-					PerDay: _codaEntity{
-						ID:   "c-Y2E1Vwe2_-",
-						Name: "Per Day",
-					},
-					EmployeeName: _codaEntity{
-						ID:   "c-OrAvunmGm4",
-						Name: "Employee name",
+						Name: "EUR Amount",
 					},
 				},
 			},
@@ -2579,18 +1859,18 @@ func init() {
 						ID:   "c-qTxlDXIGQE",
 						Name: "Month",
 					},
-					Rate: _codaEntity{
+					EURRUB: _codaEntity{
 						ID:   "c-fmUjYXxNxl",
-						Name: "Rate",
+						Name: "EURRUB",
 					},
 				},
 			},
-			CorrectionTemplates: _correctionTemplatesTable{
+			TemplateEntries: _templateEntriesTable{
 				_codaEntity: _codaEntity{
 					ID:   "grid-UCDG_ZiZul",
-					Name: "Correction Templates",
+					Name: "Template Entries",
 				},
-				Cols: _correctionTemplatesTableColumns{
+				Cols: _templateEntriesTableColumns{
 					Employee: _codaEntity{
 						ID:   "c-i3AkRY8VR2",
 						Name: "Employee",
@@ -2603,21 +1883,37 @@ func init() {
 						ID:   "c-uT9WCaQDwD",
 						Name: "Month to",
 					},
-					Category: _codaEntity{
+					Type: _codaEntity{
 						ID:   "c-XAPnEUIYZl",
-						Name: "Category",
+						Name: "Type",
 					},
 					Comment: _codaEntity{
 						ID:   "c-MA1AOZuc-X",
 						Name: "Comment",
 					},
-					TemplateAmountRUB: _codaEntity{
+					RUBAmount: _codaEntity{
 						ID:   "c-JM08fLTvoQ",
-						Name: "Template amount, RUB",
+						Name: "RUB Amount",
 					},
-					TemplateAmountEUR: _codaEntity{
+					EURAmount: _codaEntity{
 						ID:   "c-LRs1cqydXQ",
-						Name: "Template amount, EUR",
+						Name: "EUR Amount",
+					},
+					ModifiedBy: _codaEntity{
+						ID:   "c-LEF8qqAn8z",
+						Name: "Modified by",
+					},
+					CreatedOn: _codaEntity{
+						ID:   "c-09NCJ1zLwk",
+						Name: "Created on",
+					},
+					ModifiedOn: _codaEntity{
+						ID:   "c-PorXY2SBXh",
+						Name: "Modified on",
+					},
+					Display: _codaEntity{
+						ID:   "c-IF-PVJ6rtI",
+						Name: "Display",
 					},
 				},
 			},
@@ -2630,10 +1926,6 @@ func init() {
 					Name: _codaEntity{
 						ID:   "c-tCDt6yt4Ix",
 						Name: "Name",
-					},
-					Position: _codaEntity{
-						ID:   "c-4nDWkuySVp",
-						Name: "Position",
 					},
 					StartDate: _codaEntity{
 						ID:   "c-Zs7oQbj-_J",
@@ -2687,6 +1979,10 @@ func init() {
 						ID:   "c-vWfYwgU4Up",
 						Name: "Text",
 					},
+					BankRequisites: _codaEntity{
+						ID:   "c-kvJol7ACwf",
+						Name: "Bank requisites",
+					},
 				},
 			},
 			BeneficiaryBank: _beneficiaryBankTable{
@@ -2737,6 +2033,310 @@ func init() {
 					},
 				},
 			},
+			PensionFundFixed: _pensionFundFixedTable{
+				_codaEntity: _codaEntity{
+					ID:   "grid-ikOK1_C1fc",
+					Name: "Pension Fund fixed",
+				},
+				Cols: _pensionFundFixedTableColumns{
+					Invoice: _codaEntity{
+						ID:   "c-sYkd0N-9Ef",
+						Name: "Invoice",
+					},
+					OpeningDateIP: _codaEntity{
+						ID:   "c-Q83cwaB-vf",
+						Name: "Opening date IP",
+					},
+					PeriodStart: _codaEntity{
+						ID:   "c-UgsMCGn1oX",
+						Name: "Period Start",
+					},
+					PeriodEnd: _codaEntity{
+						ID:   "c-7Bt0dg_odm",
+						Name: "Period End",
+					},
+					AmountIPDays: _codaEntity{
+						ID:   "c-wraB-EUIPu",
+						Name: "Amount IP days",
+					},
+					PensionFundFixedToPay: _codaEntity{
+						ID:   "c-5Gm9BIf7sa",
+						Name: "Pension fund fixed - to pay",
+					},
+					PensionFundFixedTotal: _codaEntity{
+						ID:   "c-D3jKQu0yHQ",
+						Name: "Pension Fund fixed - total",
+					},
+					Year: _codaEntity{
+						ID:   "c-_hn4kyEKo7",
+						Name: "Year",
+					},
+				},
+			},
+			SocialInsurance: _socialInsuranceTable{
+				_codaEntity: _codaEntity{
+					ID:   "grid-xke_mOFuzO",
+					Name: "Social Insurance",
+				},
+				Cols: _socialInsuranceTableColumns{
+					Invoice: _codaEntity{
+						ID:   "c-sYkd0N-9Ef",
+						Name: "Invoice",
+					},
+					OpeningDateIP: _codaEntity{
+						ID:   "c-Q83cwaB-vf",
+						Name: "Opening date IP",
+					},
+					PeriodStart: _codaEntity{
+						ID:   "c-UgsMCGn1oX",
+						Name: "Period Start",
+					},
+					PeriodEnd: _codaEntity{
+						ID:   "c-7Bt0dg_odm",
+						Name: "Period End",
+					},
+					AmountIPDays: _codaEntity{
+						ID:   "c-wraB-EUIPu",
+						Name: "Amount IP days",
+					},
+					SocialInsuranceToPay: _codaEntity{
+						ID:   "c-hRpESBxMnx",
+						Name: "Social Insurance - to pay",
+					},
+					SocialInsuranceTotal: _codaEntity{
+						ID:   "c-6OpLGjaPb6",
+						Name: "Social Insurance - total",
+					},
+					Year: _codaEntity{
+						ID:   "c-_hn4kyEKo7",
+						Name: "Year",
+					},
+				},
+			},
+			PensionFundPercent: _pensionFundPercentTable{
+				_codaEntity: _codaEntity{
+					ID:   "grid-5B0Z-WEqCn",
+					Name: "Pension fund percent",
+				},
+				Cols: _pensionFundPercentTableColumns{
+					Invoice: _codaEntity{
+						ID:   "c-sYkd0N-9Ef",
+						Name: "Invoice",
+					},
+					PensionFundPercent: _codaEntity{
+						ID:   "c-nO-EnVUZSb",
+						Name: "Pension fund percent",
+					},
+					Year: _codaEntity{
+						ID:   "c-_hn4kyEKo7",
+						Name: "Year",
+					},
+				},
+			},
+			PerDayCalculations: _perDayCalculationsTable{
+				_codaEntity: _codaEntity{
+					ID:   "grid-ik-9DIjBqz",
+					Name: "Per Day Calculations",
+				},
+				Cols: _perDayCalculationsTableColumns{
+					Type: _codaEntity{
+						ID:   "c-3Ivn-M1j7-",
+						Name: "Type",
+					},
+					NumberOfDays: _codaEntity{
+						ID:   "c-gDOyigH1cm",
+						Name: "Number of days",
+					},
+					CostOfDay: _codaEntity{
+						ID:   "c-K_Iy0iERKR",
+						Name: "Cost of day",
+					},
+					Total: _codaEntity{
+						ID:   "c-Y2E1Vwe2_-",
+						Name: "Total",
+					},
+					PaymentInvoice: _codaEntity{
+						ID:   "c-7SU0iOBY9J",
+						Name: "Payment invoice",
+					},
+					CalculationPeriod: _codaEntity{
+						ID:   "c-bK4qXZUCqs",
+						Name: "Calculation period",
+					},
+					CalculationInvoice: _codaEntity{
+						ID:   "c-QXP63jNl9T",
+						Name: "Calculation invoice",
+					},
+					Salary: _codaEntity{
+						ID:   "c-jgeE5L-QmG",
+						Name: "Salary",
+					},
+					Apply: _codaEntity{
+						ID:   "c-5wgfO7-p7n",
+						Name: "Apply",
+					},
+				},
+			},
+			PerDayPolicies: _perDayPoliciesTable{
+				_codaEntity: _codaEntity{
+					ID:   "grid-MwSd1ImG9X",
+					Name: "Per Day Policies",
+				},
+				Cols: _perDayPoliciesTableColumns{
+					Name: _codaEntity{
+						ID:   "c-SESlR7_60Q",
+						Name: "Name",
+					},
+					Coefficient: _codaEntity{
+						ID:   "c-Cg4D8wBxQx",
+						Name: "Coefficient",
+					},
+					EntryType: _codaEntity{
+						ID:   "c-MyD8pD9imA",
+						Name: "Entry Type",
+					},
+				},
+			},
+			Salaries: _salariesTable{
+				_codaEntity: _codaEntity{
+					ID:   "table-zWwQuzxVi7",
+					Name: "Salaries",
+				},
+				Cols: _salariesTableColumns{
+					Employee: _codaEntity{
+						ID:   "c-i3AkRY8VR2",
+						Name: "Employee",
+					},
+					MonthFrom: _codaEntity{
+						ID:   "c-ecmeLn9tY5",
+						Name: "Month from",
+					},
+					MonthTo: _codaEntity{
+						ID:   "c-uT9WCaQDwD",
+						Name: "Month to",
+					},
+					Comment: _codaEntity{
+						ID:   "c-MA1AOZuc-X",
+						Name: "Comment",
+					},
+					RUBAmount: _codaEntity{
+						ID:   "c-JM08fLTvoQ",
+						Name: "RUB Amount",
+					},
+					EURAmount: _codaEntity{
+						ID:   "c-LRs1cqydXQ",
+						Name: "EUR Amount",
+					},
+				},
+			},
+			PayableEmployees: _payableEmployeesTable{
+				_codaEntity: _codaEntity{
+					ID:   "grid-ULBMNv2LxC",
+					Name: "Payable employees",
+				},
+				Cols: _payableEmployeesTableColumns{
+					Employee: _codaEntity{
+						ID:   "c-E3ueCNW5Td",
+						Name: "Employee",
+					},
+					BonusQuarter: _codaEntity{
+						ID:   "c-b7PNViCexb",
+						Name: "Bonus Quarter",
+					},
+					TargetInvoice: _codaEntity{
+						ID:   "c-lNa8MQX1Ze",
+						Name: "Target invoice",
+					},
+					AddAny: _codaEntity{
+						ID:   "c-5kK0bjRk3J",
+						Name: "Add any",
+					},
+					FlexBenefit: _codaEntity{
+						ID:   "c-5k0Q3x_vWp",
+						Name: "Flex benefit",
+					},
+					SelfEmplTax: _codaEntity{
+						ID:   "c-0jQDMsAjed",
+						Name: "Self-Empl Tax",
+					},
+					IE6PercentTax: _codaEntity{
+						ID:   "c-L-78eDsX4J",
+						Name: "IE 6% Tax",
+					},
+					ManualEntries: _codaEntity{
+						ID:   "c-gwL_v6jBRy",
+						Name: "Manual Entries",
+					},
+					ExcludedEntryTypes: _codaEntity{
+						ID:   "c-aMaPUsZYA1",
+						Name: "Excluded Entry Types",
+					},
+				},
+			},
+			QuickManualEntry: _quickManualEntryTable{
+				_codaEntity: _codaEntity{
+					ID:   "table-jI1G_u-gq-",
+					Name: "Quick Manual Entry",
+				},
+				Cols: _quickManualEntryTableColumns{
+					TargetInvoice: _codaEntity{
+						ID:   "c-lNa8MQX1Ze",
+						Name: "Target invoice",
+					},
+					ManualEntries: _codaEntity{
+						ID:   "c-gwL_v6jBRy",
+						Name: "Manual Entries",
+					},
+					AddAny: _codaEntity{
+						ID:   "c-5kK0bjRk3J",
+						Name: "Add any",
+					},
+					BonusQuarter: _codaEntity{
+						ID:   "c-b7PNViCexb",
+						Name: "Bonus Quarter",
+					},
+					FlexBenefit: _codaEntity{
+						ID:   "c-5k0Q3x_vWp",
+						Name: "Flex benefit",
+					},
+					SelfEmplTax: _codaEntity{
+						ID:   "c-0jQDMsAjed",
+						Name: "Self-Empl Tax",
+					},
+					IE6PercentTax: _codaEntity{
+						ID:   "c-L-78eDsX4J",
+						Name: "IE 6% Tax",
+					},
+				},
+			},
+			NewInvoiceEntriesPerType: _newInvoiceEntriesPerTypeTable{
+				_codaEntity: _codaEntity{
+					ID:   "table-vHvZOlu-NN",
+					Name: "New invoice entries per type",
+				},
+				Cols: _newInvoiceEntriesPerTypeTableColumns{
+					Invoice: _codaEntity{
+						ID:   "c-7SU0iOBY9J",
+						Name: "Invoice",
+					},
+					Type: _codaEntity{
+						ID:   "c-zDY58PF0P6",
+						Name: "Type",
+					},
+					Comment: _codaEntity{
+						ID:   "c--_r48PQnSn",
+						Name: "Comment",
+					},
+					RUBAmount: _codaEntity{
+						ID:   "c-P2x5IJuMXN",
+						Name: "RUB Amount",
+					},
+					EURAmount: _codaEntity{
+						ID:   "c-pRmEece9pf",
+						Name: "EUR Amount",
+					},
+				},
+			},
 		},
 		Formula: _formulaSchema{
 			CurrentMonth: _codaEntity{
@@ -2751,6 +2351,22 @@ func init() {
 				ID:   "f-Szv1kBPaqg",
 				Name: "invoiceAddingRate",
 			},
+			NewInvoiceValidation: _codaEntity{
+				ID:   "f-mvuXtisHj6",
+				Name: "newInvoiceValidation",
+			},
+			NewInvoiceValidationIcon: _codaEntity{
+				ID:   "f-DEQrOzH6JR",
+				Name: "newInvoiceValidationIcon",
+			},
+			NewInvoiceRate: _codaEntity{
+				ID:   "f-y2hpDful7D",
+				Name: "newInvoiceRate",
+			},
+			NewInvoicePreviousRatesFilled: _codaEntity{
+				ID:   "f-ROGDhTzctH",
+				Name: "newInvoicePreviousRatesFilled",
+			},
 		},
 		Control: _controlSchema{
 			SelectOverviewMonth: _codaEntity{
@@ -2760,10 +2376,6 @@ func init() {
 			SelectOverviewEmployee: _codaEntity{
 				ID:   "ctrl-jOuC2qXPDn",
 				Name: "selectOverviewEmployee",
-			},
-			WorkingSalariesCheckbox: _codaEntity{
-				ID:   "ctrl-9aVAfOrSPE",
-				Name: "workingSalariesCheckbox",
 			},
 			InvoiceAddingMonth: _codaEntity{
 				ID:   "ctrl-tmRmOIk1PB",
@@ -2781,9 +2393,13 @@ func init() {
 				ID:   "ctrl-KsXj7cpo3G",
 				Name: "fillRatesShowFilled",
 			},
-			ChkSalariesOnlyCurrent: _codaEntity{
-				ID:   "ctrl-TCZgekQfuf",
-				Name: "chkSalariesOnlyCurrent",
+			NewInvoiceBtn: _codaEntity{
+				ID:   "ctrl-_VdNjxp4nS",
+				Name: "newInvoiceBtn",
+			},
+			NewInvoiceMonth: _codaEntity{
+				ID:   "ctrl-AMUYcRRj1w",
+				Name: "newInvoiceMonth",
 			},
 		},
 	}

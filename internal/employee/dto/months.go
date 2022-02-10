@@ -1,7 +1,7 @@
 package dto
 
 import (
-	"errors"
+	"fmt"
 	"oea-go/internal/codatypes"
 	"oea-go/internal/employee/codaschema"
 	"time"
@@ -33,7 +33,7 @@ func (m Months) FindByName(name string) (*Month, error) {
 		}
 	}
 
-	return nil, errors.New("not found")
+	return nil, fmt.Errorf("month not found: %v", name)
 }
 
 func (m Months) IndexOfYearMonth(of time.Time) (int, error) {
@@ -43,7 +43,7 @@ func (m Months) IndexOfYearMonth(of time.Time) (int, error) {
 		}
 	}
 
-	return 0, errors.New("not found")
+	return 0, fmt.Errorf("IndexOfYearMonth not found: %v", of)
 }
 
 func (m Months) IndexOfTime(t time.Time) int {
