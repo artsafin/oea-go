@@ -2,6 +2,7 @@ VERSION = $(shell git rev-parse --short HEAD)
 DEV_ENV_FILE=dev-docker/.env
 DEV_COMPOSE_FILE=dev-docker/docker-compose.yml
 DEV_COMPOSE_PROJ=oea-go-dev
+GENERATOR_IMAGE=ghcr.io/artsafin/coda-schema-generator:v1.0.2
 
 .PHONY: all
 
@@ -25,8 +26,8 @@ run-dev: build
 	docker compose --env-file $(DEV_ENV_FILE) -f $(DEV_COMPOSE_FILE) -p $(DEV_COMPOSE_PROJ) logs -f --tail=50
 
 generate-coda:
-	@docker pull -q ghcr.io/artsafin/coda-schema-generator/coda-schema-generator:main
-	@docker run --rm ghcr.io/artsafin/coda-schema-generator/coda-schema-generator:main $(CODA_TOKEN) Oz23vO7xol > internal/employee/codaschema/ids.go
-	@docker run --rm ghcr.io/artsafin/coda-schema-generator/coda-schema-generator:main $(CODA_TOKEN) TAC1aAH5mf > internal/office/codaschema/ids.go
-	@go fmt internal/employee/codaschema/ids.go
-	@go fmt internal/office/codaschema/ids.go
+	@docker pull -q $(GENERATOR_IMAGE)
+	@docker run --rm $(GENERATOR_IMAGE) $(CODA_TOKEN) Oz23vO7xol > internal/employee/codaschema/codaschema.go
+	@docker run --rm $(GENERATOR_IMAGE) $(CODA_TOKEN) TAC1aAH5mf > internal/office/codaschema/codaschema.go
+	@go fmt internal/employee/codaschema/codaschema.go
+	@go fmt internal/office/codaschema/codaschema.go

@@ -4,6 +4,7 @@ go 1.16
 
 require (
 	github.com/360EntSecGroup-Skylar/excelize/v2 v2.3.2
+	github.com/artsafin/coda-go-client v0.0.0-20220208071110-83aade5b734d
 	github.com/artsafin/go-coda v1.0.1
 	github.com/badoux/checkmail v1.2.1
 	github.com/cristalhq/jwt v1.2.0
@@ -16,13 +17,10 @@ require (
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/pkg/errors v0.9.1
 	github.com/smartystreets/goconvey v1.6.4 // indirect
-	github.com/stretchr/testify v1.6.1
+	github.com/stretchr/testify v1.7.0
 	github.com/technoweenie/multipartstreamer v1.0.1 // indirect
 	github.com/xuri/efp v0.0.0-20210128032744-13be4fd5dcb5 // indirect
 	go.uber.org/multierr v1.6.0 // indirect
 	go.uber.org/zap v1.16.0
-	golang.org/x/crypto v0.0.0-20210220033148-5ea612d1eb83 // indirect
-	golang.org/x/net v0.0.0-20210226172049-e18ecbb05110 // indirect
-	golang.org/x/text v0.3.5
-	gopkg.in/yaml.v2 v2.2.8 // indirect
+	golang.org/x/text v0.3.7
 )
