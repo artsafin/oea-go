@@ -2,8 +2,8 @@ github.com/360EntSecGroup-Skylar/excelize/v2 v2.3.2 h1:MHu5KWWt28FzRGQgc4Ryj/lZT
 github.com/360EntSecGroup-Skylar/excelize/v2 v2.3.2/go.mod h1:xc0ybJZXcn084ZaIvQv+LfCDQjMWfxkBa2K9nLXYJtI=
 github.com/BurntSushi/toml v0.3.1 h1:WXkYYl6Yr3qBf1K79EBnL4mak0OimBfB0XUf9Vl28OQ=
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
-github.com/artsafin/coda-go-client v0.0.0-20220208071110-83aade5b734d h1:OcGpt121lGckH+7bDtwE7pmjUoqA/rB7/nUy9R6VLt4=
-github.com/artsafin/coda-go-client v0.0.0-20220208071110-83aade5b734d/go.mod h1:WFyZA4RSVNCAnLoQEDMerb+eKxbxMP6+CqbcHmabSHU=
+github.com/artsafin/coda-go-client v1.0.4 h1:FiqMEMgWVpGKEGYBvdhH4lJHPD569vIaOFbF0Q0YX2U=
+github.com/artsafin/coda-go-client v1.0.4/go.mod h1:WFyZA4RSVNCAnLoQEDMerb+eKxbxMP6+CqbcHmabSHU=
 github.com/artsafin/go-coda v1.0.1 h1:gKZ2M81wf/NpjSSTRFg6N8F8uW7Jx7prSJNfrxpfWE4=
 github.com/artsafin/go-coda v1.0.1/go.mod h1:FftMD6D2mOodG8AUzXLqXA2jZP/ZahP+N0U5zFUyKTU=
 github.com/badoux/checkmail v1.2.1 h1:TzwYx5pnsV6anJweMx2auXdekBwGr/yt1GgalIx9nBQ=

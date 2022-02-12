@@ -4,7 +4,7 @@ go 1.16
 
 require (
 	github.com/360EntSecGroup-Skylar/excelize/v2 v2.3.2
-	github.com/artsafin/coda-go-client v0.0.0-20220208071110-83aade5b734d
+	github.com/artsafin/coda-go-client v1.0.4
 	github.com/artsafin/go-coda v1.0.1
 	github.com/badoux/checkmail v1.2.1
 	github.com/cristalhq/jwt v1.2.0

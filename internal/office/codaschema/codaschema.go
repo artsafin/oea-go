@@ -5,15 +5,15 @@
 package codaschema
 
 import (
-    "context"
-    "encoding/json"
-    "fmt"
-    "github.com/artsafin/coda-go-client/codaapi"
-    "net/http"
-    "strconv"
-    "strings"
+	"context"
+	"encoding/json"
+	"fmt"
+	"github.com/artsafin/coda-go-client/codaapi"
+	"net/http"
+	"strconv"
+	"strings"
 	"sync"
-    "time"
+	"time"
 )
 
 //region Basic types
@@ -34,349 +34,349 @@ func (e _codaEntity) String() string {
 }
 
 type _tableSchema struct {
-    Months _monthsTable // Months
-    CashFlow _cashFlowTable // Cash flow
-    InvoicePayment _invoicePaymentTable // Invoice payment
-    Expenses _expensesTable // Expenses
-    Invoices _invoicesTable // Invoices
-    Accounts _accountsTable // Accounts
-    UnplannedLast40d _unplannedLast40dTable // Unplanned (last 40d)
-    PlannedSpendsAndCurrentInvoice _plannedSpendsAndCurrentInvoiceTable // Planned spends and current invoice
-    InventoryTypes _inventoryTypesTable // Inventory Types
-    InvoiceTemplate _invoiceTemplateTable // Invoice template
-    PlannedAndPreviousInvoices _plannedAndPreviousInvoicesTable // Planned and previous invoices
-    PlannedExpenses _plannedExpensesTable // Planned expenses
-    CashFlow2020 _cashFlow2020Table // Cash flow 2020
-    CashFlowOfPersonalAcc _cashFlowOfPersonalAccTable // Cash flow of personal acc
-    CashFlow2021 _cashFlow2021Table // Cash flow 2021
-    AuditCategory _auditCategoryTable // Audit Category
-    ExpensesByCategory _expensesByCategoryTable // Expenses by category
+	Months                         _monthsTable                         // Months
+	CashFlow                       _cashFlowTable                       // Cash flow
+	InvoicePayment                 _invoicePaymentTable                 // Invoice payment
+	Expenses                       _expensesTable                       // Expenses
+	Invoices                       _invoicesTable                       // Invoices
+	Accounts                       _accountsTable                       // Accounts
+	UnplannedLast40d               _unplannedLast40dTable               // Unplanned (last 40d)
+	PlannedSpendsAndCurrentInvoice _plannedSpendsAndCurrentInvoiceTable // Planned spends and current invoice
+	InventoryTypes                 _inventoryTypesTable                 // Inventory Types
+	InvoiceTemplate                _invoiceTemplateTable                // Invoice template
+	PlannedAndPreviousInvoices     _plannedAndPreviousInvoicesTable     // Planned and previous invoices
+	PlannedExpenses                _plannedExpensesTable                // Planned expenses
+	CashFlow2020                   _cashFlow2020Table                   // Cash flow 2020
+	CashFlowOfPersonalAcc          _cashFlowOfPersonalAccTable          // Cash flow of personal acc
+	CashFlow2021                   _cashFlow2021Table                   // Cash flow 2021
+	AuditCategory                  _auditCategoryTable                  // Audit Category
+	ExpensesByCategory             _expensesByCategoryTable             // Expenses by category
 }
 type _formulaSchema struct {
-    PlannedInvoice _codaEntity // plannedInvoice
-    LastInvoice _codaEntity // lastInvoice
-    EvaluatedCompanyBalance _codaEntity // evaluatedCompanyBalance
-    EvaluatedTotalPending _codaEntity // evaluatedTotalPending
-    TplMonth _codaEntity // tplMonth
-    TplNextMonth _codaEntity // tplNextMonth
+	PlannedInvoice          _codaEntity // plannedInvoice
+	LastInvoice             _codaEntity // lastInvoice
+	EvaluatedCompanyBalance _codaEntity // evaluatedCompanyBalance
+	EvaluatedTotalPending   _codaEntity // evaluatedTotalPending
+	TplMonth                _codaEntity // tplMonth
+	TplNextMonth            _codaEntity // tplNextMonth
 }
 type _controlSchema struct {
-    BtnAddUnplanned _codaEntity // btnAddUnplanned
-    BtnInvoiceAdd _codaEntity // btnInvoiceAdd
-    Button1 _codaEntity // button 1
+	BtnAddUnplanned _codaEntity // btnAddUnplanned
+	BtnInvoiceAdd   _codaEntity // btnInvoiceAdd
+	Button1         _codaEntity // button 1
 }
 
 // Table Months
 type _monthsTable struct {
-    _codaEntity
-    Cols _monthsTableColumns
+	_codaEntity
+	Cols _monthsTableColumns
 }
 type _monthsTableColumns struct {
-	Row _codaEntity /* packObject [Row] */
-	Synced _codaEntity /* checkbox [Synced] */
-	SyncAccount _codaEntity /* lookup [Sync account] */
-	Name _codaEntity /* text [Name] = Row.ID */
-	Month _codaEntity /* date [Month] = Row.Month */
-	PreviousMonth _codaEntity /* date [Previous Month] = Row.PreviousMonth */
-	MonthName _codaEntity /* text [Month Name] = Row.MonthName */
-	WorkDays _codaEntity /* number [Work Days] = Row.WorkDays */
-	Year _codaEntity /* text [Year] = Row.Year */
+	Row               _codaEntity /* packObject [Row] */
+	Synced            _codaEntity /* checkbox [Synced] */
+	SyncAccount       _codaEntity /* lookup [Sync account] */
+	Name              _codaEntity /* text [Name] = Row.ID */
+	Month             _codaEntity /* date [Month] = Row.Month */
+	PreviousMonth     _codaEntity /* date [Previous Month] = Row.PreviousMonth */
+	MonthName         _codaEntity /* text [Month Name] = Row.MonthName */
+	WorkDays          _codaEntity /* number [Work Days] = Row.WorkDays */
+	Year              _codaEntity /* text [Year] = Row.Year */
 	PreviousMonthLink _codaEntity /* text [Previous Month Link] = Row.PreviousMonthLink */
 }
 
 // Table Cash flow
 type _cashFlowTable struct {
-    _codaEntity
-    Cols _cashFlowTableColumns
+	_codaEntity
+	Cols _cashFlowTableColumns
 }
 type _cashFlowTableColumns struct {
-	No _codaEntity /* number [No] = thisRow.RowId() */
-	Date _codaEntity /* date [Date] */
-	Comment _codaEntity /* text [Comment] */
-	AmountRUB _codaEntity /* number [Amount, RUB] = [Paid amt, RUB] + [Comission amt, RUB] */
-	Account _codaEntity /* lookup [Account] */
-	CashOutPurpose _codaEntity /* lookup [Cash out purpose] */
-	CashIn _codaEntity /* lookup [Cash in] */
+	No              _codaEntity /* number [No] = thisRow.RowId() */
+	Date            _codaEntity /* date [Date] */
+	Comment         _codaEntity /* text [Comment] */
+	AmountRUB       _codaEntity /* number [Amount, RUB] = [Paid amt, RUB] + [Comission amt, RUB] */
+	Account         _codaEntity /* lookup [Account] */
+	CashOutPurpose  _codaEntity /* lookup [Cash out purpose] */
+	CashIn          _codaEntity /* lookup [Cash in] */
 	ComissionAmtRUB _codaEntity /* number [Comission amt, RUB] */
-	PaidAmtRUB _codaEntity /* number [Paid amt, RUB] */
-	Reconciled _codaEntity /* checkbox [Reconciled] */
-	Count _codaEntity /* number [Count] */
-	InclInBalance _codaEntity /* checkbox [Incl in balance] = Account.[Incl in balance] */
-	Author _codaEntity /* person [Author] = thisRow.CreatedBy() */
-	PersonalPaidIn _codaEntity /* lookup [Personal paid in] */
-	CreatedOn _codaEntity /* dateTime [Created on] = thisRow.Created() */
+	PaidAmtRUB      _codaEntity /* number [Paid amt, RUB] */
+	Reconciled      _codaEntity /* checkbox [Reconciled] */
+	Count           _codaEntity /* number [Count] */
+	InclInBalance   _codaEntity /* checkbox [Incl in balance] = Account.[Incl in balance] */
+	Author          _codaEntity /* person [Author] = thisRow.CreatedBy() */
+	PersonalPaidIn  _codaEntity /* lookup [Personal paid in] */
+	CreatedOn       _codaEntity /* dateTime [Created on] = thisRow.Created() */
 }
 
 // Table Invoice payment
 type _invoicePaymentTable struct {
-    _codaEntity
-    Cols _invoicePaymentTableColumns
+	_codaEntity
+	Cols _invoicePaymentTableColumns
 }
 type _invoicePaymentTableColumns struct {
 	ReceivedDate _codaEntity /* date [Received date] */
-	AmountEUR _codaEntity /* number [Amount EUR] */
-	PaymentRate _codaEntity /* number [Payment rate] */
-	PlannedRate _codaEntity /* number [Planned rate] = Invoice.[EUR fixed rate] */
-	RateDiff _codaEntity /* number [Rate diff] = [Payment rate]-[Planned rate] */
-	AmountRUB _codaEntity /* number [Amount RUB] = [Amount EUR] *[Payment rate] */
-	RateBalance _codaEntity /* number [Rate balance] = ToNumber([Amount EUR]) * [Rate diff] */
-	SentDate _codaEntity /* dateTime [Sent date] */
-	RateError _codaEntity /* percent [Rate error] = [Rate balance]/[Amount RUB] */
-	Invoice _codaEntity /* lookup [Invoice] = Invoices.Filter([Covering income].Contains(thisRow)) */
-	CashFlow _codaEntity /* button [Cash Flow] */
+	AmountEUR    _codaEntity /* number [Amount EUR] */
+	PaymentRate  _codaEntity /* number [Payment rate] */
+	PlannedRate  _codaEntity /* number [Planned rate] = Invoice.[EUR fixed rate] */
+	RateDiff     _codaEntity /* number [Rate diff] = [Payment rate]-[Planned rate] */
+	AmountRUB    _codaEntity /* number [Amount RUB] = [Amount EUR] *[Payment rate] */
+	RateBalance  _codaEntity /* number [Rate balance] = ToNumber([Amount EUR]) * [Rate diff] */
+	SentDate     _codaEntity /* dateTime [Sent date] */
+	RateError    _codaEntity /* percent [Rate error] = [Rate balance]/[Amount RUB] */
+	Invoice      _codaEntity /* lookup [Invoice] = Invoices.Filter([Covering income].Contains(thisRow)) */
+	CashFlow     _codaEntity /* button [Cash Flow] */
 }
 
 // Table Expenses
 type _expensesTable struct {
-    _codaEntity
-    Cols _expensesTableColumns
+	_codaEntity
+	Cols _expensesTableColumns
 }
 type _expensesTableColumns struct {
-	ID _codaEntity /* text [ID] = Format("{1} ({2})", Subject, Group) */
-	Invoice _codaEntity /* lookup [Invoice] */
-	Subject _codaEntity /* text [Subject] */
-	Category _codaEntity /* select [Category] */
-	Comment _codaEntity /* text [Comment] */
-	AmountRUB _codaEntity /* number [Amount, RUB] */
-	AmountEUR _codaEntity /* number [Amount, EUR] = IF(Invoice, Round([Amount, RUB]/Invoice.[EUR fixed rate], 2), '') */
-	Status _codaEntity /* select [Status] */
-	CashOutRefs _codaEntity /* lookup [Cash out refs] = [Cash flow].Filter(Expenses.Contains(thisRow)) */
-	ActuallySpent _codaEntity /* number [Actually spent] = Sum(Receipts.[Amount, RUB]) */
+	ID              _codaEntity /* text [ID] = Format("{1} ({2})", Subject, Group) */
+	Invoice         _codaEntity /* lookup [Invoice] */
+	Subject         _codaEntity /* text [Subject] */
+	Category        _codaEntity /* select [Category] */
+	Comment         _codaEntity /* text [Comment] */
+	AmountRUB       _codaEntity /* number [Amount, RUB] */
+	AmountEUR       _codaEntity /* number [Amount, EUR] = IF(Invoice, Round([Amount, RUB]/Invoice.[EUR fixed rate], 2), '') */
+	Status          _codaEntity /* select [Status] */
+	CashOutRefs     _codaEntity /* lookup [Cash out refs] = [Cash flow].Filter(Expenses.Contains(thisRow)) */
+	ActuallySpent   _codaEntity /* number [Actually spent] = Sum(Receipts.[Amount, RUB]) */
 	RejectionReason _codaEntity /* text [Rejection reason] */
-	PendingSpend _codaEntity /* number [Pending spend] = IF(Closed!="pending", '', MAX(0, [Amount, RUB] + [Actually spent])) */
-	Balance _codaEntity /* number [Balance] = IF(Status!="pending" AND Status != "void", [Amount, RUB] +[Actually spent], 0) */
-	CashFlow _codaEntity /* button [Cash flow] */
+	PendingSpend    _codaEntity /* number [Pending spend] = IF(Closed!="pending", '', MAX(0, [Amount, RUB] + [Actually spent])) */
+	Balance         _codaEntity /* number [Balance] = IF(Status!="pending" AND Status != "void", [Amount, RUB] +[Actually spent], 0) */
+	CashFlow        _codaEntity /* button [Cash flow] */
 	LastCashOutDate _codaEntity /* date [Last cash out date] = [Cash out refs].Sort(false,Date).First().Date */
-	Sort _codaEntity /* text [Sort] = If(Invoice, Format('{1}{2}{3}', Invoice, Category, Subject), IF([Last cash out date], Format('ZZZZ_{1:0000}{2:00}{3:00}', [Last cash out date].Year(), [Last cash out date].Month(), [Last cash out date].Day()), 'ZZZZ_ZZZZ'+Subject)) */
-	Group _codaEntity /* text [Group] = If(Invoice, ToText(Invoice), "Unplanned") */
-	InventoryRef _codaEntity /* lookup [Inventory Ref] */
-	ModifiedBy _codaEntity /* person [Modified by] = thisRow.ModifiedBy() */
-	CreatedBy _codaEntity /* person [Created by] = thisRow.CreatedBy() */
-	CreatedOn _codaEntity /* dateTime [Created on] = thisRow.Created() */
-	ModifiedOn _codaEntity /* dateTime [Modified on] = thisRow.Modified() */
-	AuditCategory _codaEntity /* lookup [Audit Category] */
+	Sort            _codaEntity /* text [Sort] = If(Invoice, Format('{1}{2}{3}', Invoice, Category, Subject), IF([Last cash out date], Format('ZZZZ_{1:0000}{2:00}{3:00}', [Last cash out date].Year(), [Last cash out date].Month(), [Last cash out date].Day()), 'ZZZZ_ZZZZ'+Subject)) */
+	Group           _codaEntity /* text [Group] = If(Invoice, ToText(Invoice), "Unplanned") */
+	InventoryRef    _codaEntity /* lookup [Inventory Ref] */
+	ModifiedBy      _codaEntity /* person [Modified by] = thisRow.ModifiedBy() */
+	CreatedBy       _codaEntity /* person [Created by] = thisRow.CreatedBy() */
+	CreatedOn       _codaEntity /* dateTime [Created on] = thisRow.Created() */
+	ModifiedOn      _codaEntity /* dateTime [Modified on] = thisRow.Modified() */
+	AuditCategory   _codaEntity /* lookup [Audit Category] */
 }
 
 // Table Invoices
 type _invoicesTable struct {
-    _codaEntity
-    Cols _invoicesTableColumns
+	_codaEntity
+	Cols _invoicesTableColumns
 }
 type _invoicesTableColumns struct {
-	No _codaEntity /* text [No] = Format("{3}-{2:00}/{1:000}", Number, Date.Month(), Date.Year()) */
-	Status _codaEntity /* select [Status] */
-	Number _codaEntity /* number [Number] */
-	Date _codaEntity /* date [Date] */
-	Filename _codaEntity /* text [Filename] = "Invoice_" + Substitute(Lower(No), '/', '-') */
-	HourRate _codaEntity /* number [Hour rate] */
-	ApprovalLink _codaEntity /* text [Approval Link] */
-	EURFixedRate _codaEntity /* number [EUR fixed rate] */
-	EURRateWorst _codaEntity /* number [EUR rate worst] */
-	ExpensesRUB _codaEntity /* number [Expenses, RUB] = Sum([Invoice Lines].[Amount, RUB]) */
-	ExpensesEUR _codaEntity /* number [Expenses, EUR] = RoundUp([Expenses, RUB]/[EUR fixed rate], 0) */
-	ReturnOfRounding _codaEntity /* number [Return of rounding] */
-	Subtotal _codaEntity /* number [Subtotal] = [Expenses, EUR] - [Return of rounding] */
-	HourRateRounding _codaEntity /* number [Hour Rate Rounding] = Ceiling(Subtotal/[Hour rate]) * [Hour rate] - Subtotal */
-	TotalEUR _codaEntity /* number [Total, EUR] = Subtotal + [Hour Rate Rounding] */
-	Hours _codaEntity /* number [Hours] = Total/[Hour rate] */
-	InvoicePayment _codaEntity /* lookup [Invoice payment] */
-	PSCCFee _codaEntity /* number [PS: CC fee] = MAX(490, [EUR fixed rate] * [Total, EUR]*0.0015*1.18) */
-	PSRateRisk _codaEntity /* number [PS: Rate risk] = Sum([Planned expenses].Filter(Category!="Payment service").[Amount, EUR]) * ([EUR fixed rate]-[EUR rate worst]) */
-	PrevInvoice _codaEntity /* lookup [Prev invoice] = thisTable.Filter(Number=Number-1).First() */
-	PlannedExpenses _codaEntity /* lookup [Planned expenses] = [Invoice lines].Filter(Invoice.Contains(thisRow)) */
-	InsertTemplate _codaEntity /* button [Insert template] */
-	ActuallySpent _codaEntity /* number [Actually spent] = Sum([Planned expenses].[Actually spent]) */
-	PendingSpend _codaEntity /* number [Pending spend] = Sum([Planned expenses].[Pending spend]) */
-	Balance _codaEntity /* number [Balance] = Sum([Planned expenses].Balance) */
+	No                _codaEntity /* text [No] = Format("{3}-{2:00}/{1:000}", Number, Date.Month(), Date.Year()) */
+	Status            _codaEntity /* select [Status] */
+	Number            _codaEntity /* number [Number] */
+	Date              _codaEntity /* date [Date] */
+	Filename          _codaEntity /* text [Filename] = "Invoice_" + Substitute(Lower(No), '/', '-') */
+	HourRate          _codaEntity /* number [Hour rate] */
+	ApprovalLink      _codaEntity /* text [Approval Link] */
+	EURFixedRate      _codaEntity /* number [EUR fixed rate] */
+	EURRateWorst      _codaEntity /* number [EUR rate worst] */
+	ExpensesRUB       _codaEntity /* number [Expenses, RUB] = Sum([Invoice Lines].[Amount, RUB]) */
+	ExpensesEUR       _codaEntity /* number [Expenses, EUR] = RoundUp([Expenses, RUB]/[EUR fixed rate], 0) */
+	ReturnOfRounding  _codaEntity /* number [Return of rounding] */
+	Subtotal          _codaEntity /* number [Subtotal] = [Expenses, EUR] - [Return of rounding] */
+	HourRateRounding  _codaEntity /* number [Hour Rate Rounding] = Ceiling(Subtotal/[Hour rate]) * [Hour rate] - Subtotal */
+	TotalEUR          _codaEntity /* number [Total, EUR] = Subtotal + [Hour Rate Rounding] */
+	Hours             _codaEntity /* number [Hours] = Total/[Hour rate] */
+	InvoicePayment    _codaEntity /* lookup [Invoice payment] */
+	PSCCFee           _codaEntity /* number [PS: CC fee] = MAX(490, [EUR fixed rate] * [Total, EUR]*0.0015*1.18) */
+	PSRateRisk        _codaEntity /* number [PS: Rate risk] = Sum([Planned expenses].Filter(Category!="Payment service").[Amount, EUR]) * ([EUR fixed rate]-[EUR rate worst]) */
+	PrevInvoice       _codaEntity /* lookup [Prev invoice] = thisTable.Filter(Number=Number-1).First() */
+	PlannedExpenses   _codaEntity /* lookup [Planned expenses] = [Invoice lines].Filter(Invoice.Contains(thisRow)) */
+	InsertTemplate    _codaEntity /* button [Insert template] */
+	ActuallySpent     _codaEntity /* number [Actually spent] = Sum([Planned expenses].[Actually spent]) */
+	PendingSpend      _codaEntity /* number [Pending spend] = Sum([Planned expenses].[Pending spend]) */
+	Balance           _codaEntity /* number [Balance] = Sum([Planned expenses].Balance) */
 	InvoicePaymentAdd _codaEntity /* button [Invoice payment add] */
-	IsRecent _codaEntity /* checkbox [Is recent] = Now()-Date < 100 */
+	IsRecent          _codaEntity /* checkbox [Is recent] = Now()-Date < 100 */
 }
 
 // Table Accounts
 type _accountsTable struct {
-    _codaEntity
-    Cols _accountsTableColumns
+	_codaEntity
+	Cols _accountsTableColumns
 }
 type _accountsTableColumns struct {
-	Account _codaEntity /* text [Account] */
-	Comment _codaEntity /* text [Comment] */
+	Account       _codaEntity /* text [Account] */
+	Comment       _codaEntity /* text [Comment] */
 	InclInBalance _codaEntity /* checkbox [Incl in balance] */
 }
 
 // Table Unplanned (last 40d)
 type _unplannedLast40dTable struct {
-    _codaEntity
-    Cols _unplannedLast40dTableColumns
+	_codaEntity
+	Cols _unplannedLast40dTableColumns
 }
 type _unplannedLast40dTableColumns struct {
-	Subject _codaEntity /* text [Subject] */
+	Subject         _codaEntity /* text [Subject] */
 	LastCashOutDate _codaEntity /* date [Last cash out date] = [Cash out refs].Sort(false,Date).First().Date */
-	Comment _codaEntity /* text [Comment] */
-	Category _codaEntity /* select [Category] */
-	Status _codaEntity /* select [Status] */
-	ActuallySpent _codaEntity /* number [Actually spent] = Sum(Receipts.[Amount, RUB]) */
-	Balance _codaEntity /* number [Balance] = IF(Status!="pending" AND Status != "void", [Amount, RUB] +[Actually spent], 0) */
-	CashFlow _codaEntity /* button [Cash flow] */
-	CashOutRefs _codaEntity /* lookup [Cash out refs] = [Cash flow].Filter(Expenses.Contains(thisRow)) */
+	Comment         _codaEntity /* text [Comment] */
+	Category        _codaEntity /* select [Category] */
+	Status          _codaEntity /* select [Status] */
+	ActuallySpent   _codaEntity /* number [Actually spent] = Sum(Receipts.[Amount, RUB]) */
+	Balance         _codaEntity /* number [Balance] = IF(Status!="pending" AND Status != "void", [Amount, RUB] +[Actually spent], 0) */
+	CashFlow        _codaEntity /* button [Cash flow] */
+	CashOutRefs     _codaEntity /* lookup [Cash out refs] = [Cash flow].Filter(Expenses.Contains(thisRow)) */
 }
 
 // Table Planned spends and current invoice
 type _plannedSpendsAndCurrentInvoiceTable struct {
-    _codaEntity
-    Cols _plannedSpendsAndCurrentInvoiceTableColumns
+	_codaEntity
+	Cols _plannedSpendsAndCurrentInvoiceTableColumns
 }
 type _plannedSpendsAndCurrentInvoiceTableColumns struct {
-	Subject _codaEntity /* text [Subject] */
-	Status _codaEntity /* select [Status] */
-	AmountRUB _codaEntity /* number [Amount, RUB] */
+	Subject       _codaEntity /* text [Subject] */
+	Status        _codaEntity /* select [Status] */
+	AmountRUB     _codaEntity /* number [Amount, RUB] */
 	ActuallySpent _codaEntity /* number [Actually spent] = Sum(Receipts.[Amount, RUB]) */
-	PendingSpend _codaEntity /* number [Pending spend] = IF(Closed!="pending", '', MAX(0, [Amount, RUB] + [Actually spent])) */
-	Balance _codaEntity /* number [Balance] = IF(Status!="pending" AND Status != "void", [Amount, RUB] +[Actually spent], 0) */
-	CashFlow _codaEntity /* button [Cash flow] */
-	Group _codaEntity /* text [Group] = If(Invoice, ToText(Invoice), "Unplanned") */
+	PendingSpend  _codaEntity /* number [Pending spend] = IF(Closed!="pending", '', MAX(0, [Amount, RUB] + [Actually spent])) */
+	Balance       _codaEntity /* number [Balance] = IF(Status!="pending" AND Status != "void", [Amount, RUB] +[Actually spent], 0) */
+	CashFlow      _codaEntity /* button [Cash flow] */
+	Group         _codaEntity /* text [Group] = If(Invoice, ToText(Invoice), "Unplanned") */
 }
 
 // Table Inventory Types
 type _inventoryTypesTable struct {
-    _codaEntity
-    Cols _inventoryTypesTableColumns
+	_codaEntity
+	Cols _inventoryTypesTableColumns
 }
 type _inventoryTypesTableColumns struct {
-	Row _codaEntity /* packObject [Row] */
-	Synced _codaEntity /* checkbox [Synced] */
+	Row         _codaEntity /* packObject [Row] */
+	Synced      _codaEntity /* checkbox [Synced] */
 	SyncAccount _codaEntity /* lookup [Sync account] */
-	Code _codaEntity /* text [Code] = Row.Code */
-	Type _codaEntity /* text [Type] = Row.Type */
-	Name _codaEntity /* text [Name] = Row.Name */
-	Link _codaEntity /* text [Link] = Row.Link */
-	Comments _codaEntity /* text [Comments] = Row.Comments */
-	Price _codaEntity /* currency [Price] = Row.Price */
+	Code        _codaEntity /* text [Code] = Row.Code */
+	Type        _codaEntity /* text [Type] = Row.Type */
+	Name        _codaEntity /* text [Name] = Row.Name */
+	Link        _codaEntity /* text [Link] = Row.Link */
+	Comments    _codaEntity /* text [Comments] = Row.Comments */
+	Price       _codaEntity /* currency [Price] = Row.Price */
 }
 
 // Table Invoice template
 type _invoiceTemplateTable struct {
-    _codaEntity
-    Cols _invoiceTemplateTableColumns
+	_codaEntity
+	Cols _invoiceTemplateTableColumns
 }
 type _invoiceTemplateTableColumns struct {
-	Subject _codaEntity /* text [Subject] */
-	Comment _codaEntity /* text [Comment] */
-	AmountRUB _codaEntity /* number [Amount, RUB] */
-	Category _codaEntity /* select [Category] */
-	Expense _codaEntity /* button [Expense] */
+	Subject    _codaEntity /* text [Subject] */
+	Comment    _codaEntity /* text [Comment] */
+	AmountRUB  _codaEntity /* number [Amount, RUB] */
+	Category   _codaEntity /* select [Category] */
+	Expense    _codaEntity /* button [Expense] */
 	SubjectTpl _codaEntity /* text [Subject Tpl] = Substitute(Substitute(Subject, '%MONTH%', tplMonth), '%NEXT_MONTH%', tplNextMonth) */
-	Active _codaEntity /* checkbox [Active] */
+	Active     _codaEntity /* checkbox [Active] */
 }
 
 // Table Planned and previous invoices
 type _plannedAndPreviousInvoicesTable struct {
-    _codaEntity
-    Cols _plannedAndPreviousInvoicesTableColumns
+	_codaEntity
+	Cols _plannedAndPreviousInvoicesTableColumns
 }
 type _plannedAndPreviousInvoicesTableColumns struct {
-	No _codaEntity /* text [No] = Format("{3}-{2:00}/{1:000}", Number, Date.Month(), Date.Year()) */
-	InsertTemplate _codaEntity /* button [Insert template] */
-	Status _codaEntity /* select [Status] */
-	Number _codaEntity /* number [Number] */
-	Date _codaEntity /* date [Date] */
-	HourRate _codaEntity /* number [Hour rate] */
-	ApprovalLink _codaEntity /* text [Approval Link] */
-	EURFixedRate _codaEntity /* number [EUR fixed rate] */
-	EURRateWorst _codaEntity /* number [EUR rate worst] */
-	PlannedExpenses _codaEntity /* lookup [Planned expenses] = [Invoice lines].Filter(Invoice.Contains(thisRow)) */
-	ExpensesRUB _codaEntity /* number [Expenses, RUB] = Sum([Invoice Lines].[Amount, RUB]) */
-	ExpensesEUR _codaEntity /* number [Expenses, EUR] = RoundUp([Expenses, RUB]/[EUR fixed rate], 0) */
-	ReturnOfRounding _codaEntity /* number [Return of rounding] */
-	Subtotal _codaEntity /* number [Subtotal] = [Expenses, EUR] - [Return of rounding] */
-	HourRateRounding _codaEntity /* number [Hour Rate Rounding] = Ceiling(Subtotal/[Hour rate]) * [Hour rate] - Subtotal */
-	TotalEUR _codaEntity /* number [Total, EUR] = Subtotal + [Hour Rate Rounding] */
-	Hours _codaEntity /* number [Hours] = Total/[Hour rate] */
-	InvoicePayment _codaEntity /* lookup [Invoice payment] */
+	No                _codaEntity /* text [No] = Format("{3}-{2:00}/{1:000}", Number, Date.Month(), Date.Year()) */
+	InsertTemplate    _codaEntity /* button [Insert template] */
+	Status            _codaEntity /* select [Status] */
+	Number            _codaEntity /* number [Number] */
+	Date              _codaEntity /* date [Date] */
+	HourRate          _codaEntity /* number [Hour rate] */
+	ApprovalLink      _codaEntity /* text [Approval Link] */
+	EURFixedRate      _codaEntity /* number [EUR fixed rate] */
+	EURRateWorst      _codaEntity /* number [EUR rate worst] */
+	PlannedExpenses   _codaEntity /* lookup [Planned expenses] = [Invoice lines].Filter(Invoice.Contains(thisRow)) */
+	ExpensesRUB       _codaEntity /* number [Expenses, RUB] = Sum([Invoice Lines].[Amount, RUB]) */
+	ExpensesEUR       _codaEntity /* number [Expenses, EUR] = RoundUp([Expenses, RUB]/[EUR fixed rate], 0) */
+	ReturnOfRounding  _codaEntity /* number [Return of rounding] */
+	Subtotal          _codaEntity /* number [Subtotal] = [Expenses, EUR] - [Return of rounding] */
+	HourRateRounding  _codaEntity /* number [Hour Rate Rounding] = Ceiling(Subtotal/[Hour rate]) * [Hour rate] - Subtotal */
+	TotalEUR          _codaEntity /* number [Total, EUR] = Subtotal + [Hour Rate Rounding] */
+	Hours             _codaEntity /* number [Hours] = Total/[Hour rate] */
+	InvoicePayment    _codaEntity /* lookup [Invoice payment] */
 	InvoicePaymentAdd _codaEntity /* button [Invoice payment add] */
-	PSRateRisk _codaEntity /* number [PS: Rate risk] = Sum([Planned expenses].Filter(Category!="Payment service").[Amount, EUR]) * ([EUR fixed rate]-[EUR rate worst]) */
-	PSCCFee _codaEntity /* number [PS: CC fee] = MAX(490, [EUR fixed rate] * [Total, EUR]*0.0015*1.18) */
-	ActuallySpent _codaEntity /* number [Actually spent] = Sum([Planned expenses].[Actually spent]) */
-	PendingSpend _codaEntity /* number [Pending spend] = Sum([Planned expenses].[Pending spend]) */
-	Balance _codaEntity /* number [Balance] = Sum([Planned expenses].Balance) */
-	PrevInvoice _codaEntity /* lookup [Prev invoice] = thisTable.Filter(Number=Number-1).First() */
+	PSRateRisk        _codaEntity /* number [PS: Rate risk] = Sum([Planned expenses].Filter(Category!="Payment service").[Amount, EUR]) * ([EUR fixed rate]-[EUR rate worst]) */
+	PSCCFee           _codaEntity /* number [PS: CC fee] = MAX(490, [EUR fixed rate] * [Total, EUR]*0.0015*1.18) */
+	ActuallySpent     _codaEntity /* number [Actually spent] = Sum([Planned expenses].[Actually spent]) */
+	PendingSpend      _codaEntity /* number [Pending spend] = Sum([Planned expenses].[Pending spend]) */
+	Balance           _codaEntity /* number [Balance] = Sum([Planned expenses].Balance) */
+	PrevInvoice       _codaEntity /* lookup [Prev invoice] = thisTable.Filter(Number=Number-1).First() */
 }
 
 // Table Planned expenses
 type _plannedExpensesTable struct {
-    _codaEntity
-    Cols _plannedExpensesTableColumns
+	_codaEntity
+	Cols _plannedExpensesTableColumns
 }
 type _plannedExpensesTableColumns struct {
-	Invoice _codaEntity /* lookup [Invoice] */
-	Subject _codaEntity /* text [Subject] */
-	Comment _codaEntity /* text [Comment] */
+	Invoice       _codaEntity /* lookup [Invoice] */
+	Subject       _codaEntity /* text [Subject] */
+	Comment       _codaEntity /* text [Comment] */
 	AuditCategory _codaEntity /* lookup [Audit Category] */
-	Category _codaEntity /* select [Category] */
-	Status _codaEntity /* select [Status] */
-	AmountRUB _codaEntity /* number [Amount, RUB] */
-	AmountEUR _codaEntity /* number [Amount, EUR] = IF(Invoice, Round([Amount, RUB]/Invoice.[EUR fixed rate], 2), '') */
+	Category      _codaEntity /* select [Category] */
+	Status        _codaEntity /* select [Status] */
+	AmountRUB     _codaEntity /* number [Amount, RUB] */
+	AmountEUR     _codaEntity /* number [Amount, EUR] = IF(Invoice, Round([Amount, RUB]/Invoice.[EUR fixed rate], 2), '') */
 	ActuallySpent _codaEntity /* number [Actually spent] = Sum(Receipts.[Amount, RUB]) */
-	PendingSpend _codaEntity /* number [Pending spend] = IF(Closed!="pending", '', MAX(0, [Amount, RUB] + [Actually spent])) */
-	Balance _codaEntity /* number [Balance] = IF(Status!="pending" AND Status != "void", [Amount, RUB] +[Actually spent], 0) */
-	CashFlow _codaEntity /* button [Cash flow] */
+	PendingSpend  _codaEntity /* number [Pending spend] = IF(Closed!="pending", '', MAX(0, [Amount, RUB] + [Actually spent])) */
+	Balance       _codaEntity /* number [Balance] = IF(Status!="pending" AND Status != "void", [Amount, RUB] +[Actually spent], 0) */
+	CashFlow      _codaEntity /* button [Cash flow] */
 }
 
 // Table Cash flow 2020
 type _cashFlow2020Table struct {
-    _codaEntity
-    Cols _cashFlow2020TableColumns
+	_codaEntity
+	Cols _cashFlow2020TableColumns
 }
 type _cashFlow2020TableColumns struct {
-	Author _codaEntity /* person [Author] = thisRow.CreatedBy() */
-	Reconciled _codaEntity /* checkbox [Reconciled] */
-	Account _codaEntity /* lookup [Account] */
-	Date _codaEntity /* date [Date] */
-	AmountRUB _codaEntity /* number [Amount, RUB] = [Paid amt, RUB] + [Comission amt, RUB] */
-	PaidAmtRUB _codaEntity /* number [Paid amt, RUB] */
-	CashOutPurpose _codaEntity /* lookup [Cash out purpose] */
-	Count _codaEntity /* number [Count] */
+	Author          _codaEntity /* person [Author] = thisRow.CreatedBy() */
+	Reconciled      _codaEntity /* checkbox [Reconciled] */
+	Account         _codaEntity /* lookup [Account] */
+	Date            _codaEntity /* date [Date] */
+	AmountRUB       _codaEntity /* number [Amount, RUB] = [Paid amt, RUB] + [Comission amt, RUB] */
+	PaidAmtRUB      _codaEntity /* number [Paid amt, RUB] */
+	CashOutPurpose  _codaEntity /* lookup [Cash out purpose] */
+	Count           _codaEntity /* number [Count] */
 	ComissionAmtRUB _codaEntity /* number [Comission amt, RUB] */
-	Comment _codaEntity /* text [Comment] */
-	CashIn _codaEntity /* lookup [Cash in] */
+	Comment         _codaEntity /* text [Comment] */
+	CashIn          _codaEntity /* lookup [Cash in] */
 }
 
 // Table Cash flow of personal acc
 type _cashFlowOfPersonalAccTable struct {
-    _codaEntity
-    Cols _cashFlowOfPersonalAccTableColumns
+	_codaEntity
+	Cols _cashFlowOfPersonalAccTableColumns
 }
 type _cashFlowOfPersonalAccTableColumns struct {
-	Account _codaEntity /* lookup [Account] */
-	Date _codaEntity /* date [Date] */
-	AmountRUB _codaEntity /* number [Amount, RUB] = [Paid amt, RUB] + [Comission amt, RUB] */
-	Comment _codaEntity /* text [Comment] */
+	Account        _codaEntity /* lookup [Account] */
+	Date           _codaEntity /* date [Date] */
+	AmountRUB      _codaEntity /* number [Amount, RUB] = [Paid amt, RUB] + [Comission amt, RUB] */
+	Comment        _codaEntity /* text [Comment] */
 	CashOutPurpose _codaEntity /* lookup [Cash out purpose] */
 	PersonalPaidIn _codaEntity /* lookup [Personal paid in] */
 }
 
 // Table Cash flow 2021
 type _cashFlow2021Table struct {
-    _codaEntity
-    Cols _cashFlow2021TableColumns
+	_codaEntity
+	Cols _cashFlow2021TableColumns
 }
 type _cashFlow2021TableColumns struct {
-	Author _codaEntity /* person [Author] = thisRow.CreatedBy() */
-	Reconciled _codaEntity /* checkbox [Reconciled] */
-	Account _codaEntity /* lookup [Account] */
-	Date _codaEntity /* date [Date] */
-	AmountRUB _codaEntity /* number [Amount, RUB] = [Paid amt, RUB] + [Comission amt, RUB] */
-	PaidAmtRUB _codaEntity /* number [Paid amt, RUB] */
-	CashOutPurpose _codaEntity /* lookup [Cash out purpose] */
-	Count _codaEntity /* number [Count] */
+	Author          _codaEntity /* person [Author] = thisRow.CreatedBy() */
+	Reconciled      _codaEntity /* checkbox [Reconciled] */
+	Account         _codaEntity /* lookup [Account] */
+	Date            _codaEntity /* date [Date] */
+	AmountRUB       _codaEntity /* number [Amount, RUB] = [Paid amt, RUB] + [Comission amt, RUB] */
+	PaidAmtRUB      _codaEntity /* number [Paid amt, RUB] */
+	CashOutPurpose  _codaEntity /* lookup [Cash out purpose] */
+	Count           _codaEntity /* number [Count] */
 	ComissionAmtRUB _codaEntity /* number [Comission amt, RUB] */
-	Comment _codaEntity /* text [Comment] */
-	CashIn _codaEntity /* lookup [Cash in] */
+	Comment         _codaEntity /* text [Comment] */
+	CashIn          _codaEntity /* lookup [Cash in] */
 }
 
 // Table Audit Category
 type _auditCategoryTable struct {
-    _codaEntity
-    Cols _auditCategoryTableColumns
+	_codaEntity
+	Cols _auditCategoryTableColumns
 }
 type _auditCategoryTableColumns struct {
 	AuditCategory _codaEntity /* text [Audit Category] */
@@ -384,985 +384,984 @@ type _auditCategoryTableColumns struct {
 
 // Table Expenses by category
 type _expensesByCategoryTable struct {
-    _codaEntity
-    Cols _expensesByCategoryTableColumns
+	_codaEntity
+	Cols _expensesByCategoryTableColumns
 }
 type _expensesByCategoryTableColumns struct {
-	Group _codaEntity /* text [Group] = If(Invoice, ToText(Invoice), "Unplanned") */
-	AmountRUB _codaEntity /* number [Amount, RUB] */
-	AmountEUR _codaEntity /* number [Amount, EUR] = IF(Invoice, Round([Amount, RUB]/Invoice.[EUR fixed rate], 2), '') */
+	Group         _codaEntity /* text [Group] = If(Invoice, ToText(Invoice), "Unplanned") */
+	AmountRUB     _codaEntity /* number [Amount, RUB] */
+	AmountEUR     _codaEntity /* number [Amount, EUR] = IF(Invoice, Round([Amount, RUB]/Invoice.[EUR fixed rate], 2), '') */
 	AuditCategory _codaEntity /* lookup [Audit Category] */
 }
 
 //endregion
 
 var ID = _schema{
-    Table: _tableSchema{
-        Months: _monthsTable{
-            _codaEntity: _codaEntity {
-                   ID: `grid-sync-1054-Table-dynamic-aca1dcec432de5424fa83d4c6d93c83946906407bcf71db42c915765fbc14401`,
-                   Name: `Months`,
-            },
-            Cols: _monthsTableColumns{
-                Row: _codaEntity {
-                       ID:   `value`,
-                       Name: `Row`,
-                },
-                Synced: _codaEntity {
-                       ID:   `synced`,
-                       Name: `Synced`,
-                },
-                SyncAccount: _codaEntity {
-                       ID:   `connection`,
-                       Name: `Sync account`,
-                },
-                Name: _codaEntity {
-                       ID:   `c-XqOHdzXcLR`,
-                       Name: `Name`,
-                },
-                Month: _codaEntity {
-                       ID:   `c-fEt-r8-748`,
-                       Name: `Month`,
-                },
-                PreviousMonth: _codaEntity {
-                       ID:   `c-RUsq1_2_81`,
-                       Name: `Previous Month`,
-                },
-                MonthName: _codaEntity {
-                       ID:   `c-UHSQHFZLkE`,
-                       Name: `Month Name`,
-                },
-                WorkDays: _codaEntity {
-                       ID:   `c-RlcX07v2ny`,
-                       Name: `Work Days`,
-                },
-                Year: _codaEntity {
-                       ID:   `c-mnHhV-4LX7`,
-                       Name: `Year`,
-                },
-                PreviousMonthLink: _codaEntity {
-                       ID:   `c-hikG-Ajf5k`,
-                       Name: `Previous Month Link`,
-                },
-            },
-        },
-        CashFlow: _cashFlowTable{
-            _codaEntity: _codaEntity {
-                   ID: `grid-7yE1NK5upn`,
-                   Name: `Cash flow`,
-            },
-            Cols: _cashFlowTableColumns{
-                No: _codaEntity {
-                       ID:   `c-9TdkReuS8G`,
-                       Name: `No`,
-                },
-                Date: _codaEntity {
-                       ID:   `c-HuVxndys-5`,
-                       Name: `Date`,
-                },
-                Comment: _codaEntity {
-                       ID:   `c-7Sr6bn-OVs`,
-                       Name: `Comment`,
-                },
-                AmountRUB: _codaEntity {
-                       ID:   `c-Ka5rkoQEvD`,
-                       Name: `Amount, RUB`,
-                },
-                Account: _codaEntity {
-                       ID:   `c-HvpjCI4gRX`,
-                       Name: `Account`,
-                },
-                CashOutPurpose: _codaEntity {
-                       ID:   `c-ak93zMH1dQ`,
-                       Name: `Cash out purpose`,
-                },
-                CashIn: _codaEntity {
-                       ID:   `c-FfATqG9jTV`,
-                       Name: `Cash in`,
-                },
-                ComissionAmtRUB: _codaEntity {
-                       ID:   `c-6pxTqY1M65`,
-                       Name: `Comission amt, RUB`,
-                },
-                PaidAmtRUB: _codaEntity {
-                       ID:   `c-NcMKzn_fpI`,
-                       Name: `Paid amt, RUB`,
-                },
-                Reconciled: _codaEntity {
-                       ID:   `c-P_CSVSFk0L`,
-                       Name: `Reconciled`,
-                },
-                Count: _codaEntity {
-                       ID:   `c-taBOV-t5cz`,
-                       Name: `Count`,
-                },
-                InclInBalance: _codaEntity {
-                       ID:   `c-PV5Apg8Ajw`,
-                       Name: `Incl in balance`,
-                },
-                Author: _codaEntity {
-                       ID:   `c-2Xkn5hlxUM`,
-                       Name: `Author`,
-                },
-                PersonalPaidIn: _codaEntity {
-                       ID:   `c-OPYJnVV_u7`,
-                       Name: `Personal paid in`,
-                },
-                CreatedOn: _codaEntity {
-                       ID:   `c-F-Ffna2NpT`,
-                       Name: `Created on`,
-                },
-            },
-        },
-        InvoicePayment: _invoicePaymentTable{
-            _codaEntity: _codaEntity {
-                   ID: `grid-R9oRxgWMUH`,
-                   Name: `Invoice payment`,
-            },
-            Cols: _invoicePaymentTableColumns{
-                ReceivedDate: _codaEntity {
-                       ID:   `c-HevgF6a6li`,
-                       Name: `Received date`,
-                },
-                AmountEUR: _codaEntity {
-                       ID:   `c-IE-iOWanac`,
-                       Name: `Amount EUR`,
-                },
-                PaymentRate: _codaEntity {
-                       ID:   `c-zKkSve_s9b`,
-                       Name: `Payment rate`,
-                },
-                PlannedRate: _codaEntity {
-                       ID:   `c-VXDlksbd7o`,
-                       Name: `Planned rate`,
-                },
-                RateDiff: _codaEntity {
-                       ID:   `c-qH9PR8hAuY`,
-                       Name: `Rate diff`,
-                },
-                AmountRUB: _codaEntity {
-                       ID:   `c-Wx9eWgoHWl`,
-                       Name: `Amount RUB`,
-                },
-                RateBalance: _codaEntity {
-                       ID:   `c-9FRsy0d1l9`,
-                       Name: `Rate balance`,
-                },
-                SentDate: _codaEntity {
-                       ID:   `c-M1NogFDhKz`,
-                       Name: `Sent date`,
-                },
-                RateError: _codaEntity {
-                       ID:   `c-tSU9bZrnUG`,
-                       Name: `Rate error`,
-                },
-                Invoice: _codaEntity {
-                       ID:   `c-GD0FEsDsIu`,
-                       Name: `Invoice`,
-                },
-                CashFlow: _codaEntity {
-                       ID:   `c-doy2oZs_0X`,
-                       Name: `Cash Flow`,
-                },
-            },
-        },
-        Expenses: _expensesTable{
-            _codaEntity: _codaEntity {
-                   ID: `grid-j1yvp-c7Xq`,
-                   Name: `Expenses`,
-            },
-            Cols: _expensesTableColumns{
-                ID: _codaEntity {
-                       ID:   `c-NIDES-BkAW`,
-                       Name: `ID`,
-                },
-                Invoice: _codaEntity {
-                       ID:   `c-_Vwi1N_WO9`,
-                       Name: `Invoice`,
-                },
-                Subject: _codaEntity {
-                       ID:   `c-dWrUpt7GHg`,
-                       Name: `Subject`,
-                },
-                Category: _codaEntity {
-                       ID:   `c-HgZFvbcM6u`,
-                       Name: `Category`,
-                },
-                Comment: _codaEntity {
-                       ID:   `c-hLtZdaFaOE`,
-                       Name: `Comment`,
-                },
-                AmountRUB: _codaEntity {
-                       ID:   `c-NWO2JHrrdw`,
-                       Name: `Amount, RUB`,
-                },
-                AmountEUR: _codaEntity {
-                       ID:   `c-85jKBvNSVF`,
-                       Name: `Amount, EUR`,
-                },
-                Status: _codaEntity {
-                       ID:   `c-TlBKoSAJmV`,
-                       Name: `Status`,
-                },
-                CashOutRefs: _codaEntity {
-                       ID:   `c-o0llMz254Z`,
-                       Name: `Cash out refs`,
-                },
-                ActuallySpent: _codaEntity {
-                       ID:   `c-otkrTpI7VA`,
-                       Name: `Actually spent`,
-                },
-                RejectionReason: _codaEntity {
-                       ID:   `c-OwY64F1V4B`,
-                       Name: `Rejection reason`,
-                },
-                PendingSpend: _codaEntity {
-                       ID:   `c-MTRmKDu-3A`,
-                       Name: `Pending spend`,
-                },
-                Balance: _codaEntity {
-                       ID:   `c-GAIziVHBvd`,
-                       Name: `Balance`,
-                },
-                CashFlow: _codaEntity {
-                       ID:   `c-sncvkVSbcJ`,
-                       Name: `Cash flow`,
-                },
-                LastCashOutDate: _codaEntity {
-                       ID:   `c-BhuJTIsQEP`,
-                       Name: `Last cash out date`,
-                },
-                Sort: _codaEntity {
-                       ID:   `c-lzNMnSE_dh`,
-                       Name: `Sort`,
-                },
-                Group: _codaEntity {
-                       ID:   `c-18G6IQXBvd`,
-                       Name: `Group`,
-                },
-                InventoryRef: _codaEntity {
-                       ID:   `c-4-a6cFeLHl`,
-                       Name: `Inventory Ref`,
-                },
-                ModifiedBy: _codaEntity {
-                       ID:   `c-BFcg4AF5oM`,
-                       Name: `Modified by`,
-                },
-                CreatedBy: _codaEntity {
-                       ID:   `c-ZhqiSyi4mD`,
-                       Name: `Created by`,
-                },
-                CreatedOn: _codaEntity {
-                       ID:   `c-9PVZmwivnx`,
-                       Name: `Created on`,
-                },
-                ModifiedOn: _codaEntity {
-                       ID:   `c-8TigMDiu_5`,
-                       Name: `Modified on`,
-                },
-                AuditCategory: _codaEntity {
-                       ID:   `c-45roqK-a18`,
-                       Name: `Audit Category`,
-                },
-            },
-        },
-        Invoices: _invoicesTable{
-            _codaEntity: _codaEntity {
-                   ID: `grid-H_lQoXT4Hn`,
-                   Name: `Invoices`,
-            },
-            Cols: _invoicesTableColumns{
-                No: _codaEntity {
-                       ID:   `c-1FLrjxKHe5`,
-                       Name: `No`,
-                },
-                Status: _codaEntity {
-                       ID:   `c-rqUgKu_1z_`,
-                       Name: `Status`,
-                },
-                Number: _codaEntity {
-                       ID:   `c-qw6CtPRr6R`,
-                       Name: `Number`,
-                },
-                Date: _codaEntity {
-                       ID:   `c-r6ev-Hfy0R`,
-                       Name: `Date`,
-                },
-                Filename: _codaEntity {
-                       ID:   `c-gVFw0tg27k`,
-                       Name: `Filename`,
-                },
-                HourRate: _codaEntity {
-                       ID:   `c-wu0qKZLU0Z`,
-                       Name: `Hour rate`,
-                },
-                ApprovalLink: _codaEntity {
-                       ID:   `c-mINTWSuok_`,
-                       Name: `Approval Link`,
-                },
-                EURFixedRate: _codaEntity {
-                       ID:   `c-39yF51XkOy`,
-                       Name: `EUR fixed rate`,
-                },
-                EURRateWorst: _codaEntity {
-                       ID:   `c-eqfmnjpn6E`,
-                       Name: `EUR rate worst`,
-                },
-                ExpensesRUB: _codaEntity {
-                       ID:   `c-LnWC3NrrYo`,
-                       Name: `Expenses, RUB`,
-                },
-                ExpensesEUR: _codaEntity {
-                       ID:   `c-Bj-zR8QBZP`,
-                       Name: `Expenses, EUR`,
-                },
-                ReturnOfRounding: _codaEntity {
-                       ID:   `c-cEdaY7AsWT`,
-                       Name: `Return of rounding`,
-                },
-                Subtotal: _codaEntity {
-                       ID:   `c-EfZ0XNkbSp`,
-                       Name: `Subtotal`,
-                },
-                HourRateRounding: _codaEntity {
-                       ID:   `c-wbNLVBU5oW`,
-                       Name: `Hour Rate Rounding`,
-                },
-                TotalEUR: _codaEntity {
-                       ID:   `c-gywxqGt4uK`,
-                       Name: `Total, EUR`,
-                },
-                Hours: _codaEntity {
-                       ID:   `c-2kpnqmokJ5`,
-                       Name: `Hours`,
-                },
-                InvoicePayment: _codaEntity {
-                       ID:   `c-_D1oWYheaQ`,
-                       Name: `Invoice payment`,
-                },
-                PSCCFee: _codaEntity {
-                       ID:   `c-isMKk3UN7G`,
-                       Name: `PS: CC fee`,
-                },
-                PSRateRisk: _codaEntity {
-                       ID:   `c-vrecptlM-5`,
-                       Name: `PS: Rate risk`,
-                },
-                PrevInvoice: _codaEntity {
-                       ID:   `c-RWqrc6Q-Zf`,
-                       Name: `Prev invoice`,
-                },
-                PlannedExpenses: _codaEntity {
-                       ID:   `c-cgiJ5IeX4n`,
-                       Name: `Planned expenses`,
-                },
-                InsertTemplate: _codaEntity {
-                       ID:   `c-sTMJM9Pq-d`,
-                       Name: `Insert template`,
-                },
-                ActuallySpent: _codaEntity {
-                       ID:   `c-XY-LhijBo3`,
-                       Name: `Actually spent`,
-                },
-                PendingSpend: _codaEntity {
-                       ID:   `c-bccwx_DDwv`,
-                       Name: `Pending spend`,
-                },
-                Balance: _codaEntity {
-                       ID:   `c-MW_JQd5O0b`,
-                       Name: `Balance`,
-                },
-                InvoicePaymentAdd: _codaEntity {
-                       ID:   `c-MQfrZ0gvsC`,
-                       Name: `Invoice payment add`,
-                },
-                IsRecent: _codaEntity {
-                       ID:   `c-yBkBMvhtOT`,
-                       Name: `Is recent`,
-                },
-            },
-        },
-        Accounts: _accountsTable{
-            _codaEntity: _codaEntity {
-                   ID: `grid-pwTQC7XRKL`,
-                   Name: `Accounts`,
-            },
-            Cols: _accountsTableColumns{
-                Account: _codaEntity {
-                       ID:   `c-FiYh8LlPM6`,
-                       Name: `Account`,
-                },
-                Comment: _codaEntity {
-                       ID:   `c-tokAPP6nTJ`,
-                       Name: `Comment`,
-                },
-                InclInBalance: _codaEntity {
-                       ID:   `c-G8_c9D7Jsy`,
-                       Name: `Incl in balance`,
-                },
-            },
-        },
-        UnplannedLast40d: _unplannedLast40dTable{
-            _codaEntity: _codaEntity {
-                   ID: `table-2iAFNgZh_z`,
-                   Name: `Unplanned (last 40d)`,
-            },
-            Cols: _unplannedLast40dTableColumns{
-                Subject: _codaEntity {
-                       ID:   `c-dWrUpt7GHg`,
-                       Name: `Subject`,
-                },
-                LastCashOutDate: _codaEntity {
-                       ID:   `c-BhuJTIsQEP`,
-                       Name: `Last cash out date`,
-                },
-                Comment: _codaEntity {
-                       ID:   `c-hLtZdaFaOE`,
-                       Name: `Comment`,
-                },
-                Category: _codaEntity {
-                       ID:   `c-HgZFvbcM6u`,
-                       Name: `Category`,
-                },
-                Status: _codaEntity {
-                       ID:   `c-TlBKoSAJmV`,
-                       Name: `Status`,
-                },
-                ActuallySpent: _codaEntity {
-                       ID:   `c-otkrTpI7VA`,
-                       Name: `Actually spent`,
-                },
-                Balance: _codaEntity {
-                       ID:   `c-GAIziVHBvd`,
-                       Name: `Balance`,
-                },
-                CashFlow: _codaEntity {
-                       ID:   `c-sncvkVSbcJ`,
-                       Name: `Cash flow`,
-                },
-                CashOutRefs: _codaEntity {
-                       ID:   `c-o0llMz254Z`,
-                       Name: `Cash out refs`,
-                },
-            },
-        },
-        PlannedSpendsAndCurrentInvoice: _plannedSpendsAndCurrentInvoiceTable{
-            _codaEntity: _codaEntity {
-                   ID: `table-5bvJSmcSgd`,
-                   Name: `Planned spends and current invoice`,
-            },
-            Cols: _plannedSpendsAndCurrentInvoiceTableColumns{
-                Subject: _codaEntity {
-                       ID:   `c-dWrUpt7GHg`,
-                       Name: `Subject`,
-                },
-                Status: _codaEntity {
-                       ID:   `c-TlBKoSAJmV`,
-                       Name: `Status`,
-                },
-                AmountRUB: _codaEntity {
-                       ID:   `c-NWO2JHrrdw`,
-                       Name: `Amount, RUB`,
-                },
-                ActuallySpent: _codaEntity {
-                       ID:   `c-otkrTpI7VA`,
-                       Name: `Actually spent`,
-                },
-                PendingSpend: _codaEntity {
-                       ID:   `c-MTRmKDu-3A`,
-                       Name: `Pending spend`,
-                },
-                Balance: _codaEntity {
-                       ID:   `c-GAIziVHBvd`,
-                       Name: `Balance`,
-                },
-                CashFlow: _codaEntity {
-                       ID:   `c-sncvkVSbcJ`,
-                       Name: `Cash flow`,
-                },
-                Group: _codaEntity {
-                       ID:   `c-18G6IQXBvd`,
-                       Name: `Group`,
-                },
-            },
-        },
-        InventoryTypes: _inventoryTypesTable{
-            _codaEntity: _codaEntity {
-                   ID: `grid-sync-1054-Table-dynamic-ef49a72921eadd1e229c45fac0199e3555d7772b87293e602f033a92d9caea1d`,
-                   Name: `Inventory Types`,
-            },
-            Cols: _inventoryTypesTableColumns{
-                Row: _codaEntity {
-                       ID:   `value`,
-                       Name: `Row`,
-                },
-                Synced: _codaEntity {
-                       ID:   `synced`,
-                       Name: `Synced`,
-                },
-                SyncAccount: _codaEntity {
-                       ID:   `connection`,
-                       Name: `Sync account`,
-                },
-                Code: _codaEntity {
-                       ID:   `c-IedG4qMAaB`,
-                       Name: `Code`,
-                },
-                Type: _codaEntity {
-                       ID:   `c-fPa38HqyKw`,
-                       Name: `Type`,
-                },
-                Name: _codaEntity {
-                       ID:   `c-qVRPgjXTwg`,
-                       Name: `Name`,
-                },
-                Link: _codaEntity {
-                       ID:   `c-O-47pRG6yt`,
-                       Name: `Link`,
-                },
-                Comments: _codaEntity {
-                       ID:   `c-vTVmek8RJw`,
-                       Name: `Comments`,
-                },
-                Price: _codaEntity {
-                       ID:   `c-xzD6XFmymP`,
-                       Name: `Price`,
-                },
-            },
-        },
-        InvoiceTemplate: _invoiceTemplateTable{
-            _codaEntity: _codaEntity {
-                   ID: `grid-zsR0KGVVNX`,
-                   Name: `Invoice template`,
-            },
-            Cols: _invoiceTemplateTableColumns{
-                Subject: _codaEntity {
-                       ID:   `c-z9FQ_YZ4WD`,
-                       Name: `Subject`,
-                },
-                Comment: _codaEntity {
-                       ID:   `c-1CAyQoTxTK`,
-                       Name: `Comment`,
-                },
-                AmountRUB: _codaEntity {
-                       ID:   `c-xsUIIY0puP`,
-                       Name: `Amount, RUB`,
-                },
-                Category: _codaEntity {
-                       ID:   `c-jGM_Cns-Wa`,
-                       Name: `Category`,
-                },
-                Expense: _codaEntity {
-                       ID:   `c-s0XIiK7UdC`,
-                       Name: `Expense`,
-                },
-                SubjectTpl: _codaEntity {
-                       ID:   `c-a-y2sDK_aA`,
-                       Name: `Subject Tpl`,
-                },
-                Active: _codaEntity {
-                       ID:   `c--5hsp0sV5S`,
-                       Name: `Active`,
-                },
-            },
-        },
-        PlannedAndPreviousInvoices: _plannedAndPreviousInvoicesTable{
-            _codaEntity: _codaEntity {
-                   ID: `table-0oiNc6Kkw8`,
-                   Name: `Planned and previous invoices`,
-            },
-            Cols: _plannedAndPreviousInvoicesTableColumns{
-                No: _codaEntity {
-                       ID:   `c-1FLrjxKHe5`,
-                       Name: `No`,
-                },
-                InsertTemplate: _codaEntity {
-                       ID:   `c-sTMJM9Pq-d`,
-                       Name: `Insert template`,
-                },
-                Status: _codaEntity {
-                       ID:   `c-rqUgKu_1z_`,
-                       Name: `Status`,
-                },
-                Number: _codaEntity {
-                       ID:   `c-qw6CtPRr6R`,
-                       Name: `Number`,
-                },
-                Date: _codaEntity {
-                       ID:   `c-r6ev-Hfy0R`,
-                       Name: `Date`,
-                },
-                HourRate: _codaEntity {
-                       ID:   `c-wu0qKZLU0Z`,
-                       Name: `Hour rate`,
-                },
-                ApprovalLink: _codaEntity {
-                       ID:   `c-mINTWSuok_`,
-                       Name: `Approval Link`,
-                },
-                EURFixedRate: _codaEntity {
-                       ID:   `c-39yF51XkOy`,
-                       Name: `EUR fixed rate`,
-                },
-                EURRateWorst: _codaEntity {
-                       ID:   `c-eqfmnjpn6E`,
-                       Name: `EUR rate worst`,
-                },
-                PlannedExpenses: _codaEntity {
-                       ID:   `c-cgiJ5IeX4n`,
-                       Name: `Planned expenses`,
-                },
-                ExpensesRUB: _codaEntity {
-                       ID:   `c-LnWC3NrrYo`,
-                       Name: `Expenses, RUB`,
-                },
-                ExpensesEUR: _codaEntity {
-                       ID:   `c-Bj-zR8QBZP`,
-                       Name: `Expenses, EUR`,
-                },
-                ReturnOfRounding: _codaEntity {
-                       ID:   `c-cEdaY7AsWT`,
-                       Name: `Return of rounding`,
-                },
-                Subtotal: _codaEntity {
-                       ID:   `c-EfZ0XNkbSp`,
-                       Name: `Subtotal`,
-                },
-                HourRateRounding: _codaEntity {
-                       ID:   `c-wbNLVBU5oW`,
-                       Name: `Hour Rate Rounding`,
-                },
-                TotalEUR: _codaEntity {
-                       ID:   `c-gywxqGt4uK`,
-                       Name: `Total, EUR`,
-                },
-                Hours: _codaEntity {
-                       ID:   `c-2kpnqmokJ5`,
-                       Name: `Hours`,
-                },
-                InvoicePayment: _codaEntity {
-                       ID:   `c-_D1oWYheaQ`,
-                       Name: `Invoice payment`,
-                },
-                InvoicePaymentAdd: _codaEntity {
-                       ID:   `c-MQfrZ0gvsC`,
-                       Name: `Invoice payment add`,
-                },
-                PSRateRisk: _codaEntity {
-                       ID:   `c-vrecptlM-5`,
-                       Name: `PS: Rate risk`,
-                },
-                PSCCFee: _codaEntity {
-                       ID:   `c-isMKk3UN7G`,
-                       Name: `PS: CC fee`,
-                },
-                ActuallySpent: _codaEntity {
-                       ID:   `c-XY-LhijBo3`,
-                       Name: `Actually spent`,
-                },
-                PendingSpend: _codaEntity {
-                       ID:   `c-bccwx_DDwv`,
-                       Name: `Pending spend`,
-                },
-                Balance: _codaEntity {
-                       ID:   `c-MW_JQd5O0b`,
-                       Name: `Balance`,
-                },
-                PrevInvoice: _codaEntity {
-                       ID:   `c-RWqrc6Q-Zf`,
-                       Name: `Prev invoice`,
-                },
-            },
-        },
-        PlannedExpenses: _plannedExpensesTable{
-            _codaEntity: _codaEntity {
-                   ID: `table-NvLNctjziJ`,
-                   Name: `Planned expenses`,
-            },
-            Cols: _plannedExpensesTableColumns{
-                Invoice: _codaEntity {
-                       ID:   `c-_Vwi1N_WO9`,
-                       Name: `Invoice`,
-                },
-                Subject: _codaEntity {
-                       ID:   `c-dWrUpt7GHg`,
-                       Name: `Subject`,
-                },
-                Comment: _codaEntity {
-                       ID:   `c-hLtZdaFaOE`,
-                       Name: `Comment`,
-                },
-                AuditCategory: _codaEntity {
-                       ID:   `c-45roqK-a18`,
-                       Name: `Audit Category`,
-                },
-                Category: _codaEntity {
-                       ID:   `c-HgZFvbcM6u`,
-                       Name: `Category`,
-                },
-                Status: _codaEntity {
-                       ID:   `c-TlBKoSAJmV`,
-                       Name: `Status`,
-                },
-                AmountRUB: _codaEntity {
-                       ID:   `c-NWO2JHrrdw`,
-                       Name: `Amount, RUB`,
-                },
-                AmountEUR: _codaEntity {
-                       ID:   `c-85jKBvNSVF`,
-                       Name: `Amount, EUR`,
-                },
-                ActuallySpent: _codaEntity {
-                       ID:   `c-otkrTpI7VA`,
-                       Name: `Actually spent`,
-                },
-                PendingSpend: _codaEntity {
-                       ID:   `c-MTRmKDu-3A`,
-                       Name: `Pending spend`,
-                },
-                Balance: _codaEntity {
-                       ID:   `c-GAIziVHBvd`,
-                       Name: `Balance`,
-                },
-                CashFlow: _codaEntity {
-                       ID:   `c-sncvkVSbcJ`,
-                       Name: `Cash flow`,
-                },
-            },
-        },
-        CashFlow2020: _cashFlow2020Table{
-            _codaEntity: _codaEntity {
-                   ID: `table-0iqeriGwB9`,
-                   Name: `Cash flow 2020`,
-            },
-            Cols: _cashFlow2020TableColumns{
-                Author: _codaEntity {
-                       ID:   `c-2Xkn5hlxUM`,
-                       Name: `Author`,
-                },
-                Reconciled: _codaEntity {
-                       ID:   `c-P_CSVSFk0L`,
-                       Name: `Reconciled`,
-                },
-                Account: _codaEntity {
-                       ID:   `c-HvpjCI4gRX`,
-                       Name: `Account`,
-                },
-                Date: _codaEntity {
-                       ID:   `c-HuVxndys-5`,
-                       Name: `Date`,
-                },
-                AmountRUB: _codaEntity {
-                       ID:   `c-Ka5rkoQEvD`,
-                       Name: `Amount, RUB`,
-                },
-                PaidAmtRUB: _codaEntity {
-                       ID:   `c-NcMKzn_fpI`,
-                       Name: `Paid amt, RUB`,
-                },
-                CashOutPurpose: _codaEntity {
-                       ID:   `c-ak93zMH1dQ`,
-                       Name: `Cash out purpose`,
-                },
-                Count: _codaEntity {
-                       ID:   `c-taBOV-t5cz`,
-                       Name: `Count`,
-                },
-                ComissionAmtRUB: _codaEntity {
-                       ID:   `c-6pxTqY1M65`,
-                       Name: `Comission amt, RUB`,
-                },
-                Comment: _codaEntity {
-                       ID:   `c-7Sr6bn-OVs`,
-                       Name: `Comment`,
-                },
-                CashIn: _codaEntity {
-                       ID:   `c-FfATqG9jTV`,
-                       Name: `Cash in`,
-                },
-            },
-        },
-        CashFlowOfPersonalAcc: _cashFlowOfPersonalAccTable{
-            _codaEntity: _codaEntity {
-                   ID: `table-dMo-URJL7Z`,
-                   Name: `Cash flow of personal acc`,
-            },
-            Cols: _cashFlowOfPersonalAccTableColumns{
-                Account: _codaEntity {
-                       ID:   `c-HvpjCI4gRX`,
-                       Name: `Account`,
-                },
-                Date: _codaEntity {
-                       ID:   `c-HuVxndys-5`,
-                       Name: `Date`,
-                },
-                AmountRUB: _codaEntity {
-                       ID:   `c-Ka5rkoQEvD`,
-                       Name: `Amount, RUB`,
-                },
-                Comment: _codaEntity {
-                       ID:   `c-7Sr6bn-OVs`,
-                       Name: `Comment`,
-                },
-                CashOutPurpose: _codaEntity {
-                       ID:   `c-ak93zMH1dQ`,
-                       Name: `Cash out purpose`,
-                },
-                PersonalPaidIn: _codaEntity {
-                       ID:   `c-OPYJnVV_u7`,
-                       Name: `Personal paid in`,
-                },
-            },
-        },
-        CashFlow2021: _cashFlow2021Table{
-            _codaEntity: _codaEntity {
-                   ID: `table-79if8pVCSx`,
-                   Name: `Cash flow 2021`,
-            },
-            Cols: _cashFlow2021TableColumns{
-                Author: _codaEntity {
-                       ID:   `c-2Xkn5hlxUM`,
-                       Name: `Author`,
-                },
-                Reconciled: _codaEntity {
-                       ID:   `c-P_CSVSFk0L`,
-                       Name: `Reconciled`,
-                },
-                Account: _codaEntity {
-                       ID:   `c-HvpjCI4gRX`,
-                       Name: `Account`,
-                },
-                Date: _codaEntity {
-                       ID:   `c-HuVxndys-5`,
-                       Name: `Date`,
-                },
-                AmountRUB: _codaEntity {
-                       ID:   `c-Ka5rkoQEvD`,
-                       Name: `Amount, RUB`,
-                },
-                PaidAmtRUB: _codaEntity {
-                       ID:   `c-NcMKzn_fpI`,
-                       Name: `Paid amt, RUB`,
-                },
-                CashOutPurpose: _codaEntity {
-                       ID:   `c-ak93zMH1dQ`,
-                       Name: `Cash out purpose`,
-                },
-                Count: _codaEntity {
-                       ID:   `c-taBOV-t5cz`,
-                       Name: `Count`,
-                },
-                ComissionAmtRUB: _codaEntity {
-                       ID:   `c-6pxTqY1M65`,
-                       Name: `Comission amt, RUB`,
-                },
-                Comment: _codaEntity {
-                       ID:   `c-7Sr6bn-OVs`,
-                       Name: `Comment`,
-                },
-                CashIn: _codaEntity {
-                       ID:   `c-FfATqG9jTV`,
-                       Name: `Cash in`,
-                },
-            },
-        },
-        AuditCategory: _auditCategoryTable{
-            _codaEntity: _codaEntity {
-                   ID: `grid-cXSuejWcpk`,
-                   Name: `Audit Category`,
-            },
-            Cols: _auditCategoryTableColumns{
-                AuditCategory: _codaEntity {
-                       ID:   `c-IGinJPS6nr`,
-                       Name: `Audit Category`,
-                },
-            },
-        },
-        ExpensesByCategory: _expensesByCategoryTable{
-            _codaEntity: _codaEntity {
-                   ID: `table--3kR_z-HTW`,
-                   Name: `Expenses by category`,
-            },
-            Cols: _expensesByCategoryTableColumns{
-                Group: _codaEntity {
-                       ID:   `c-18G6IQXBvd`,
-                       Name: `Group`,
-                },
-                AmountRUB: _codaEntity {
-                       ID:   `c-NWO2JHrrdw`,
-                       Name: `Amount, RUB`,
-                },
-                AmountEUR: _codaEntity {
-                       ID:   `c-85jKBvNSVF`,
-                       Name: `Amount, EUR`,
-                },
-                AuditCategory: _codaEntity {
-                       ID:   `c-45roqK-a18`,
-                       Name: `Audit Category`,
-                },
-            },
-        },
-    },
-    Formula: _formulaSchema{
-        PlannedInvoice: _codaEntity {
-               ID:   `f-6rR6RS0Un_`,
-               Name: `plannedInvoice`,
-           },
-        LastInvoice: _codaEntity {
-               ID:   `f-hZIdsBjMw3`,
-               Name: `lastInvoice`,
-           },
-        EvaluatedCompanyBalance: _codaEntity {
-               ID:   `f-9zMPywtJhn`,
-               Name: `evaluatedCompanyBalance`,
-           },
-        EvaluatedTotalPending: _codaEntity {
-               ID:   `f-qRpVm7GQ8F`,
-               Name: `evaluatedTotalPending`,
-           },
-        TplMonth: _codaEntity {
-               ID:   `f-wEKm-kjx1t`,
-               Name: `tplMonth`,
-           },
-        TplNextMonth: _codaEntity {
-               ID:   `f-wR0fPfSRvf`,
-               Name: `tplNextMonth`,
-           },
-    },
-    Control: _controlSchema{
-        BtnAddUnplanned: _codaEntity {
-               ID:   `ctrl-Sp_u7Cjsqc`,
-               Name: `btnAddUnplanned`,
-           },
-        BtnInvoiceAdd: _codaEntity {
-               ID:   `ctrl-izPLCxLtdl`,
-               Name: `btnInvoiceAdd`,
-           },
-        Button1: _codaEntity {
-               ID:   `ctrl-NTVAm6CmKb`,
-               Name: `button 1`,
-           },
-       },
+	Table: _tableSchema{
+		Months: _monthsTable{
+			_codaEntity: _codaEntity{
+				ID:   `grid-sync-1054-Table-dynamic-aca1dcec432de5424fa83d4c6d93c83946906407bcf71db42c915765fbc14401`,
+				Name: `Months`,
+			},
+			Cols: _monthsTableColumns{
+				Row: _codaEntity{
+					ID:   `value`,
+					Name: `Row`,
+				},
+				Synced: _codaEntity{
+					ID:   `synced`,
+					Name: `Synced`,
+				},
+				SyncAccount: _codaEntity{
+					ID:   `connection`,
+					Name: `Sync account`,
+				},
+				Name: _codaEntity{
+					ID:   `c-XqOHdzXcLR`,
+					Name: `Name`,
+				},
+				Month: _codaEntity{
+					ID:   `c-fEt-r8-748`,
+					Name: `Month`,
+				},
+				PreviousMonth: _codaEntity{
+					ID:   `c-RUsq1_2_81`,
+					Name: `Previous Month`,
+				},
+				MonthName: _codaEntity{
+					ID:   `c-UHSQHFZLkE`,
+					Name: `Month Name`,
+				},
+				WorkDays: _codaEntity{
+					ID:   `c-RlcX07v2ny`,
+					Name: `Work Days`,
+				},
+				Year: _codaEntity{
+					ID:   `c-mnHhV-4LX7`,
+					Name: `Year`,
+				},
+				PreviousMonthLink: _codaEntity{
+					ID:   `c-hikG-Ajf5k`,
+					Name: `Previous Month Link`,
+				},
+			},
+		},
+		CashFlow: _cashFlowTable{
+			_codaEntity: _codaEntity{
+				ID:   `grid-7yE1NK5upn`,
+				Name: `Cash flow`,
+			},
+			Cols: _cashFlowTableColumns{
+				No: _codaEntity{
+					ID:   `c-9TdkReuS8G`,
+					Name: `No`,
+				},
+				Date: _codaEntity{
+					ID:   `c-HuVxndys-5`,
+					Name: `Date`,
+				},
+				Comment: _codaEntity{
+					ID:   `c-7Sr6bn-OVs`,
+					Name: `Comment`,
+				},
+				AmountRUB: _codaEntity{
+					ID:   `c-Ka5rkoQEvD`,
+					Name: `Amount, RUB`,
+				},
+				Account: _codaEntity{
+					ID:   `c-HvpjCI4gRX`,
+					Name: `Account`,
+				},
+				CashOutPurpose: _codaEntity{
+					ID:   `c-ak93zMH1dQ`,
+					Name: `Cash out purpose`,
+				},
+				CashIn: _codaEntity{
+					ID:   `c-FfATqG9jTV`,
+					Name: `Cash in`,
+				},
+				ComissionAmtRUB: _codaEntity{
+					ID:   `c-6pxTqY1M65`,
+					Name: `Comission amt, RUB`,
+				},
+				PaidAmtRUB: _codaEntity{
+					ID:   `c-NcMKzn_fpI`,
+					Name: `Paid amt, RUB`,
+				},
+				Reconciled: _codaEntity{
+					ID:   `c-P_CSVSFk0L`,
+					Name: `Reconciled`,
+				},
+				Count: _codaEntity{
+					ID:   `c-taBOV-t5cz`,
+					Name: `Count`,
+				},
+				InclInBalance: _codaEntity{
+					ID:   `c-PV5Apg8Ajw`,
+					Name: `Incl in balance`,
+				},
+				Author: _codaEntity{
+					ID:   `c-2Xkn5hlxUM`,
+					Name: `Author`,
+				},
+				PersonalPaidIn: _codaEntity{
+					ID:   `c-OPYJnVV_u7`,
+					Name: `Personal paid in`,
+				},
+				CreatedOn: _codaEntity{
+					ID:   `c-F-Ffna2NpT`,
+					Name: `Created on`,
+				},
+			},
+		},
+		InvoicePayment: _invoicePaymentTable{
+			_codaEntity: _codaEntity{
+				ID:   `grid-R9oRxgWMUH`,
+				Name: `Invoice payment`,
+			},
+			Cols: _invoicePaymentTableColumns{
+				ReceivedDate: _codaEntity{
+					ID:   `c-HevgF6a6li`,
+					Name: `Received date`,
+				},
+				AmountEUR: _codaEntity{
+					ID:   `c-IE-iOWanac`,
+					Name: `Amount EUR`,
+				},
+				PaymentRate: _codaEntity{
+					ID:   `c-zKkSve_s9b`,
+					Name: `Payment rate`,
+				},
+				PlannedRate: _codaEntity{
+					ID:   `c-VXDlksbd7o`,
+					Name: `Planned rate`,
+				},
+				RateDiff: _codaEntity{
+					ID:   `c-qH9PR8hAuY`,
+					Name: `Rate diff`,
+				},
+				AmountRUB: _codaEntity{
+					ID:   `c-Wx9eWgoHWl`,
+					Name: `Amount RUB`,
+				},
+				RateBalance: _codaEntity{
+					ID:   `c-9FRsy0d1l9`,
+					Name: `Rate balance`,
+				},
+				SentDate: _codaEntity{
+					ID:   `c-M1NogFDhKz`,
+					Name: `Sent date`,
+				},
+				RateError: _codaEntity{
+					ID:   `c-tSU9bZrnUG`,
+					Name: `Rate error`,
+				},
+				Invoice: _codaEntity{
+					ID:   `c-GD0FEsDsIu`,
+					Name: `Invoice`,
+				},
+				CashFlow: _codaEntity{
+					ID:   `c-doy2oZs_0X`,
+					Name: `Cash Flow`,
+				},
+			},
+		},
+		Expenses: _expensesTable{
+			_codaEntity: _codaEntity{
+				ID:   `grid-j1yvp-c7Xq`,
+				Name: `Expenses`,
+			},
+			Cols: _expensesTableColumns{
+				ID: _codaEntity{
+					ID:   `c-NIDES-BkAW`,
+					Name: `ID`,
+				},
+				Invoice: _codaEntity{
+					ID:   `c-_Vwi1N_WO9`,
+					Name: `Invoice`,
+				},
+				Subject: _codaEntity{
+					ID:   `c-dWrUpt7GHg`,
+					Name: `Subject`,
+				},
+				Category: _codaEntity{
+					ID:   `c-HgZFvbcM6u`,
+					Name: `Category`,
+				},
+				Comment: _codaEntity{
+					ID:   `c-hLtZdaFaOE`,
+					Name: `Comment`,
+				},
+				AmountRUB: _codaEntity{
+					ID:   `c-NWO2JHrrdw`,
+					Name: `Amount, RUB`,
+				},
+				AmountEUR: _codaEntity{
+					ID:   `c-85jKBvNSVF`,
+					Name: `Amount, EUR`,
+				},
+				Status: _codaEntity{
+					ID:   `c-TlBKoSAJmV`,
+					Name: `Status`,
+				},
+				CashOutRefs: _codaEntity{
+					ID:   `c-o0llMz254Z`,
+					Name: `Cash out refs`,
+				},
+				ActuallySpent: _codaEntity{
+					ID:   `c-otkrTpI7VA`,
+					Name: `Actually spent`,
+				},
+				RejectionReason: _codaEntity{
+					ID:   `c-OwY64F1V4B`,
+					Name: `Rejection reason`,
+				},
+				PendingSpend: _codaEntity{
+					ID:   `c-MTRmKDu-3A`,
+					Name: `Pending spend`,
+				},
+				Balance: _codaEntity{
+					ID:   `c-GAIziVHBvd`,
+					Name: `Balance`,
+				},
+				CashFlow: _codaEntity{
+					ID:   `c-sncvkVSbcJ`,
+					Name: `Cash flow`,
+				},
+				LastCashOutDate: _codaEntity{
+					ID:   `c-BhuJTIsQEP`,
+					Name: `Last cash out date`,
+				},
+				Sort: _codaEntity{
+					ID:   `c-lzNMnSE_dh`,
+					Name: `Sort`,
+				},
+				Group: _codaEntity{
+					ID:   `c-18G6IQXBvd`,
+					Name: `Group`,
+				},
+				InventoryRef: _codaEntity{
+					ID:   `c-4-a6cFeLHl`,
+					Name: `Inventory Ref`,
+				},
+				ModifiedBy: _codaEntity{
+					ID:   `c-BFcg4AF5oM`,
+					Name: `Modified by`,
+				},
+				CreatedBy: _codaEntity{
+					ID:   `c-ZhqiSyi4mD`,
+					Name: `Created by`,
+				},
+				CreatedOn: _codaEntity{
+					ID:   `c-9PVZmwivnx`,
+					Name: `Created on`,
+				},
+				ModifiedOn: _codaEntity{
+					ID:   `c-8TigMDiu_5`,
+					Name: `Modified on`,
+				},
+				AuditCategory: _codaEntity{
+					ID:   `c-45roqK-a18`,
+					Name: `Audit Category`,
+				},
+			},
+		},
+		Invoices: _invoicesTable{
+			_codaEntity: _codaEntity{
+				ID:   `grid-H_lQoXT4Hn`,
+				Name: `Invoices`,
+			},
+			Cols: _invoicesTableColumns{
+				No: _codaEntity{
+					ID:   `c-1FLrjxKHe5`,
+					Name: `No`,
+				},
+				Status: _codaEntity{
+					ID:   `c-rqUgKu_1z_`,
+					Name: `Status`,
+				},
+				Number: _codaEntity{
+					ID:   `c-qw6CtPRr6R`,
+					Name: `Number`,
+				},
+				Date: _codaEntity{
+					ID:   `c-r6ev-Hfy0R`,
+					Name: `Date`,
+				},
+				Filename: _codaEntity{
+					ID:   `c-gVFw0tg27k`,
+					Name: `Filename`,
+				},
+				HourRate: _codaEntity{
+					ID:   `c-wu0qKZLU0Z`,
+					Name: `Hour rate`,
+				},
+				ApprovalLink: _codaEntity{
+					ID:   `c-mINTWSuok_`,
+					Name: `Approval Link`,
+				},
+				EURFixedRate: _codaEntity{
+					ID:   `c-39yF51XkOy`,
+					Name: `EUR fixed rate`,
+				},
+				EURRateWorst: _codaEntity{
+					ID:   `c-eqfmnjpn6E`,
+					Name: `EUR rate worst`,
+				},
+				ExpensesRUB: _codaEntity{
+					ID:   `c-LnWC3NrrYo`,
+					Name: `Expenses, RUB`,
+				},
+				ExpensesEUR: _codaEntity{
+					ID:   `c-Bj-zR8QBZP`,
+					Name: `Expenses, EUR`,
+				},
+				ReturnOfRounding: _codaEntity{
+					ID:   `c-cEdaY7AsWT`,
+					Name: `Return of rounding`,
+				},
+				Subtotal: _codaEntity{
+					ID:   `c-EfZ0XNkbSp`,
+					Name: `Subtotal`,
+				},
+				HourRateRounding: _codaEntity{
+					ID:   `c-wbNLVBU5oW`,
+					Name: `Hour Rate Rounding`,
+				},
+				TotalEUR: _codaEntity{
+					ID:   `c-gywxqGt4uK`,
+					Name: `Total, EUR`,
+				},
+				Hours: _codaEntity{
+					ID:   `c-2kpnqmokJ5`,
+					Name: `Hours`,
+				},
+				InvoicePayment: _codaEntity{
+					ID:   `c-_D1oWYheaQ`,
+					Name: `Invoice payment`,
+				},
+				PSCCFee: _codaEntity{
+					ID:   `c-isMKk3UN7G`,
+					Name: `PS: CC fee`,
+				},
+				PSRateRisk: _codaEntity{
+					ID:   `c-vrecptlM-5`,
+					Name: `PS: Rate risk`,
+				},
+				PrevInvoice: _codaEntity{
+					ID:   `c-RWqrc6Q-Zf`,
+					Name: `Prev invoice`,
+				},
+				PlannedExpenses: _codaEntity{
+					ID:   `c-cgiJ5IeX4n`,
+					Name: `Planned expenses`,
+				},
+				InsertTemplate: _codaEntity{
+					ID:   `c-sTMJM9Pq-d`,
+					Name: `Insert template`,
+				},
+				ActuallySpent: _codaEntity{
+					ID:   `c-XY-LhijBo3`,
+					Name: `Actually spent`,
+				},
+				PendingSpend: _codaEntity{
+					ID:   `c-bccwx_DDwv`,
+					Name: `Pending spend`,
+				},
+				Balance: _codaEntity{
+					ID:   `c-MW_JQd5O0b`,
+					Name: `Balance`,
+				},
+				InvoicePaymentAdd: _codaEntity{
+					ID:   `c-MQfrZ0gvsC`,
+					Name: `Invoice payment add`,
+				},
+				IsRecent: _codaEntity{
+					ID:   `c-yBkBMvhtOT`,
+					Name: `Is recent`,
+				},
+			},
+		},
+		Accounts: _accountsTable{
+			_codaEntity: _codaEntity{
+				ID:   `grid-pwTQC7XRKL`,
+				Name: `Accounts`,
+			},
+			Cols: _accountsTableColumns{
+				Account: _codaEntity{
+					ID:   `c-FiYh8LlPM6`,
+					Name: `Account`,
+				},
+				Comment: _codaEntity{
+					ID:   `c-tokAPP6nTJ`,
+					Name: `Comment`,
+				},
+				InclInBalance: _codaEntity{
+					ID:   `c-G8_c9D7Jsy`,
+					Name: `Incl in balance`,
+				},
+			},
+		},
+		UnplannedLast40d: _unplannedLast40dTable{
+			_codaEntity: _codaEntity{
+				ID:   `table-2iAFNgZh_z`,
+				Name: `Unplanned (last 40d)`,
+			},
+			Cols: _unplannedLast40dTableColumns{
+				Subject: _codaEntity{
+					ID:   `c-dWrUpt7GHg`,
+					Name: `Subject`,
+				},
+				LastCashOutDate: _codaEntity{
+					ID:   `c-BhuJTIsQEP`,
+					Name: `Last cash out date`,
+				},
+				Comment: _codaEntity{
+					ID:   `c-hLtZdaFaOE`,
+					Name: `Comment`,
+				},
+				Category: _codaEntity{
+					ID:   `c-HgZFvbcM6u`,
+					Name: `Category`,
+				},
+				Status: _codaEntity{
+					ID:   `c-TlBKoSAJmV`,
+					Name: `Status`,
+				},
+				ActuallySpent: _codaEntity{
+					ID:   `c-otkrTpI7VA`,
+					Name: `Actually spent`,
+				},
+				Balance: _codaEntity{
+					ID:   `c-GAIziVHBvd`,
+					Name: `Balance`,
+				},
+				CashFlow: _codaEntity{
+					ID:   `c-sncvkVSbcJ`,
+					Name: `Cash flow`,
+				},
+				CashOutRefs: _codaEntity{
+					ID:   `c-o0llMz254Z`,
+					Name: `Cash out refs`,
+				},
+			},
+		},
+		PlannedSpendsAndCurrentInvoice: _plannedSpendsAndCurrentInvoiceTable{
+			_codaEntity: _codaEntity{
+				ID:   `table-5bvJSmcSgd`,
+				Name: `Planned spends and current invoice`,
+			},
+			Cols: _plannedSpendsAndCurrentInvoiceTableColumns{
+				Subject: _codaEntity{
+					ID:   `c-dWrUpt7GHg`,
+					Name: `Subject`,
+				},
+				Status: _codaEntity{
+					ID:   `c-TlBKoSAJmV`,
+					Name: `Status`,
+				},
+				AmountRUB: _codaEntity{
+					ID:   `c-NWO2JHrrdw`,
+					Name: `Amount, RUB`,
+				},
+				ActuallySpent: _codaEntity{
+					ID:   `c-otkrTpI7VA`,
+					Name: `Actually spent`,
+				},
+				PendingSpend: _codaEntity{
+					ID:   `c-MTRmKDu-3A`,
+					Name: `Pending spend`,
+				},
+				Balance: _codaEntity{
+					ID:   `c-GAIziVHBvd`,
+					Name: `Balance`,
+				},
+				CashFlow: _codaEntity{
+					ID:   `c-sncvkVSbcJ`,
+					Name: `Cash flow`,
+				},
+				Group: _codaEntity{
+					ID:   `c-18G6IQXBvd`,
+					Name: `Group`,
+				},
+			},
+		},
+		InventoryTypes: _inventoryTypesTable{
+			_codaEntity: _codaEntity{
+				ID:   `grid-sync-1054-Table-dynamic-ef49a72921eadd1e229c45fac0199e3555d7772b87293e602f033a92d9caea1d`,
+				Name: `Inventory Types`,
+			},
+			Cols: _inventoryTypesTableColumns{
+				Row: _codaEntity{
+					ID:   `value`,
+					Name: `Row`,
+				},
+				Synced: _codaEntity{
+					ID:   `synced`,
+					Name: `Synced`,
+				},
+				SyncAccount: _codaEntity{
+					ID:   `connection`,
+					Name: `Sync account`,
+				},
+				Code: _codaEntity{
+					ID:   `c-IedG4qMAaB`,
+					Name: `Code`,
+				},
+				Type: _codaEntity{
+					ID:   `c-fPa38HqyKw`,
+					Name: `Type`,
+				},
+				Name: _codaEntity{
+					ID:   `c-qVRPgjXTwg`,
+					Name: `Name`,
+				},
+				Link: _codaEntity{
+					ID:   `c-O-47pRG6yt`,
+					Name: `Link`,
+				},
+				Comments: _codaEntity{
+					ID:   `c-vTVmek8RJw`,
+					Name: `Comments`,
+				},
+				Price: _codaEntity{
+					ID:   `c-xzD6XFmymP`,
+					Name: `Price`,
+				},
+			},
+		},
+		InvoiceTemplate: _invoiceTemplateTable{
+			_codaEntity: _codaEntity{
+				ID:   `grid-zsR0KGVVNX`,
+				Name: `Invoice template`,
+			},
+			Cols: _invoiceTemplateTableColumns{
+				Subject: _codaEntity{
+					ID:   `c-z9FQ_YZ4WD`,
+					Name: `Subject`,
+				},
+				Comment: _codaEntity{
+					ID:   `c-1CAyQoTxTK`,
+					Name: `Comment`,
+				},
+				AmountRUB: _codaEntity{
+					ID:   `c-xsUIIY0puP`,
+					Name: `Amount, RUB`,
+				},
+				Category: _codaEntity{
+					ID:   `c-jGM_Cns-Wa`,
+					Name: `Category`,
+				},
+				Expense: _codaEntity{
+					ID:   `c-s0XIiK7UdC`,
+					Name: `Expense`,
+				},
+				SubjectTpl: _codaEntity{
+					ID:   `c-a-y2sDK_aA`,
+					Name: `Subject Tpl`,
+				},
+				Active: _codaEntity{
+					ID:   `c--5hsp0sV5S`,
+					Name: `Active`,
+				},
+			},
+		},
+		PlannedAndPreviousInvoices: _plannedAndPreviousInvoicesTable{
+			_codaEntity: _codaEntity{
+				ID:   `table-0oiNc6Kkw8`,
+				Name: `Planned and previous invoices`,
+			},
+			Cols: _plannedAndPreviousInvoicesTableColumns{
+				No: _codaEntity{
+					ID:   `c-1FLrjxKHe5`,
+					Name: `No`,
+				},
+				InsertTemplate: _codaEntity{
+					ID:   `c-sTMJM9Pq-d`,
+					Name: `Insert template`,
+				},
+				Status: _codaEntity{
+					ID:   `c-rqUgKu_1z_`,
+					Name: `Status`,
+				},
+				Number: _codaEntity{
+					ID:   `c-qw6CtPRr6R`,
+					Name: `Number`,
+				},
+				Date: _codaEntity{
+					ID:   `c-r6ev-Hfy0R`,
+					Name: `Date`,
+				},
+				HourRate: _codaEntity{
+					ID:   `c-wu0qKZLU0Z`,
+					Name: `Hour rate`,
+				},
+				ApprovalLink: _codaEntity{
+					ID:   `c-mINTWSuok_`,
+					Name: `Approval Link`,
+				},
+				EURFixedRate: _codaEntity{
+					ID:   `c-39yF51XkOy`,
+					Name: `EUR fixed rate`,
+				},
+				EURRateWorst: _codaEntity{
+					ID:   `c-eqfmnjpn6E`,
+					Name: `EUR rate worst`,
+				},
+				PlannedExpenses: _codaEntity{
+					ID:   `c-cgiJ5IeX4n`,
+					Name: `Planned expenses`,
+				},
+				ExpensesRUB: _codaEntity{
+					ID:   `c-LnWC3NrrYo`,
+					Name: `Expenses, RUB`,
+				},
+				ExpensesEUR: _codaEntity{
+					ID:   `c-Bj-zR8QBZP`,
+					Name: `Expenses, EUR`,
+				},
+				ReturnOfRounding: _codaEntity{
+					ID:   `c-cEdaY7AsWT`,
+					Name: `Return of rounding`,
+				},
+				Subtotal: _codaEntity{
+					ID:   `c-EfZ0XNkbSp`,
+					Name: `Subtotal`,
+				},
+				HourRateRounding: _codaEntity{
+					ID:   `c-wbNLVBU5oW`,
+					Name: `Hour Rate Rounding`,
+				},
+				TotalEUR: _codaEntity{
+					ID:   `c-gywxqGt4uK`,
+					Name: `Total, EUR`,
+				},
+				Hours: _codaEntity{
+					ID:   `c-2kpnqmokJ5`,
+					Name: `Hours`,
+				},
+				InvoicePayment: _codaEntity{
+					ID:   `c-_D1oWYheaQ`,
+					Name: `Invoice payment`,
+				},
+				InvoicePaymentAdd: _codaEntity{
+					ID:   `c-MQfrZ0gvsC`,
+					Name: `Invoice payment add`,
+				},
+				PSRateRisk: _codaEntity{
+					ID:   `c-vrecptlM-5`,
+					Name: `PS: Rate risk`,
+				},
+				PSCCFee: _codaEntity{
+					ID:   `c-isMKk3UN7G`,
+					Name: `PS: CC fee`,
+				},
+				ActuallySpent: _codaEntity{
+					ID:   `c-XY-LhijBo3`,
+					Name: `Actually spent`,
+				},
+				PendingSpend: _codaEntity{
+					ID:   `c-bccwx_DDwv`,
+					Name: `Pending spend`,
+				},
+				Balance: _codaEntity{
+					ID:   `c-MW_JQd5O0b`,
+					Name: `Balance`,
+				},
+				PrevInvoice: _codaEntity{
+					ID:   `c-RWqrc6Q-Zf`,
+					Name: `Prev invoice`,
+				},
+			},
+		},
+		PlannedExpenses: _plannedExpensesTable{
+			_codaEntity: _codaEntity{
+				ID:   `table-NvLNctjziJ`,
+				Name: `Planned expenses`,
+			},
+			Cols: _plannedExpensesTableColumns{
+				Invoice: _codaEntity{
+					ID:   `c-_Vwi1N_WO9`,
+					Name: `Invoice`,
+				},
+				Subject: _codaEntity{
+					ID:   `c-dWrUpt7GHg`,
+					Name: `Subject`,
+				},
+				Comment: _codaEntity{
+					ID:   `c-hLtZdaFaOE`,
+					Name: `Comment`,
+				},
+				AuditCategory: _codaEntity{
+					ID:   `c-45roqK-a18`,
+					Name: `Audit Category`,
+				},
+				Category: _codaEntity{
+					ID:   `c-HgZFvbcM6u`,
+					Name: `Category`,
+				},
+				Status: _codaEntity{
+					ID:   `c-TlBKoSAJmV`,
+					Name: `Status`,
+				},
+				AmountRUB: _codaEntity{
+					ID:   `c-NWO2JHrrdw`,
+					Name: `Amount, RUB`,
+				},
+				AmountEUR: _codaEntity{
+					ID:   `c-85jKBvNSVF`,
+					Name: `Amount, EUR`,
+				},
+				ActuallySpent: _codaEntity{
+					ID:   `c-otkrTpI7VA`,
+					Name: `Actually spent`,
+				},
+				PendingSpend: _codaEntity{
+					ID:   `c-MTRmKDu-3A`,
+					Name: `Pending spend`,
+				},
+				Balance: _codaEntity{
+					ID:   `c-GAIziVHBvd`,
+					Name: `Balance`,
+				},
+				CashFlow: _codaEntity{
+					ID:   `c-sncvkVSbcJ`,
+					Name: `Cash flow`,
+				},
+			},
+		},
+		CashFlow2020: _cashFlow2020Table{
+			_codaEntity: _codaEntity{
+				ID:   `table-0iqeriGwB9`,
+				Name: `Cash flow 2020`,
+			},
+			Cols: _cashFlow2020TableColumns{
+				Author: _codaEntity{
+					ID:   `c-2Xkn5hlxUM`,
+					Name: `Author`,
+				},
+				Reconciled: _codaEntity{
+					ID:   `c-P_CSVSFk0L`,
+					Name: `Reconciled`,
+				},
+				Account: _codaEntity{
+					ID:   `c-HvpjCI4gRX`,
+					Name: `Account`,
+				},
+				Date: _codaEntity{
+					ID:   `c-HuVxndys-5`,
+					Name: `Date`,
+				},
+				AmountRUB: _codaEntity{
+					ID:   `c-Ka5rkoQEvD`,
+					Name: `Amount, RUB`,
+				},
+				PaidAmtRUB: _codaEntity{
+					ID:   `c-NcMKzn_fpI`,
+					Name: `Paid amt, RUB`,
+				},
+				CashOutPurpose: _codaEntity{
+					ID:   `c-ak93zMH1dQ`,
+					Name: `Cash out purpose`,
+				},
+				Count: _codaEntity{
+					ID:   `c-taBOV-t5cz`,
+					Name: `Count`,
+				},
+				ComissionAmtRUB: _codaEntity{
+					ID:   `c-6pxTqY1M65`,
+					Name: `Comission amt, RUB`,
+				},
+				Comment: _codaEntity{
+					ID:   `c-7Sr6bn-OVs`,
+					Name: `Comment`,
+				},
+				CashIn: _codaEntity{
+					ID:   `c-FfATqG9jTV`,
+					Name: `Cash in`,
+				},
+			},
+		},
+		CashFlowOfPersonalAcc: _cashFlowOfPersonalAccTable{
+			_codaEntity: _codaEntity{
+				ID:   `table-dMo-URJL7Z`,
+				Name: `Cash flow of personal acc`,
+			},
+			Cols: _cashFlowOfPersonalAccTableColumns{
+				Account: _codaEntity{
+					ID:   `c-HvpjCI4gRX`,
+					Name: `Account`,
+				},
+				Date: _codaEntity{
+					ID:   `c-HuVxndys-5`,
+					Name: `Date`,
+				},
+				AmountRUB: _codaEntity{
+					ID:   `c-Ka5rkoQEvD`,
+					Name: `Amount, RUB`,
+				},
+				Comment: _codaEntity{
+					ID:   `c-7Sr6bn-OVs`,
+					Name: `Comment`,
+				},
+				CashOutPurpose: _codaEntity{
+					ID:   `c-ak93zMH1dQ`,
+					Name: `Cash out purpose`,
+				},
+				PersonalPaidIn: _codaEntity{
+					ID:   `c-OPYJnVV_u7`,
+					Name: `Personal paid in`,
+				},
+			},
+		},
+		CashFlow2021: _cashFlow2021Table{
+			_codaEntity: _codaEntity{
+				ID:   `table-79if8pVCSx`,
+				Name: `Cash flow 2021`,
+			},
+			Cols: _cashFlow2021TableColumns{
+				Author: _codaEntity{
+					ID:   `c-2Xkn5hlxUM`,
+					Name: `Author`,
+				},
+				Reconciled: _codaEntity{
+					ID:   `c-P_CSVSFk0L`,
+					Name: `Reconciled`,
+				},
+				Account: _codaEntity{
+					ID:   `c-HvpjCI4gRX`,
+					Name: `Account`,
+				},
+				Date: _codaEntity{
+					ID:   `c-HuVxndys-5`,
+					Name: `Date`,
+				},
+				AmountRUB: _codaEntity{
+					ID:   `c-Ka5rkoQEvD`,
+					Name: `Amount, RUB`,
+				},
+				PaidAmtRUB: _codaEntity{
+					ID:   `c-NcMKzn_fpI`,
+					Name: `Paid amt, RUB`,
+				},
+				CashOutPurpose: _codaEntity{
+					ID:   `c-ak93zMH1dQ`,
+					Name: `Cash out purpose`,
+				},
+				Count: _codaEntity{
+					ID:   `c-taBOV-t5cz`,
+					Name: `Count`,
+				},
+				ComissionAmtRUB: _codaEntity{
+					ID:   `c-6pxTqY1M65`,
+					Name: `Comission amt, RUB`,
+				},
+				Comment: _codaEntity{
+					ID:   `c-7Sr6bn-OVs`,
+					Name: `Comment`,
+				},
+				CashIn: _codaEntity{
+					ID:   `c-FfATqG9jTV`,
+					Name: `Cash in`,
+				},
+			},
+		},
+		AuditCategory: _auditCategoryTable{
+			_codaEntity: _codaEntity{
+				ID:   `grid-cXSuejWcpk`,
+				Name: `Audit Category`,
+			},
+			Cols: _auditCategoryTableColumns{
+				AuditCategory: _codaEntity{
+					ID:   `c-IGinJPS6nr`,
+					Name: `Audit Category`,
+				},
+			},
+		},
+		ExpensesByCategory: _expensesByCategoryTable{
+			_codaEntity: _codaEntity{
+				ID:   `table--3kR_z-HTW`,
+				Name: `Expenses by category`,
+			},
+			Cols: _expensesByCategoryTableColumns{
+				Group: _codaEntity{
+					ID:   `c-18G6IQXBvd`,
+					Name: `Group`,
+				},
+				AmountRUB: _codaEntity{
+					ID:   `c-NWO2JHrrdw`,
+					Name: `Amount, RUB`,
+				},
+				AmountEUR: _codaEntity{
+					ID:   `c-85jKBvNSVF`,
+					Name: `Amount, EUR`,
+				},
+				AuditCategory: _codaEntity{
+					ID:   `c-45roqK-a18`,
+					Name: `Audit Category`,
+				},
+			},
+		},
+	},
+	Formula: _formulaSchema{
+		PlannedInvoice: _codaEntity{
+			ID:   `f-6rR6RS0Un_`,
+			Name: `plannedInvoice`,
+		},
+		LastInvoice: _codaEntity{
+			ID:   `f-hZIdsBjMw3`,
+			Name: `lastInvoice`,
+		},
+		EvaluatedCompanyBalance: _codaEntity{
+			ID:   `f-9zMPywtJhn`,
+			Name: `evaluatedCompanyBalance`,
+		},
+		EvaluatedTotalPending: _codaEntity{
+			ID:   `f-qRpVm7GQ8F`,
+			Name: `evaluatedTotalPending`,
+		},
+		TplMonth: _codaEntity{
+			ID:   `f-wEKm-kjx1t`,
+			Name: `tplMonth`,
+		},
+		TplNextMonth: _codaEntity{
+			ID:   `f-wR0fPfSRvf`,
+			Name: `tplNextMonth`,
+		},
+	},
+	Control: _controlSchema{
+		BtnAddUnplanned: _codaEntity{
+			ID:   `ctrl-Sp_u7Cjsqc`,
+			Name: `btnAddUnplanned`,
+		},
+		BtnInvoiceAdd: _codaEntity{
+			ID:   `ctrl-izPLCxLtdl`,
+			Name: `btnInvoiceAdd`,
+		},
+		Button1: _codaEntity{
+			ID:   `ctrl-NTVAm6CmKb`,
+			Name: `button 1`,
+		},
+	},
 }
-
 
 //region Coda types
 
 type Person struct {
-    Name string
-    Email string
+	Name  string
+	Email string
 }
 
 type MonetaryAmount struct {
-    Currency string
-    Amount   float64
+	Currency string
+	Amount   float64
 }
 
 type Attachment struct {
-    Name   string
-    Height int
-    Width  int
-    URL    string
+	Name   string
+	Height int
+	Width  int
+	URL    string
 }
 
 type structuredValue struct {
@@ -1377,7 +1376,6 @@ type structuredValue struct {
 }
 
 //endregion
-
 
 //region Errors
 
@@ -1412,7 +1410,6 @@ func NewErrorContainer() ErrContainer {
 
 //endregion
 
-
 //region Parsing of basic internal types
 
 type Valuer interface {
@@ -1430,7 +1427,7 @@ func ToString(colID string, row Valuer) (string, error) {
 
 	bs, _ := json.Marshal(rawv)
 
-    return strings.Trim(string(bs), `"`), nil
+	return strings.Trim(string(bs), `"`), nil
 }
 
 // CodaTimeFormat holds the format used in Coda time values. Regardless of the type it always returns values in this format.
@@ -1442,15 +1439,15 @@ func ToString(colID string, row Valuer) (string, error) {
 const CodaTimeFormat = "2006-01-02T15:04:05.999-07:00"
 
 func ToDateTime(colID string, row Valuer) (time.Time, error) {
-    return ToTimeWithFormat(CodaTimeFormat, colID, row)
+	return ToTimeWithFormat(CodaTimeFormat, colID, row)
 }
 
 func ToDate(colID string, row Valuer) (time.Time, error) {
-    return ToTimeWithFormat(CodaTimeFormat, colID, row)
+	return ToTimeWithFormat(CodaTimeFormat, colID, row)
 }
 
 func ToTime(colID string, row Valuer) (time.Time, error) {
-    return ToTimeWithFormat(CodaTimeFormat, colID, row)
+	return ToTimeWithFormat(CodaTimeFormat, colID, row)
 }
 
 func ToTimeWithFormat(format string, colID string, row Valuer) (t time.Time, err error) {
@@ -1469,7 +1466,7 @@ func ToTimeWithFormat(format string, colID string, row Valuer) (t time.Time, err
 		return timev, nil
 	}
 
-	return time.Time{}, newFieldError(colID, "string in format " + CodaTimeFormat, rawv)
+	return time.Time{}, newFieldError(colID, "string in format "+CodaTimeFormat, rawv)
 }
 
 func ToFloat64(colID string, row Valuer) (float64, error) {
@@ -1487,9 +1484,9 @@ func ToFloat64(colID string, row Valuer) (float64, error) {
 	case float32:
 		return float64(v), nil
 	case string:
-	    if strings.Trim(v, " `") == "" {
-            return 0, nil
-        }
+		if strings.Trim(v, " `") == "" {
+			return 0, nil
+		}
 		return strconv.ParseFloat(v, 64)
 	default:
 		return 0, newFieldError(colID, "float64", rawv)
@@ -1734,1032 +1731,1031 @@ func newMoneyFromInterface(value map[string]interface{}) (MonetaryAmount, error)
 
 //region Data structs
 
-
-
 // Months is DTO for Months table
 type Months struct {
-    Row string
-    Synced bool
-    SyncAccount structuredValue
-    Name string
-    Month time.Time
-    PreviousMonth time.Time
-    MonthName string
-    WorkDays float64
-    Year string
-    PreviousMonthLink string
+	Row               string
+	Synced            bool
+	SyncAccount       structuredValue
+	Name              string
+	Month             time.Time
+	PreviousMonth     time.Time
+	MonthName         string
+	WorkDays          float64
+	Year              string
+	PreviousMonthLink string
 }
 
 func NewMonths(row Valuer) (dto Months, errs error) {
 	var err error
 	errc := NewErrorContainer()
-    if dto.Row, err = ToString(ID.Table.Months.Cols.Row.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.Months.Cols.Row.Name, ID.Table.Months.Cols.Row.ID, err))
-    }
-    if dto.Synced, err = ToBool(ID.Table.Months.Cols.Synced.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.Months.Cols.Synced.Name, ID.Table.Months.Cols.Synced.ID, err))
-    }
-    if dto.SyncAccount, err = toStructuredValueFromValuer(ID.Table.Months.Cols.SyncAccount.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.Months.Cols.SyncAccount.Name, ID.Table.Months.Cols.SyncAccount.ID, err))
-    }
-    if dto.Name, err = ToString(ID.Table.Months.Cols.Name.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.Months.Cols.Name.Name, ID.Table.Months.Cols.Name.ID, err))
-    }
-    if dto.Month, err = ToDate(ID.Table.Months.Cols.Month.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.Months.Cols.Month.Name, ID.Table.Months.Cols.Month.ID, err))
-    }
-    if dto.PreviousMonth, err = ToDate(ID.Table.Months.Cols.PreviousMonth.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.Months.Cols.PreviousMonth.Name, ID.Table.Months.Cols.PreviousMonth.ID, err))
-    }
-    if dto.MonthName, err = ToString(ID.Table.Months.Cols.MonthName.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.Months.Cols.MonthName.Name, ID.Table.Months.Cols.MonthName.ID, err))
-    }
-    if dto.WorkDays, err = ToFloat64(ID.Table.Months.Cols.WorkDays.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.Months.Cols.WorkDays.Name, ID.Table.Months.Cols.WorkDays.ID, err))
-    }
-    if dto.Year, err = ToString(ID.Table.Months.Cols.Year.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.Months.Cols.Year.Name, ID.Table.Months.Cols.Year.ID, err))
-    }
-    if dto.PreviousMonthLink, err = ToString(ID.Table.Months.Cols.PreviousMonthLink.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.Months.Cols.PreviousMonthLink.Name, ID.Table.Months.Cols.PreviousMonthLink.ID, err))
-    }
+	if dto.Row, err = ToString(ID.Table.Months.Cols.Row.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.Months.Cols.Row.Name, ID.Table.Months.Cols.Row.ID, err))
+	}
+	if dto.Synced, err = ToBool(ID.Table.Months.Cols.Synced.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.Months.Cols.Synced.Name, ID.Table.Months.Cols.Synced.ID, err))
+	}
+	if dto.SyncAccount, err = toStructuredValueFromValuer(ID.Table.Months.Cols.SyncAccount.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.Months.Cols.SyncAccount.Name, ID.Table.Months.Cols.SyncAccount.ID, err))
+	}
+	if dto.Name, err = ToString(ID.Table.Months.Cols.Name.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.Months.Cols.Name.Name, ID.Table.Months.Cols.Name.ID, err))
+	}
+	if dto.Month, err = ToDate(ID.Table.Months.Cols.Month.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.Months.Cols.Month.Name, ID.Table.Months.Cols.Month.ID, err))
+	}
+	if dto.PreviousMonth, err = ToDate(ID.Table.Months.Cols.PreviousMonth.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.Months.Cols.PreviousMonth.Name, ID.Table.Months.Cols.PreviousMonth.ID, err))
+	}
+	if dto.MonthName, err = ToString(ID.Table.Months.Cols.MonthName.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.Months.Cols.MonthName.Name, ID.Table.Months.Cols.MonthName.ID, err))
+	}
+	if dto.WorkDays, err = ToFloat64(ID.Table.Months.Cols.WorkDays.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.Months.Cols.WorkDays.Name, ID.Table.Months.Cols.WorkDays.ID, err))
+	}
+	if dto.Year, err = ToString(ID.Table.Months.Cols.Year.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.Months.Cols.Year.Name, ID.Table.Months.Cols.Year.ID, err))
+	}
+	if dto.PreviousMonthLink, err = ToString(ID.Table.Months.Cols.PreviousMonthLink.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.Months.Cols.PreviousMonthLink.Name, ID.Table.Months.Cols.PreviousMonthLink.ID, err))
+	}
 
-    if len(errc) > 0 {
-        return Months{}, errc
-    }
+	if len(errc) > 0 {
+		return Months{}, errc
+	}
 
 	return
 }
 
 // CashFlow is DTO for Cash flow table
 type CashFlow struct {
-    No float64
-    Date time.Time
-    Comment string
-    AmountRUB float64
-    Account AccountsLookup
-    CashOutPurpose ExpensesLookup
-    CashIn InvoicePaymentLookup
-    ComissionAmtRUB float64
-    PaidAmtRUB float64
-    Reconciled bool
-    Count float64
-    InclInBalance bool
-    Author []Person
-    PersonalPaidIn ExpensesLookup
-    CreatedOn time.Time
+	No              float64
+	Date            time.Time
+	Comment         string
+	AmountRUB       float64
+	Account         AccountsLookup
+	CashOutPurpose  ExpensesLookup
+	CashIn          InvoicePaymentLookup
+	ComissionAmtRUB float64
+	PaidAmtRUB      float64
+	Reconciled      bool
+	Count           float64
+	InclInBalance   bool
+	Author          []Person
+	PersonalPaidIn  ExpensesLookup
+	CreatedOn       time.Time
 }
 
 func NewCashFlow(row Valuer) (dto CashFlow, errs error) {
 	var err error
 	errc := NewErrorContainer()
-    if dto.No, err = ToFloat64(ID.Table.CashFlow.Cols.No.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.CashFlow.Cols.No.Name, ID.Table.CashFlow.Cols.No.ID, err))
-    }
-    if dto.Date, err = ToDate(ID.Table.CashFlow.Cols.Date.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.CashFlow.Cols.Date.Name, ID.Table.CashFlow.Cols.Date.ID, err))
-    }
-    if dto.Comment, err = ToString(ID.Table.CashFlow.Cols.Comment.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.CashFlow.Cols.Comment.Name, ID.Table.CashFlow.Cols.Comment.ID, err))
-    }
-    if dto.AmountRUB, err = ToFloat64(ID.Table.CashFlow.Cols.AmountRUB.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.CashFlow.Cols.AmountRUB.Name, ID.Table.CashFlow.Cols.AmountRUB.ID, err))
-    }
-    if dto.Account, err = ToAccountsLookup(ID.Table.CashFlow.Cols.Account.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.CashFlow.Cols.Account.Name, ID.Table.CashFlow.Cols.Account.ID, err))
-    }
-    if dto.CashOutPurpose, err = ToExpensesLookup(ID.Table.CashFlow.Cols.CashOutPurpose.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.CashFlow.Cols.CashOutPurpose.Name, ID.Table.CashFlow.Cols.CashOutPurpose.ID, err))
-    }
-    if dto.CashIn, err = ToInvoicePaymentLookup(ID.Table.CashFlow.Cols.CashIn.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.CashFlow.Cols.CashIn.Name, ID.Table.CashFlow.Cols.CashIn.ID, err))
-    }
-    if dto.ComissionAmtRUB, err = ToFloat64(ID.Table.CashFlow.Cols.ComissionAmtRUB.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.CashFlow.Cols.ComissionAmtRUB.Name, ID.Table.CashFlow.Cols.ComissionAmtRUB.ID, err))
-    }
-    if dto.PaidAmtRUB, err = ToFloat64(ID.Table.CashFlow.Cols.PaidAmtRUB.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.CashFlow.Cols.PaidAmtRUB.Name, ID.Table.CashFlow.Cols.PaidAmtRUB.ID, err))
-    }
-    if dto.Reconciled, err = ToBool(ID.Table.CashFlow.Cols.Reconciled.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.CashFlow.Cols.Reconciled.Name, ID.Table.CashFlow.Cols.Reconciled.ID, err))
-    }
-    if dto.Count, err = ToFloat64(ID.Table.CashFlow.Cols.Count.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.CashFlow.Cols.Count.Name, ID.Table.CashFlow.Cols.Count.ID, err))
-    }
-    if dto.InclInBalance, err = ToBool(ID.Table.CashFlow.Cols.InclInBalance.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.CashFlow.Cols.InclInBalance.Name, ID.Table.CashFlow.Cols.InclInBalance.ID, err))
-    }
-    if dto.Author, err = ToPersons(ID.Table.CashFlow.Cols.Author.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.CashFlow.Cols.Author.Name, ID.Table.CashFlow.Cols.Author.ID, err))
-    }
-    if dto.PersonalPaidIn, err = ToExpensesLookup(ID.Table.CashFlow.Cols.PersonalPaidIn.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.CashFlow.Cols.PersonalPaidIn.Name, ID.Table.CashFlow.Cols.PersonalPaidIn.ID, err))
-    }
-    if dto.CreatedOn, err = ToDateTime(ID.Table.CashFlow.Cols.CreatedOn.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.CashFlow.Cols.CreatedOn.Name, ID.Table.CashFlow.Cols.CreatedOn.ID, err))
-    }
+	if dto.No, err = ToFloat64(ID.Table.CashFlow.Cols.No.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.CashFlow.Cols.No.Name, ID.Table.CashFlow.Cols.No.ID, err))
+	}
+	if dto.Date, err = ToDate(ID.Table.CashFlow.Cols.Date.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.CashFlow.Cols.Date.Name, ID.Table.CashFlow.Cols.Date.ID, err))
+	}
+	if dto.Comment, err = ToString(ID.Table.CashFlow.Cols.Comment.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.CashFlow.Cols.Comment.Name, ID.Table.CashFlow.Cols.Comment.ID, err))
+	}
+	if dto.AmountRUB, err = ToFloat64(ID.Table.CashFlow.Cols.AmountRUB.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.CashFlow.Cols.AmountRUB.Name, ID.Table.CashFlow.Cols.AmountRUB.ID, err))
+	}
+	if dto.Account, err = ToAccountsLookup(ID.Table.CashFlow.Cols.Account.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.CashFlow.Cols.Account.Name, ID.Table.CashFlow.Cols.Account.ID, err))
+	}
+	if dto.CashOutPurpose, err = ToExpensesLookup(ID.Table.CashFlow.Cols.CashOutPurpose.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.CashFlow.Cols.CashOutPurpose.Name, ID.Table.CashFlow.Cols.CashOutPurpose.ID, err))
+	}
+	if dto.CashIn, err = ToInvoicePaymentLookup(ID.Table.CashFlow.Cols.CashIn.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.CashFlow.Cols.CashIn.Name, ID.Table.CashFlow.Cols.CashIn.ID, err))
+	}
+	if dto.ComissionAmtRUB, err = ToFloat64(ID.Table.CashFlow.Cols.ComissionAmtRUB.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.CashFlow.Cols.ComissionAmtRUB.Name, ID.Table.CashFlow.Cols.ComissionAmtRUB.ID, err))
+	}
+	if dto.PaidAmtRUB, err = ToFloat64(ID.Table.CashFlow.Cols.PaidAmtRUB.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.CashFlow.Cols.PaidAmtRUB.Name, ID.Table.CashFlow.Cols.PaidAmtRUB.ID, err))
+	}
+	if dto.Reconciled, err = ToBool(ID.Table.CashFlow.Cols.Reconciled.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.CashFlow.Cols.Reconciled.Name, ID.Table.CashFlow.Cols.Reconciled.ID, err))
+	}
+	if dto.Count, err = ToFloat64(ID.Table.CashFlow.Cols.Count.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.CashFlow.Cols.Count.Name, ID.Table.CashFlow.Cols.Count.ID, err))
+	}
+	if dto.InclInBalance, err = ToBool(ID.Table.CashFlow.Cols.InclInBalance.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.CashFlow.Cols.InclInBalance.Name, ID.Table.CashFlow.Cols.InclInBalance.ID, err))
+	}
+	if dto.Author, err = ToPersons(ID.Table.CashFlow.Cols.Author.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.CashFlow.Cols.Author.Name, ID.Table.CashFlow.Cols.Author.ID, err))
+	}
+	if dto.PersonalPaidIn, err = ToExpensesLookup(ID.Table.CashFlow.Cols.PersonalPaidIn.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.CashFlow.Cols.PersonalPaidIn.Name, ID.Table.CashFlow.Cols.PersonalPaidIn.ID, err))
+	}
+	if dto.CreatedOn, err = ToDateTime(ID.Table.CashFlow.Cols.CreatedOn.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.CashFlow.Cols.CreatedOn.Name, ID.Table.CashFlow.Cols.CreatedOn.ID, err))
+	}
 
-    if len(errc) > 0 {
-        return CashFlow{}, errc
-    }
+	if len(errc) > 0 {
+		return CashFlow{}, errc
+	}
 
 	return
 }
 
 // InvoicePayment is DTO for Invoice payment table
 type InvoicePayment struct {
-    ReceivedDate time.Time
-    AmountEUR float64
-    PaymentRate float64
-    PlannedRate float64
-    RateDiff float64
-    AmountRUB float64
-    RateBalance float64
-    SentDate time.Time
-    RateError string
-    Invoice InvoicesLookup
-    CashFlow string
+	ReceivedDate time.Time
+	AmountEUR    float64
+	PaymentRate  float64
+	PlannedRate  float64
+	RateDiff     float64
+	AmountRUB    float64
+	RateBalance  float64
+	SentDate     time.Time
+	RateError    string
+	Invoice      InvoicesLookup
+	CashFlow     string
 }
 
 func NewInvoicePayment(row Valuer) (dto InvoicePayment, errs error) {
 	var err error
 	errc := NewErrorContainer()
-    if dto.ReceivedDate, err = ToDate(ID.Table.InvoicePayment.Cols.ReceivedDate.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.InvoicePayment.Cols.ReceivedDate.Name, ID.Table.InvoicePayment.Cols.ReceivedDate.ID, err))
-    }
-    if dto.AmountEUR, err = ToFloat64(ID.Table.InvoicePayment.Cols.AmountEUR.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.InvoicePayment.Cols.AmountEUR.Name, ID.Table.InvoicePayment.Cols.AmountEUR.ID, err))
-    }
-    if dto.PaymentRate, err = ToFloat64(ID.Table.InvoicePayment.Cols.PaymentRate.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.InvoicePayment.Cols.PaymentRate.Name, ID.Table.InvoicePayment.Cols.PaymentRate.ID, err))
-    }
-    if dto.PlannedRate, err = ToFloat64(ID.Table.InvoicePayment.Cols.PlannedRate.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.InvoicePayment.Cols.PlannedRate.Name, ID.Table.InvoicePayment.Cols.PlannedRate.ID, err))
-    }
-    if dto.RateDiff, err = ToFloat64(ID.Table.InvoicePayment.Cols.RateDiff.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.InvoicePayment.Cols.RateDiff.Name, ID.Table.InvoicePayment.Cols.RateDiff.ID, err))
-    }
-    if dto.AmountRUB, err = ToFloat64(ID.Table.InvoicePayment.Cols.AmountRUB.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.InvoicePayment.Cols.AmountRUB.Name, ID.Table.InvoicePayment.Cols.AmountRUB.ID, err))
-    }
-    if dto.RateBalance, err = ToFloat64(ID.Table.InvoicePayment.Cols.RateBalance.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.InvoicePayment.Cols.RateBalance.Name, ID.Table.InvoicePayment.Cols.RateBalance.ID, err))
-    }
-    if dto.SentDate, err = ToDateTime(ID.Table.InvoicePayment.Cols.SentDate.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.InvoicePayment.Cols.SentDate.Name, ID.Table.InvoicePayment.Cols.SentDate.ID, err))
-    }
-    if dto.RateError, err = ToString(ID.Table.InvoicePayment.Cols.RateError.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.InvoicePayment.Cols.RateError.Name, ID.Table.InvoicePayment.Cols.RateError.ID, err))
-    }
-    if dto.Invoice, err = ToInvoicesLookup(ID.Table.InvoicePayment.Cols.Invoice.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.InvoicePayment.Cols.Invoice.Name, ID.Table.InvoicePayment.Cols.Invoice.ID, err))
-    }
-    if dto.CashFlow, err = ToString(ID.Table.InvoicePayment.Cols.CashFlow.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.InvoicePayment.Cols.CashFlow.Name, ID.Table.InvoicePayment.Cols.CashFlow.ID, err))
-    }
+	if dto.ReceivedDate, err = ToDate(ID.Table.InvoicePayment.Cols.ReceivedDate.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.InvoicePayment.Cols.ReceivedDate.Name, ID.Table.InvoicePayment.Cols.ReceivedDate.ID, err))
+	}
+	if dto.AmountEUR, err = ToFloat64(ID.Table.InvoicePayment.Cols.AmountEUR.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.InvoicePayment.Cols.AmountEUR.Name, ID.Table.InvoicePayment.Cols.AmountEUR.ID, err))
+	}
+	if dto.PaymentRate, err = ToFloat64(ID.Table.InvoicePayment.Cols.PaymentRate.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.InvoicePayment.Cols.PaymentRate.Name, ID.Table.InvoicePayment.Cols.PaymentRate.ID, err))
+	}
+	if dto.PlannedRate, err = ToFloat64(ID.Table.InvoicePayment.Cols.PlannedRate.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.InvoicePayment.Cols.PlannedRate.Name, ID.Table.InvoicePayment.Cols.PlannedRate.ID, err))
+	}
+	if dto.RateDiff, err = ToFloat64(ID.Table.InvoicePayment.Cols.RateDiff.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.InvoicePayment.Cols.RateDiff.Name, ID.Table.InvoicePayment.Cols.RateDiff.ID, err))
+	}
+	if dto.AmountRUB, err = ToFloat64(ID.Table.InvoicePayment.Cols.AmountRUB.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.InvoicePayment.Cols.AmountRUB.Name, ID.Table.InvoicePayment.Cols.AmountRUB.ID, err))
+	}
+	if dto.RateBalance, err = ToFloat64(ID.Table.InvoicePayment.Cols.RateBalance.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.InvoicePayment.Cols.RateBalance.Name, ID.Table.InvoicePayment.Cols.RateBalance.ID, err))
+	}
+	if dto.SentDate, err = ToDateTime(ID.Table.InvoicePayment.Cols.SentDate.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.InvoicePayment.Cols.SentDate.Name, ID.Table.InvoicePayment.Cols.SentDate.ID, err))
+	}
+	if dto.RateError, err = ToString(ID.Table.InvoicePayment.Cols.RateError.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.InvoicePayment.Cols.RateError.Name, ID.Table.InvoicePayment.Cols.RateError.ID, err))
+	}
+	if dto.Invoice, err = ToInvoicesLookup(ID.Table.InvoicePayment.Cols.Invoice.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.InvoicePayment.Cols.Invoice.Name, ID.Table.InvoicePayment.Cols.Invoice.ID, err))
+	}
+	if dto.CashFlow, err = ToString(ID.Table.InvoicePayment.Cols.CashFlow.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.InvoicePayment.Cols.CashFlow.Name, ID.Table.InvoicePayment.Cols.CashFlow.ID, err))
+	}
 
-    if len(errc) > 0 {
-        return InvoicePayment{}, errc
-    }
+	if len(errc) > 0 {
+		return InvoicePayment{}, errc
+	}
 
 	return
 }
 
 // Expenses is DTO for Expenses table
 type Expenses struct {
-    ID string
-    Invoice InvoicesLookup
-    Subject string
-    Category string
-    Comment string
-    AmountRUB float64
-    AmountEUR float64
-    Status string
-    CashOutRefs CashFlowLookup
-    ActuallySpent float64
-    RejectionReason string
-    PendingSpend float64
-    Balance float64
-    CashFlow string
-    LastCashOutDate time.Time
-    Sort string
-    Group string
-    InventoryRef InventoryTypesLookup
-    ModifiedBy []Person
-    CreatedBy []Person
-    CreatedOn time.Time
-    ModifiedOn time.Time
-    AuditCategory AuditCategoryLookup
+	ID              string
+	Invoice         InvoicesLookup
+	Subject         string
+	Category        string
+	Comment         string
+	AmountRUB       float64
+	AmountEUR       float64
+	Status          string
+	CashOutRefs     CashFlowLookup
+	ActuallySpent   float64
+	RejectionReason string
+	PendingSpend    float64
+	Balance         float64
+	CashFlow        string
+	LastCashOutDate time.Time
+	Sort            string
+	Group           string
+	InventoryRef    InventoryTypesLookup
+	ModifiedBy      []Person
+	CreatedBy       []Person
+	CreatedOn       time.Time
+	ModifiedOn      time.Time
+	AuditCategory   AuditCategoryLookup
 }
 
 func NewExpenses(row Valuer) (dto Expenses, errs error) {
 	var err error
 	errc := NewErrorContainer()
-    if dto.ID, err = ToString(ID.Table.Expenses.Cols.ID.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.Expenses.Cols.ID.Name, ID.Table.Expenses.Cols.ID.ID, err))
-    }
-    if dto.Invoice, err = ToInvoicesLookup(ID.Table.Expenses.Cols.Invoice.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.Expenses.Cols.Invoice.Name, ID.Table.Expenses.Cols.Invoice.ID, err))
-    }
-    if dto.Subject, err = ToString(ID.Table.Expenses.Cols.Subject.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.Expenses.Cols.Subject.Name, ID.Table.Expenses.Cols.Subject.ID, err))
-    }
-    if dto.Category, err = ToString(ID.Table.Expenses.Cols.Category.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.Expenses.Cols.Category.Name, ID.Table.Expenses.Cols.Category.ID, err))
-    }
-    if dto.Comment, err = ToString(ID.Table.Expenses.Cols.Comment.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.Expenses.Cols.Comment.Name, ID.Table.Expenses.Cols.Comment.ID, err))
-    }
-    if dto.AmountRUB, err = ToFloat64(ID.Table.Expenses.Cols.AmountRUB.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.Expenses.Cols.AmountRUB.Name, ID.Table.Expenses.Cols.AmountRUB.ID, err))
-    }
-    if dto.AmountEUR, err = ToFloat64(ID.Table.Expenses.Cols.AmountEUR.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.Expenses.Cols.AmountEUR.Name, ID.Table.Expenses.Cols.AmountEUR.ID, err))
-    }
-    if dto.Status, err = ToString(ID.Table.Expenses.Cols.Status.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.Expenses.Cols.Status.Name, ID.Table.Expenses.Cols.Status.ID, err))
-    }
-    if dto.CashOutRefs, err = ToCashFlowLookup(ID.Table.Expenses.Cols.CashOutRefs.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.Expenses.Cols.CashOutRefs.Name, ID.Table.Expenses.Cols.CashOutRefs.ID, err))
-    }
-    if dto.ActuallySpent, err = ToFloat64(ID.Table.Expenses.Cols.ActuallySpent.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.Expenses.Cols.ActuallySpent.Name, ID.Table.Expenses.Cols.ActuallySpent.ID, err))
-    }
-    if dto.RejectionReason, err = ToString(ID.Table.Expenses.Cols.RejectionReason.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.Expenses.Cols.RejectionReason.Name, ID.Table.Expenses.Cols.RejectionReason.ID, err))
-    }
-    if dto.PendingSpend, err = ToFloat64(ID.Table.Expenses.Cols.PendingSpend.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.Expenses.Cols.PendingSpend.Name, ID.Table.Expenses.Cols.PendingSpend.ID, err))
-    }
-    if dto.Balance, err = ToFloat64(ID.Table.Expenses.Cols.Balance.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.Expenses.Cols.Balance.Name, ID.Table.Expenses.Cols.Balance.ID, err))
-    }
-    if dto.CashFlow, err = ToString(ID.Table.Expenses.Cols.CashFlow.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.Expenses.Cols.CashFlow.Name, ID.Table.Expenses.Cols.CashFlow.ID, err))
-    }
-    if dto.LastCashOutDate, err = ToDate(ID.Table.Expenses.Cols.LastCashOutDate.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.Expenses.Cols.LastCashOutDate.Name, ID.Table.Expenses.Cols.LastCashOutDate.ID, err))
-    }
-    if dto.Sort, err = ToString(ID.Table.Expenses.Cols.Sort.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.Expenses.Cols.Sort.Name, ID.Table.Expenses.Cols.Sort.ID, err))
-    }
-    if dto.Group, err = ToString(ID.Table.Expenses.Cols.Group.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.Expenses.Cols.Group.Name, ID.Table.Expenses.Cols.Group.ID, err))
-    }
-    if dto.InventoryRef, err = ToInventoryTypesLookup(ID.Table.Expenses.Cols.InventoryRef.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.Expenses.Cols.InventoryRef.Name, ID.Table.Expenses.Cols.InventoryRef.ID, err))
-    }
-    if dto.ModifiedBy, err = ToPersons(ID.Table.Expenses.Cols.ModifiedBy.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.Expenses.Cols.ModifiedBy.Name, ID.Table.Expenses.Cols.ModifiedBy.ID, err))
-    }
-    if dto.CreatedBy, err = ToPersons(ID.Table.Expenses.Cols.CreatedBy.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.Expenses.Cols.CreatedBy.Name, ID.Table.Expenses.Cols.CreatedBy.ID, err))
-    }
-    if dto.CreatedOn, err = ToDateTime(ID.Table.Expenses.Cols.CreatedOn.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.Expenses.Cols.CreatedOn.Name, ID.Table.Expenses.Cols.CreatedOn.ID, err))
-    }
-    if dto.ModifiedOn, err = ToDateTime(ID.Table.Expenses.Cols.ModifiedOn.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.Expenses.Cols.ModifiedOn.Name, ID.Table.Expenses.Cols.ModifiedOn.ID, err))
-    }
-    if dto.AuditCategory, err = ToAuditCategoryLookup(ID.Table.Expenses.Cols.AuditCategory.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.Expenses.Cols.AuditCategory.Name, ID.Table.Expenses.Cols.AuditCategory.ID, err))
-    }
+	if dto.ID, err = ToString(ID.Table.Expenses.Cols.ID.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.Expenses.Cols.ID.Name, ID.Table.Expenses.Cols.ID.ID, err))
+	}
+	if dto.Invoice, err = ToInvoicesLookup(ID.Table.Expenses.Cols.Invoice.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.Expenses.Cols.Invoice.Name, ID.Table.Expenses.Cols.Invoice.ID, err))
+	}
+	if dto.Subject, err = ToString(ID.Table.Expenses.Cols.Subject.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.Expenses.Cols.Subject.Name, ID.Table.Expenses.Cols.Subject.ID, err))
+	}
+	if dto.Category, err = ToString(ID.Table.Expenses.Cols.Category.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.Expenses.Cols.Category.Name, ID.Table.Expenses.Cols.Category.ID, err))
+	}
+	if dto.Comment, err = ToString(ID.Table.Expenses.Cols.Comment.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.Expenses.Cols.Comment.Name, ID.Table.Expenses.Cols.Comment.ID, err))
+	}
+	if dto.AmountRUB, err = ToFloat64(ID.Table.Expenses.Cols.AmountRUB.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.Expenses.Cols.AmountRUB.Name, ID.Table.Expenses.Cols.AmountRUB.ID, err))
+	}
+	if dto.AmountEUR, err = ToFloat64(ID.Table.Expenses.Cols.AmountEUR.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.Expenses.Cols.AmountEUR.Name, ID.Table.Expenses.Cols.AmountEUR.ID, err))
+	}
+	if dto.Status, err = ToString(ID.Table.Expenses.Cols.Status.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.Expenses.Cols.Status.Name, ID.Table.Expenses.Cols.Status.ID, err))
+	}
+	if dto.CashOutRefs, err = ToCashFlowLookup(ID.Table.Expenses.Cols.CashOutRefs.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.Expenses.Cols.CashOutRefs.Name, ID.Table.Expenses.Cols.CashOutRefs.ID, err))
+	}
+	if dto.ActuallySpent, err = ToFloat64(ID.Table.Expenses.Cols.ActuallySpent.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.Expenses.Cols.ActuallySpent.Name, ID.Table.Expenses.Cols.ActuallySpent.ID, err))
+	}
+	if dto.RejectionReason, err = ToString(ID.Table.Expenses.Cols.RejectionReason.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.Expenses.Cols.RejectionReason.Name, ID.Table.Expenses.Cols.RejectionReason.ID, err))
+	}
+	if dto.PendingSpend, err = ToFloat64(ID.Table.Expenses.Cols.PendingSpend.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.Expenses.Cols.PendingSpend.Name, ID.Table.Expenses.Cols.PendingSpend.ID, err))
+	}
+	if dto.Balance, err = ToFloat64(ID.Table.Expenses.Cols.Balance.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.Expenses.Cols.Balance.Name, ID.Table.Expenses.Cols.Balance.ID, err))
+	}
+	if dto.CashFlow, err = ToString(ID.Table.Expenses.Cols.CashFlow.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.Expenses.Cols.CashFlow.Name, ID.Table.Expenses.Cols.CashFlow.ID, err))
+	}
+	if dto.LastCashOutDate, err = ToDate(ID.Table.Expenses.Cols.LastCashOutDate.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.Expenses.Cols.LastCashOutDate.Name, ID.Table.Expenses.Cols.LastCashOutDate.ID, err))
+	}
+	if dto.Sort, err = ToString(ID.Table.Expenses.Cols.Sort.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.Expenses.Cols.Sort.Name, ID.Table.Expenses.Cols.Sort.ID, err))
+	}
+	if dto.Group, err = ToString(ID.Table.Expenses.Cols.Group.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.Expenses.Cols.Group.Name, ID.Table.Expenses.Cols.Group.ID, err))
+	}
+	if dto.InventoryRef, err = ToInventoryTypesLookup(ID.Table.Expenses.Cols.InventoryRef.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.Expenses.Cols.InventoryRef.Name, ID.Table.Expenses.Cols.InventoryRef.ID, err))
+	}
+	if dto.ModifiedBy, err = ToPersons(ID.Table.Expenses.Cols.ModifiedBy.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.Expenses.Cols.ModifiedBy.Name, ID.Table.Expenses.Cols.ModifiedBy.ID, err))
+	}
+	if dto.CreatedBy, err = ToPersons(ID.Table.Expenses.Cols.CreatedBy.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.Expenses.Cols.CreatedBy.Name, ID.Table.Expenses.Cols.CreatedBy.ID, err))
+	}
+	if dto.CreatedOn, err = ToDateTime(ID.Table.Expenses.Cols.CreatedOn.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.Expenses.Cols.CreatedOn.Name, ID.Table.Expenses.Cols.CreatedOn.ID, err))
+	}
+	if dto.ModifiedOn, err = ToDateTime(ID.Table.Expenses.Cols.ModifiedOn.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.Expenses.Cols.ModifiedOn.Name, ID.Table.Expenses.Cols.ModifiedOn.ID, err))
+	}
+	if dto.AuditCategory, err = ToAuditCategoryLookup(ID.Table.Expenses.Cols.AuditCategory.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.Expenses.Cols.AuditCategory.Name, ID.Table.Expenses.Cols.AuditCategory.ID, err))
+	}
 
-    if len(errc) > 0 {
-        return Expenses{}, errc
-    }
+	if len(errc) > 0 {
+		return Expenses{}, errc
+	}
 
 	return
 }
 
 // Invoices is DTO for Invoices table
 type Invoices struct {
-    No string
-    Status string
-    Number float64
-    Date time.Time
-    Filename string
-    HourRate float64
-    ApprovalLink string
-    EURFixedRate float64
-    EURRateWorst float64
-    ExpensesRUB float64
-    ExpensesEUR float64
-    ReturnOfRounding float64
-    Subtotal float64
-    HourRateRounding float64
-    TotalEUR float64
-    Hours float64
-    InvoicePayment InvoicePaymentLookup
-    PSCCFee float64
-    PSRateRisk float64
-    PrevInvoice InvoicesLookup
-    PlannedExpenses ExpensesLookup
-    InsertTemplate string
-    ActuallySpent float64
-    PendingSpend float64
-    Balance float64
-    InvoicePaymentAdd string
-    IsRecent bool
+	No                string
+	Status            string
+	Number            float64
+	Date              time.Time
+	Filename          string
+	HourRate          float64
+	ApprovalLink      string
+	EURFixedRate      float64
+	EURRateWorst      float64
+	ExpensesRUB       float64
+	ExpensesEUR       float64
+	ReturnOfRounding  float64
+	Subtotal          float64
+	HourRateRounding  float64
+	TotalEUR          float64
+	Hours             float64
+	InvoicePayment    InvoicePaymentLookup
+	PSCCFee           float64
+	PSRateRisk        float64
+	PrevInvoice       InvoicesLookup
+	PlannedExpenses   ExpensesLookup
+	InsertTemplate    string
+	ActuallySpent     float64
+	PendingSpend      float64
+	Balance           float64
+	InvoicePaymentAdd string
+	IsRecent          bool
 }
 
 func NewInvoices(row Valuer) (dto Invoices, errs error) {
 	var err error
 	errc := NewErrorContainer()
-    if dto.No, err = ToString(ID.Table.Invoices.Cols.No.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.Invoices.Cols.No.Name, ID.Table.Invoices.Cols.No.ID, err))
-    }
-    if dto.Status, err = ToString(ID.Table.Invoices.Cols.Status.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.Invoices.Cols.Status.Name, ID.Table.Invoices.Cols.Status.ID, err))
-    }
-    if dto.Number, err = ToFloat64(ID.Table.Invoices.Cols.Number.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.Invoices.Cols.Number.Name, ID.Table.Invoices.Cols.Number.ID, err))
-    }
-    if dto.Date, err = ToDate(ID.Table.Invoices.Cols.Date.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.Invoices.Cols.Date.Name, ID.Table.Invoices.Cols.Date.ID, err))
-    }
-    if dto.Filename, err = ToString(ID.Table.Invoices.Cols.Filename.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.Invoices.Cols.Filename.Name, ID.Table.Invoices.Cols.Filename.ID, err))
-    }
-    if dto.HourRate, err = ToFloat64(ID.Table.Invoices.Cols.HourRate.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.Invoices.Cols.HourRate.Name, ID.Table.Invoices.Cols.HourRate.ID, err))
-    }
-    if dto.ApprovalLink, err = ToString(ID.Table.Invoices.Cols.ApprovalLink.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.Invoices.Cols.ApprovalLink.Name, ID.Table.Invoices.Cols.ApprovalLink.ID, err))
-    }
-    if dto.EURFixedRate, err = ToFloat64(ID.Table.Invoices.Cols.EURFixedRate.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.Invoices.Cols.EURFixedRate.Name, ID.Table.Invoices.Cols.EURFixedRate.ID, err))
-    }
-    if dto.EURRateWorst, err = ToFloat64(ID.Table.Invoices.Cols.EURRateWorst.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.Invoices.Cols.EURRateWorst.Name, ID.Table.Invoices.Cols.EURRateWorst.ID, err))
-    }
-    if dto.ExpensesRUB, err = ToFloat64(ID.Table.Invoices.Cols.ExpensesRUB.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.Invoices.Cols.ExpensesRUB.Name, ID.Table.Invoices.Cols.ExpensesRUB.ID, err))
-    }
-    if dto.ExpensesEUR, err = ToFloat64(ID.Table.Invoices.Cols.ExpensesEUR.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.Invoices.Cols.ExpensesEUR.Name, ID.Table.Invoices.Cols.ExpensesEUR.ID, err))
-    }
-    if dto.ReturnOfRounding, err = ToFloat64(ID.Table.Invoices.Cols.ReturnOfRounding.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.Invoices.Cols.ReturnOfRounding.Name, ID.Table.Invoices.Cols.ReturnOfRounding.ID, err))
-    }
-    if dto.Subtotal, err = ToFloat64(ID.Table.Invoices.Cols.Subtotal.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.Invoices.Cols.Subtotal.Name, ID.Table.Invoices.Cols.Subtotal.ID, err))
-    }
-    if dto.HourRateRounding, err = ToFloat64(ID.Table.Invoices.Cols.HourRateRounding.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.Invoices.Cols.HourRateRounding.Name, ID.Table.Invoices.Cols.HourRateRounding.ID, err))
-    }
-    if dto.TotalEUR, err = ToFloat64(ID.Table.Invoices.Cols.TotalEUR.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.Invoices.Cols.TotalEUR.Name, ID.Table.Invoices.Cols.TotalEUR.ID, err))
-    }
-    if dto.Hours, err = ToFloat64(ID.Table.Invoices.Cols.Hours.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.Invoices.Cols.Hours.Name, ID.Table.Invoices.Cols.Hours.ID, err))
-    }
-    if dto.InvoicePayment, err = ToInvoicePaymentLookup(ID.Table.Invoices.Cols.InvoicePayment.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.Invoices.Cols.InvoicePayment.Name, ID.Table.Invoices.Cols.InvoicePayment.ID, err))
-    }
-    if dto.PSCCFee, err = ToFloat64(ID.Table.Invoices.Cols.PSCCFee.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.Invoices.Cols.PSCCFee.Name, ID.Table.Invoices.Cols.PSCCFee.ID, err))
-    }
-    if dto.PSRateRisk, err = ToFloat64(ID.Table.Invoices.Cols.PSRateRisk.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.Invoices.Cols.PSRateRisk.Name, ID.Table.Invoices.Cols.PSRateRisk.ID, err))
-    }
-    if dto.PrevInvoice, err = ToInvoicesLookup(ID.Table.Invoices.Cols.PrevInvoice.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.Invoices.Cols.PrevInvoice.Name, ID.Table.Invoices.Cols.PrevInvoice.ID, err))
-    }
-    if dto.PlannedExpenses, err = ToExpensesLookup(ID.Table.Invoices.Cols.PlannedExpenses.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.Invoices.Cols.PlannedExpenses.Name, ID.Table.Invoices.Cols.PlannedExpenses.ID, err))
-    }
-    if dto.InsertTemplate, err = ToString(ID.Table.Invoices.Cols.InsertTemplate.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.Invoices.Cols.InsertTemplate.Name, ID.Table.Invoices.Cols.InsertTemplate.ID, err))
-    }
-    if dto.ActuallySpent, err = ToFloat64(ID.Table.Invoices.Cols.ActuallySpent.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.Invoices.Cols.ActuallySpent.Name, ID.Table.Invoices.Cols.ActuallySpent.ID, err))
-    }
-    if dto.PendingSpend, err = ToFloat64(ID.Table.Invoices.Cols.PendingSpend.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.Invoices.Cols.PendingSpend.Name, ID.Table.Invoices.Cols.PendingSpend.ID, err))
-    }
-    if dto.Balance, err = ToFloat64(ID.Table.Invoices.Cols.Balance.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.Invoices.Cols.Balance.Name, ID.Table.Invoices.Cols.Balance.ID, err))
-    }
-    if dto.InvoicePaymentAdd, err = ToString(ID.Table.Invoices.Cols.InvoicePaymentAdd.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.Invoices.Cols.InvoicePaymentAdd.Name, ID.Table.Invoices.Cols.InvoicePaymentAdd.ID, err))
-    }
-    if dto.IsRecent, err = ToBool(ID.Table.Invoices.Cols.IsRecent.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.Invoices.Cols.IsRecent.Name, ID.Table.Invoices.Cols.IsRecent.ID, err))
-    }
+	if dto.No, err = ToString(ID.Table.Invoices.Cols.No.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.Invoices.Cols.No.Name, ID.Table.Invoices.Cols.No.ID, err))
+	}
+	if dto.Status, err = ToString(ID.Table.Invoices.Cols.Status.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.Invoices.Cols.Status.Name, ID.Table.Invoices.Cols.Status.ID, err))
+	}
+	if dto.Number, err = ToFloat64(ID.Table.Invoices.Cols.Number.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.Invoices.Cols.Number.Name, ID.Table.Invoices.Cols.Number.ID, err))
+	}
+	if dto.Date, err = ToDate(ID.Table.Invoices.Cols.Date.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.Invoices.Cols.Date.Name, ID.Table.Invoices.Cols.Date.ID, err))
+	}
+	if dto.Filename, err = ToString(ID.Table.Invoices.Cols.Filename.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.Invoices.Cols.Filename.Name, ID.Table.Invoices.Cols.Filename.ID, err))
+	}
+	if dto.HourRate, err = ToFloat64(ID.Table.Invoices.Cols.HourRate.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.Invoices.Cols.HourRate.Name, ID.Table.Invoices.Cols.HourRate.ID, err))
+	}
+	if dto.ApprovalLink, err = ToString(ID.Table.Invoices.Cols.ApprovalLink.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.Invoices.Cols.ApprovalLink.Name, ID.Table.Invoices.Cols.ApprovalLink.ID, err))
+	}
+	if dto.EURFixedRate, err = ToFloat64(ID.Table.Invoices.Cols.EURFixedRate.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.Invoices.Cols.EURFixedRate.Name, ID.Table.Invoices.Cols.EURFixedRate.ID, err))
+	}
+	if dto.EURRateWorst, err = ToFloat64(ID.Table.Invoices.Cols.EURRateWorst.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.Invoices.Cols.EURRateWorst.Name, ID.Table.Invoices.Cols.EURRateWorst.ID, err))
+	}
+	if dto.ExpensesRUB, err = ToFloat64(ID.Table.Invoices.Cols.ExpensesRUB.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.Invoices.Cols.ExpensesRUB.Name, ID.Table.Invoices.Cols.ExpensesRUB.ID, err))
+	}
+	if dto.ExpensesEUR, err = ToFloat64(ID.Table.Invoices.Cols.ExpensesEUR.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.Invoices.Cols.ExpensesEUR.Name, ID.Table.Invoices.Cols.ExpensesEUR.ID, err))
+	}
+	if dto.ReturnOfRounding, err = ToFloat64(ID.Table.Invoices.Cols.ReturnOfRounding.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.Invoices.Cols.ReturnOfRounding.Name, ID.Table.Invoices.Cols.ReturnOfRounding.ID, err))
+	}
+	if dto.Subtotal, err = ToFloat64(ID.Table.Invoices.Cols.Subtotal.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.Invoices.Cols.Subtotal.Name, ID.Table.Invoices.Cols.Subtotal.ID, err))
+	}
+	if dto.HourRateRounding, err = ToFloat64(ID.Table.Invoices.Cols.HourRateRounding.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.Invoices.Cols.HourRateRounding.Name, ID.Table.Invoices.Cols.HourRateRounding.ID, err))
+	}
+	if dto.TotalEUR, err = ToFloat64(ID.Table.Invoices.Cols.TotalEUR.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.Invoices.Cols.TotalEUR.Name, ID.Table.Invoices.Cols.TotalEUR.ID, err))
+	}
+	if dto.Hours, err = ToFloat64(ID.Table.Invoices.Cols.Hours.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.Invoices.Cols.Hours.Name, ID.Table.Invoices.Cols.Hours.ID, err))
+	}
+	if dto.InvoicePayment, err = ToInvoicePaymentLookup(ID.Table.Invoices.Cols.InvoicePayment.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.Invoices.Cols.InvoicePayment.Name, ID.Table.Invoices.Cols.InvoicePayment.ID, err))
+	}
+	if dto.PSCCFee, err = ToFloat64(ID.Table.Invoices.Cols.PSCCFee.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.Invoices.Cols.PSCCFee.Name, ID.Table.Invoices.Cols.PSCCFee.ID, err))
+	}
+	if dto.PSRateRisk, err = ToFloat64(ID.Table.Invoices.Cols.PSRateRisk.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.Invoices.Cols.PSRateRisk.Name, ID.Table.Invoices.Cols.PSRateRisk.ID, err))
+	}
+	if dto.PrevInvoice, err = ToInvoicesLookup(ID.Table.Invoices.Cols.PrevInvoice.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.Invoices.Cols.PrevInvoice.Name, ID.Table.Invoices.Cols.PrevInvoice.ID, err))
+	}
+	if dto.PlannedExpenses, err = ToExpensesLookup(ID.Table.Invoices.Cols.PlannedExpenses.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.Invoices.Cols.PlannedExpenses.Name, ID.Table.Invoices.Cols.PlannedExpenses.ID, err))
+	}
+	if dto.InsertTemplate, err = ToString(ID.Table.Invoices.Cols.InsertTemplate.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.Invoices.Cols.InsertTemplate.Name, ID.Table.Invoices.Cols.InsertTemplate.ID, err))
+	}
+	if dto.ActuallySpent, err = ToFloat64(ID.Table.Invoices.Cols.ActuallySpent.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.Invoices.Cols.ActuallySpent.Name, ID.Table.Invoices.Cols.ActuallySpent.ID, err))
+	}
+	if dto.PendingSpend, err = ToFloat64(ID.Table.Invoices.Cols.PendingSpend.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.Invoices.Cols.PendingSpend.Name, ID.Table.Invoices.Cols.PendingSpend.ID, err))
+	}
+	if dto.Balance, err = ToFloat64(ID.Table.Invoices.Cols.Balance.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.Invoices.Cols.Balance.Name, ID.Table.Invoices.Cols.Balance.ID, err))
+	}
+	if dto.InvoicePaymentAdd, err = ToString(ID.Table.Invoices.Cols.InvoicePaymentAdd.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.Invoices.Cols.InvoicePaymentAdd.Name, ID.Table.Invoices.Cols.InvoicePaymentAdd.ID, err))
+	}
+	if dto.IsRecent, err = ToBool(ID.Table.Invoices.Cols.IsRecent.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.Invoices.Cols.IsRecent.Name, ID.Table.Invoices.Cols.IsRecent.ID, err))
+	}
 
-    if len(errc) > 0 {
-        return Invoices{}, errc
-    }
+	if len(errc) > 0 {
+		return Invoices{}, errc
+	}
 
 	return
 }
 
 // Accounts is DTO for Accounts table
 type Accounts struct {
-    Account string
-    Comment string
-    InclInBalance bool
+	Account       string
+	Comment       string
+	InclInBalance bool
 }
 
 func NewAccounts(row Valuer) (dto Accounts, errs error) {
 	var err error
 	errc := NewErrorContainer()
-    if dto.Account, err = ToString(ID.Table.Accounts.Cols.Account.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.Accounts.Cols.Account.Name, ID.Table.Accounts.Cols.Account.ID, err))
-    }
-    if dto.Comment, err = ToString(ID.Table.Accounts.Cols.Comment.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.Accounts.Cols.Comment.Name, ID.Table.Accounts.Cols.Comment.ID, err))
-    }
-    if dto.InclInBalance, err = ToBool(ID.Table.Accounts.Cols.InclInBalance.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.Accounts.Cols.InclInBalance.Name, ID.Table.Accounts.Cols.InclInBalance.ID, err))
-    }
+	if dto.Account, err = ToString(ID.Table.Accounts.Cols.Account.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.Accounts.Cols.Account.Name, ID.Table.Accounts.Cols.Account.ID, err))
+	}
+	if dto.Comment, err = ToString(ID.Table.Accounts.Cols.Comment.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.Accounts.Cols.Comment.Name, ID.Table.Accounts.Cols.Comment.ID, err))
+	}
+	if dto.InclInBalance, err = ToBool(ID.Table.Accounts.Cols.InclInBalance.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.Accounts.Cols.InclInBalance.Name, ID.Table.Accounts.Cols.InclInBalance.ID, err))
+	}
 
-    if len(errc) > 0 {
-        return Accounts{}, errc
-    }
+	if len(errc) > 0 {
+		return Accounts{}, errc
+	}
 
 	return
 }
 
 // UnplannedLast40d is DTO for Unplanned (last 40d) table
 type UnplannedLast40d struct {
-    Subject string
-    LastCashOutDate time.Time
-    Comment string
-    Category string
-    Status string
-    ActuallySpent float64
-    Balance float64
-    CashFlow string
-    CashOutRefs CashFlowLookup
+	Subject         string
+	LastCashOutDate time.Time
+	Comment         string
+	Category        string
+	Status          string
+	ActuallySpent   float64
+	Balance         float64
+	CashFlow        string
+	CashOutRefs     CashFlowLookup
 }
 
 func NewUnplannedLast40d(row Valuer) (dto UnplannedLast40d, errs error) {
 	var err error
 	errc := NewErrorContainer()
-    if dto.Subject, err = ToString(ID.Table.UnplannedLast40d.Cols.Subject.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.UnplannedLast40d.Cols.Subject.Name, ID.Table.UnplannedLast40d.Cols.Subject.ID, err))
-    }
-    if dto.LastCashOutDate, err = ToDate(ID.Table.UnplannedLast40d.Cols.LastCashOutDate.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.UnplannedLast40d.Cols.LastCashOutDate.Name, ID.Table.UnplannedLast40d.Cols.LastCashOutDate.ID, err))
-    }
-    if dto.Comment, err = ToString(ID.Table.UnplannedLast40d.Cols.Comment.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.UnplannedLast40d.Cols.Comment.Name, ID.Table.UnplannedLast40d.Cols.Comment.ID, err))
-    }
-    if dto.Category, err = ToString(ID.Table.UnplannedLast40d.Cols.Category.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.UnplannedLast40d.Cols.Category.Name, ID.Table.UnplannedLast40d.Cols.Category.ID, err))
-    }
-    if dto.Status, err = ToString(ID.Table.UnplannedLast40d.Cols.Status.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.UnplannedLast40d.Cols.Status.Name, ID.Table.UnplannedLast40d.Cols.Status.ID, err))
-    }
-    if dto.ActuallySpent, err = ToFloat64(ID.Table.UnplannedLast40d.Cols.ActuallySpent.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.UnplannedLast40d.Cols.ActuallySpent.Name, ID.Table.UnplannedLast40d.Cols.ActuallySpent.ID, err))
-    }
-    if dto.Balance, err = ToFloat64(ID.Table.UnplannedLast40d.Cols.Balance.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.UnplannedLast40d.Cols.Balance.Name, ID.Table.UnplannedLast40d.Cols.Balance.ID, err))
-    }
-    if dto.CashFlow, err = ToString(ID.Table.UnplannedLast40d.Cols.CashFlow.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.UnplannedLast40d.Cols.CashFlow.Name, ID.Table.UnplannedLast40d.Cols.CashFlow.ID, err))
-    }
-    if dto.CashOutRefs, err = ToCashFlowLookup(ID.Table.UnplannedLast40d.Cols.CashOutRefs.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.UnplannedLast40d.Cols.CashOutRefs.Name, ID.Table.UnplannedLast40d.Cols.CashOutRefs.ID, err))
-    }
+	if dto.Subject, err = ToString(ID.Table.UnplannedLast40d.Cols.Subject.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.UnplannedLast40d.Cols.Subject.Name, ID.Table.UnplannedLast40d.Cols.Subject.ID, err))
+	}
+	if dto.LastCashOutDate, err = ToDate(ID.Table.UnplannedLast40d.Cols.LastCashOutDate.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.UnplannedLast40d.Cols.LastCashOutDate.Name, ID.Table.UnplannedLast40d.Cols.LastCashOutDate.ID, err))
+	}
+	if dto.Comment, err = ToString(ID.Table.UnplannedLast40d.Cols.Comment.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.UnplannedLast40d.Cols.Comment.Name, ID.Table.UnplannedLast40d.Cols.Comment.ID, err))
+	}
+	if dto.Category, err = ToString(ID.Table.UnplannedLast40d.Cols.Category.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.UnplannedLast40d.Cols.Category.Name, ID.Table.UnplannedLast40d.Cols.Category.ID, err))
+	}
+	if dto.Status, err = ToString(ID.Table.UnplannedLast40d.Cols.Status.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.UnplannedLast40d.Cols.Status.Name, ID.Table.UnplannedLast40d.Cols.Status.ID, err))
+	}
+	if dto.ActuallySpent, err = ToFloat64(ID.Table.UnplannedLast40d.Cols.ActuallySpent.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.UnplannedLast40d.Cols.ActuallySpent.Name, ID.Table.UnplannedLast40d.Cols.ActuallySpent.ID, err))
+	}
+	if dto.Balance, err = ToFloat64(ID.Table.UnplannedLast40d.Cols.Balance.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.UnplannedLast40d.Cols.Balance.Name, ID.Table.UnplannedLast40d.Cols.Balance.ID, err))
+	}
+	if dto.CashFlow, err = ToString(ID.Table.UnplannedLast40d.Cols.CashFlow.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.UnplannedLast40d.Cols.CashFlow.Name, ID.Table.UnplannedLast40d.Cols.CashFlow.ID, err))
+	}
+	if dto.CashOutRefs, err = ToCashFlowLookup(ID.Table.UnplannedLast40d.Cols.CashOutRefs.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.UnplannedLast40d.Cols.CashOutRefs.Name, ID.Table.UnplannedLast40d.Cols.CashOutRefs.ID, err))
+	}
 
-    if len(errc) > 0 {
-        return UnplannedLast40d{}, errc
-    }
+	if len(errc) > 0 {
+		return UnplannedLast40d{}, errc
+	}
 
 	return
 }
 
 // PlannedSpendsAndCurrentInvoice is DTO for Planned spends and current invoice table
 type PlannedSpendsAndCurrentInvoice struct {
-    Subject string
-    Status string
-    AmountRUB float64
-    ActuallySpent float64
-    PendingSpend float64
-    Balance float64
-    CashFlow string
-    Group string
+	Subject       string
+	Status        string
+	AmountRUB     float64
+	ActuallySpent float64
+	PendingSpend  float64
+	Balance       float64
+	CashFlow      string
+	Group         string
 }
 
 func NewPlannedSpendsAndCurrentInvoice(row Valuer) (dto PlannedSpendsAndCurrentInvoice, errs error) {
 	var err error
 	errc := NewErrorContainer()
-    if dto.Subject, err = ToString(ID.Table.PlannedSpendsAndCurrentInvoice.Cols.Subject.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.PlannedSpendsAndCurrentInvoice.Cols.Subject.Name, ID.Table.PlannedSpendsAndCurrentInvoice.Cols.Subject.ID, err))
-    }
-    if dto.Status, err = ToString(ID.Table.PlannedSpendsAndCurrentInvoice.Cols.Status.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.PlannedSpendsAndCurrentInvoice.Cols.Status.Name, ID.Table.PlannedSpendsAndCurrentInvoice.Cols.Status.ID, err))
-    }
-    if dto.AmountRUB, err = ToFloat64(ID.Table.PlannedSpendsAndCurrentInvoice.Cols.AmountRUB.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.PlannedSpendsAndCurrentInvoice.Cols.AmountRUB.Name, ID.Table.PlannedSpendsAndCurrentInvoice.Cols.AmountRUB.ID, err))
-    }
-    if dto.ActuallySpent, err = ToFloat64(ID.Table.PlannedSpendsAndCurrentInvoice.Cols.ActuallySpent.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.PlannedSpendsAndCurrentInvoice.Cols.ActuallySpent.Name, ID.Table.PlannedSpendsAndCurrentInvoice.Cols.ActuallySpent.ID, err))
-    }
-    if dto.PendingSpend, err = ToFloat64(ID.Table.PlannedSpendsAndCurrentInvoice.Cols.PendingSpend.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.PlannedSpendsAndCurrentInvoice.Cols.PendingSpend.Name, ID.Table.PlannedSpendsAndCurrentInvoice.Cols.PendingSpend.ID, err))
-    }
-    if dto.Balance, err = ToFloat64(ID.Table.PlannedSpendsAndCurrentInvoice.Cols.Balance.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.PlannedSpendsAndCurrentInvoice.Cols.Balance.Name, ID.Table.PlannedSpendsAndCurrentInvoice.Cols.Balance.ID, err))
-    }
-    if dto.CashFlow, err = ToString(ID.Table.PlannedSpendsAndCurrentInvoice.Cols.CashFlow.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.PlannedSpendsAndCurrentInvoice.Cols.CashFlow.Name, ID.Table.PlannedSpendsAndCurrentInvoice.Cols.CashFlow.ID, err))
-    }
-    if dto.Group, err = ToString(ID.Table.PlannedSpendsAndCurrentInvoice.Cols.Group.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.PlannedSpendsAndCurrentInvoice.Cols.Group.Name, ID.Table.PlannedSpendsAndCurrentInvoice.Cols.Group.ID, err))
-    }
+	if dto.Subject, err = ToString(ID.Table.PlannedSpendsAndCurrentInvoice.Cols.Subject.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.PlannedSpendsAndCurrentInvoice.Cols.Subject.Name, ID.Table.PlannedSpendsAndCurrentInvoice.Cols.Subject.ID, err))
+	}
+	if dto.Status, err = ToString(ID.Table.PlannedSpendsAndCurrentInvoice.Cols.Status.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.PlannedSpendsAndCurrentInvoice.Cols.Status.Name, ID.Table.PlannedSpendsAndCurrentInvoice.Cols.Status.ID, err))
+	}
+	if dto.AmountRUB, err = ToFloat64(ID.Table.PlannedSpendsAndCurrentInvoice.Cols.AmountRUB.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.PlannedSpendsAndCurrentInvoice.Cols.AmountRUB.Name, ID.Table.PlannedSpendsAndCurrentInvoice.Cols.AmountRUB.ID, err))
+	}
+	if dto.ActuallySpent, err = ToFloat64(ID.Table.PlannedSpendsAndCurrentInvoice.Cols.ActuallySpent.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.PlannedSpendsAndCurrentInvoice.Cols.ActuallySpent.Name, ID.Table.PlannedSpendsAndCurrentInvoice.Cols.ActuallySpent.ID, err))
+	}
+	if dto.PendingSpend, err = ToFloat64(ID.Table.PlannedSpendsAndCurrentInvoice.Cols.PendingSpend.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.PlannedSpendsAndCurrentInvoice.Cols.PendingSpend.Name, ID.Table.PlannedSpendsAndCurrentInvoice.Cols.PendingSpend.ID, err))
+	}
+	if dto.Balance, err = ToFloat64(ID.Table.PlannedSpendsAndCurrentInvoice.Cols.Balance.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.PlannedSpendsAndCurrentInvoice.Cols.Balance.Name, ID.Table.PlannedSpendsAndCurrentInvoice.Cols.Balance.ID, err))
+	}
+	if dto.CashFlow, err = ToString(ID.Table.PlannedSpendsAndCurrentInvoice.Cols.CashFlow.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.PlannedSpendsAndCurrentInvoice.Cols.CashFlow.Name, ID.Table.PlannedSpendsAndCurrentInvoice.Cols.CashFlow.ID, err))
+	}
+	if dto.Group, err = ToString(ID.Table.PlannedSpendsAndCurrentInvoice.Cols.Group.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.PlannedSpendsAndCurrentInvoice.Cols.Group.Name, ID.Table.PlannedSpendsAndCurrentInvoice.Cols.Group.ID, err))
+	}
 
-    if len(errc) > 0 {
-        return PlannedSpendsAndCurrentInvoice{}, errc
-    }
+	if len(errc) > 0 {
+		return PlannedSpendsAndCurrentInvoice{}, errc
+	}
 
 	return
 }
 
 // InventoryTypes is DTO for Inventory Types table
 type InventoryTypes struct {
-    Row string
-    Synced bool
-    SyncAccount structuredValue
-    Code string
-    Type string
-    Name string
-    Link string
-    Comments string
-    Price MonetaryAmount
+	Row         string
+	Synced      bool
+	SyncAccount structuredValue
+	Code        string
+	Type        string
+	Name        string
+	Link        string
+	Comments    string
+	Price       MonetaryAmount
 }
 
 func NewInventoryTypes(row Valuer) (dto InventoryTypes, errs error) {
 	var err error
 	errc := NewErrorContainer()
-    if dto.Row, err = ToString(ID.Table.InventoryTypes.Cols.Row.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.InventoryTypes.Cols.Row.Name, ID.Table.InventoryTypes.Cols.Row.ID, err))
-    }
-    if dto.Synced, err = ToBool(ID.Table.InventoryTypes.Cols.Synced.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.InventoryTypes.Cols.Synced.Name, ID.Table.InventoryTypes.Cols.Synced.ID, err))
-    }
-    if dto.SyncAccount, err = toStructuredValueFromValuer(ID.Table.InventoryTypes.Cols.SyncAccount.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.InventoryTypes.Cols.SyncAccount.Name, ID.Table.InventoryTypes.Cols.SyncAccount.ID, err))
-    }
-    if dto.Code, err = ToString(ID.Table.InventoryTypes.Cols.Code.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.InventoryTypes.Cols.Code.Name, ID.Table.InventoryTypes.Cols.Code.ID, err))
-    }
-    if dto.Type, err = ToString(ID.Table.InventoryTypes.Cols.Type.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.InventoryTypes.Cols.Type.Name, ID.Table.InventoryTypes.Cols.Type.ID, err))
-    }
-    if dto.Name, err = ToString(ID.Table.InventoryTypes.Cols.Name.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.InventoryTypes.Cols.Name.Name, ID.Table.InventoryTypes.Cols.Name.ID, err))
-    }
-    if dto.Link, err = ToString(ID.Table.InventoryTypes.Cols.Link.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.InventoryTypes.Cols.Link.Name, ID.Table.InventoryTypes.Cols.Link.ID, err))
-    }
-    if dto.Comments, err = ToString(ID.Table.InventoryTypes.Cols.Comments.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.InventoryTypes.Cols.Comments.Name, ID.Table.InventoryTypes.Cols.Comments.ID, err))
-    }
-    if dto.Price, err = ToMonetaryAmount(ID.Table.InventoryTypes.Cols.Price.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.InventoryTypes.Cols.Price.Name, ID.Table.InventoryTypes.Cols.Price.ID, err))
-    }
+	if dto.Row, err = ToString(ID.Table.InventoryTypes.Cols.Row.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.InventoryTypes.Cols.Row.Name, ID.Table.InventoryTypes.Cols.Row.ID, err))
+	}
+	if dto.Synced, err = ToBool(ID.Table.InventoryTypes.Cols.Synced.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.InventoryTypes.Cols.Synced.Name, ID.Table.InventoryTypes.Cols.Synced.ID, err))
+	}
+	if dto.SyncAccount, err = toStructuredValueFromValuer(ID.Table.InventoryTypes.Cols.SyncAccount.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.InventoryTypes.Cols.SyncAccount.Name, ID.Table.InventoryTypes.Cols.SyncAccount.ID, err))
+	}
+	if dto.Code, err = ToString(ID.Table.InventoryTypes.Cols.Code.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.InventoryTypes.Cols.Code.Name, ID.Table.InventoryTypes.Cols.Code.ID, err))
+	}
+	if dto.Type, err = ToString(ID.Table.InventoryTypes.Cols.Type.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.InventoryTypes.Cols.Type.Name, ID.Table.InventoryTypes.Cols.Type.ID, err))
+	}
+	if dto.Name, err = ToString(ID.Table.InventoryTypes.Cols.Name.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.InventoryTypes.Cols.Name.Name, ID.Table.InventoryTypes.Cols.Name.ID, err))
+	}
+	if dto.Link, err = ToString(ID.Table.InventoryTypes.Cols.Link.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.InventoryTypes.Cols.Link.Name, ID.Table.InventoryTypes.Cols.Link.ID, err))
+	}
+	if dto.Comments, err = ToString(ID.Table.InventoryTypes.Cols.Comments.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.InventoryTypes.Cols.Comments.Name, ID.Table.InventoryTypes.Cols.Comments.ID, err))
+	}
+	if dto.Price, err = ToMonetaryAmount(ID.Table.InventoryTypes.Cols.Price.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.InventoryTypes.Cols.Price.Name, ID.Table.InventoryTypes.Cols.Price.ID, err))
+	}
 
-    if len(errc) > 0 {
-        return InventoryTypes{}, errc
-    }
+	if len(errc) > 0 {
+		return InventoryTypes{}, errc
+	}
 
 	return
 }
 
 // InvoiceTemplate is DTO for Invoice template table
 type InvoiceTemplate struct {
-    Subject string
-    Comment string
-    AmountRUB float64
-    Category string
-    Expense string
-    SubjectTpl string
-    Active bool
+	Subject    string
+	Comment    string
+	AmountRUB  float64
+	Category   string
+	Expense    string
+	SubjectTpl string
+	Active     bool
 }
 
 func NewInvoiceTemplate(row Valuer) (dto InvoiceTemplate, errs error) {
 	var err error
 	errc := NewErrorContainer()
-    if dto.Subject, err = ToString(ID.Table.InvoiceTemplate.Cols.Subject.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.InvoiceTemplate.Cols.Subject.Name, ID.Table.InvoiceTemplate.Cols.Subject.ID, err))
-    }
-    if dto.Comment, err = ToString(ID.Table.InvoiceTemplate.Cols.Comment.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.InvoiceTemplate.Cols.Comment.Name, ID.Table.InvoiceTemplate.Cols.Comment.ID, err))
-    }
-    if dto.AmountRUB, err = ToFloat64(ID.Table.InvoiceTemplate.Cols.AmountRUB.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.InvoiceTemplate.Cols.AmountRUB.Name, ID.Table.InvoiceTemplate.Cols.AmountRUB.ID, err))
-    }
-    if dto.Category, err = ToString(ID.Table.InvoiceTemplate.Cols.Category.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.InvoiceTemplate.Cols.Category.Name, ID.Table.InvoiceTemplate.Cols.Category.ID, err))
-    }
-    if dto.Expense, err = ToString(ID.Table.InvoiceTemplate.Cols.Expense.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.InvoiceTemplate.Cols.Expense.Name, ID.Table.InvoiceTemplate.Cols.Expense.ID, err))
-    }
-    if dto.SubjectTpl, err = ToString(ID.Table.InvoiceTemplate.Cols.SubjectTpl.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.InvoiceTemplate.Cols.SubjectTpl.Name, ID.Table.InvoiceTemplate.Cols.SubjectTpl.ID, err))
-    }
-    if dto.Active, err = ToBool(ID.Table.InvoiceTemplate.Cols.Active.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.InvoiceTemplate.Cols.Active.Name, ID.Table.InvoiceTemplate.Cols.Active.ID, err))
-    }
+	if dto.Subject, err = ToString(ID.Table.InvoiceTemplate.Cols.Subject.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.InvoiceTemplate.Cols.Subject.Name, ID.Table.InvoiceTemplate.Cols.Subject.ID, err))
+	}
+	if dto.Comment, err = ToString(ID.Table.InvoiceTemplate.Cols.Comment.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.InvoiceTemplate.Cols.Comment.Name, ID.Table.InvoiceTemplate.Cols.Comment.ID, err))
+	}
+	if dto.AmountRUB, err = ToFloat64(ID.Table.InvoiceTemplate.Cols.AmountRUB.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.InvoiceTemplate.Cols.AmountRUB.Name, ID.Table.InvoiceTemplate.Cols.AmountRUB.ID, err))
+	}
+	if dto.Category, err = ToString(ID.Table.InvoiceTemplate.Cols.Category.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.InvoiceTemplate.Cols.Category.Name, ID.Table.InvoiceTemplate.Cols.Category.ID, err))
+	}
+	if dto.Expense, err = ToString(ID.Table.InvoiceTemplate.Cols.Expense.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.InvoiceTemplate.Cols.Expense.Name, ID.Table.InvoiceTemplate.Cols.Expense.ID, err))
+	}
+	if dto.SubjectTpl, err = ToString(ID.Table.InvoiceTemplate.Cols.SubjectTpl.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.InvoiceTemplate.Cols.SubjectTpl.Name, ID.Table.InvoiceTemplate.Cols.SubjectTpl.ID, err))
+	}
+	if dto.Active, err = ToBool(ID.Table.InvoiceTemplate.Cols.Active.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.InvoiceTemplate.Cols.Active.Name, ID.Table.InvoiceTemplate.Cols.Active.ID, err))
+	}
 
-    if len(errc) > 0 {
-        return InvoiceTemplate{}, errc
-    }
+	if len(errc) > 0 {
+		return InvoiceTemplate{}, errc
+	}
 
 	return
 }
 
 // PlannedAndPreviousInvoices is DTO for Planned and previous invoices table
 type PlannedAndPreviousInvoices struct {
-    No string
-    InsertTemplate string
-    Status string
-    Number float64
-    Date time.Time
-    HourRate float64
-    ApprovalLink string
-    EURFixedRate float64
-    EURRateWorst float64
-    PlannedExpenses ExpensesLookup
-    ExpensesRUB float64
-    ExpensesEUR float64
-    ReturnOfRounding float64
-    Subtotal float64
-    HourRateRounding float64
-    TotalEUR float64
-    Hours float64
-    InvoicePayment InvoicePaymentLookup
-    InvoicePaymentAdd string
-    PSRateRisk float64
-    PSCCFee float64
-    ActuallySpent float64
-    PendingSpend float64
-    Balance float64
-    PrevInvoice InvoicesLookup
+	No                string
+	InsertTemplate    string
+	Status            string
+	Number            float64
+	Date              time.Time
+	HourRate          float64
+	ApprovalLink      string
+	EURFixedRate      float64
+	EURRateWorst      float64
+	PlannedExpenses   ExpensesLookup
+	ExpensesRUB       float64
+	ExpensesEUR       float64
+	ReturnOfRounding  float64
+	Subtotal          float64
+	HourRateRounding  float64
+	TotalEUR          float64
+	Hours             float64
+	InvoicePayment    InvoicePaymentLookup
+	InvoicePaymentAdd string
+	PSRateRisk        float64
+	PSCCFee           float64
+	ActuallySpent     float64
+	PendingSpend      float64
+	Balance           float64
+	PrevInvoice       InvoicesLookup
 }
 
 func NewPlannedAndPreviousInvoices(row Valuer) (dto PlannedAndPreviousInvoices, errs error) {
 	var err error
 	errc := NewErrorContainer()
-    if dto.No, err = ToString(ID.Table.PlannedAndPreviousInvoices.Cols.No.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.PlannedAndPreviousInvoices.Cols.No.Name, ID.Table.PlannedAndPreviousInvoices.Cols.No.ID, err))
-    }
-    if dto.InsertTemplate, err = ToString(ID.Table.PlannedAndPreviousInvoices.Cols.InsertTemplate.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.PlannedAndPreviousInvoices.Cols.InsertTemplate.Name, ID.Table.PlannedAndPreviousInvoices.Cols.InsertTemplate.ID, err))
-    }
-    if dto.Status, err = ToString(ID.Table.PlannedAndPreviousInvoices.Cols.Status.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.PlannedAndPreviousInvoices.Cols.Status.Name, ID.Table.PlannedAndPreviousInvoices.Cols.Status.ID, err))
-    }
-    if dto.Number, err = ToFloat64(ID.Table.PlannedAndPreviousInvoices.Cols.Number.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.PlannedAndPreviousInvoices.Cols.Number.Name, ID.Table.PlannedAndPreviousInvoices.Cols.Number.ID, err))
-    }
-    if dto.Date, err = ToDate(ID.Table.PlannedAndPreviousInvoices.Cols.Date.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.PlannedAndPreviousInvoices.Cols.Date.Name, ID.Table.PlannedAndPreviousInvoices.Cols.Date.ID, err))
-    }
-    if dto.HourRate, err = ToFloat64(ID.Table.PlannedAndPreviousInvoices.Cols.HourRate.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.PlannedAndPreviousInvoices.Cols.HourRate.Name, ID.Table.PlannedAndPreviousInvoices.Cols.HourRate.ID, err))
-    }
-    if dto.ApprovalLink, err = ToString(ID.Table.PlannedAndPreviousInvoices.Cols.ApprovalLink.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.PlannedAndPreviousInvoices.Cols.ApprovalLink.Name, ID.Table.PlannedAndPreviousInvoices.Cols.ApprovalLink.ID, err))
-    }
-    if dto.EURFixedRate, err = ToFloat64(ID.Table.PlannedAndPreviousInvoices.Cols.EURFixedRate.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.PlannedAndPreviousInvoices.Cols.EURFixedRate.Name, ID.Table.PlannedAndPreviousInvoices.Cols.EURFixedRate.ID, err))
-    }
-    if dto.EURRateWorst, err = ToFloat64(ID.Table.PlannedAndPreviousInvoices.Cols.EURRateWorst.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.PlannedAndPreviousInvoices.Cols.EURRateWorst.Name, ID.Table.PlannedAndPreviousInvoices.Cols.EURRateWorst.ID, err))
-    }
-    if dto.PlannedExpenses, err = ToExpensesLookup(ID.Table.PlannedAndPreviousInvoices.Cols.PlannedExpenses.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.PlannedAndPreviousInvoices.Cols.PlannedExpenses.Name, ID.Table.PlannedAndPreviousInvoices.Cols.PlannedExpenses.ID, err))
-    }
-    if dto.ExpensesRUB, err = ToFloat64(ID.Table.PlannedAndPreviousInvoices.Cols.ExpensesRUB.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.PlannedAndPreviousInvoices.Cols.ExpensesRUB.Name, ID.Table.PlannedAndPreviousInvoices.Cols.ExpensesRUB.ID, err))
-    }
-    if dto.ExpensesEUR, err = ToFloat64(ID.Table.PlannedAndPreviousInvoices.Cols.ExpensesEUR.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.PlannedAndPreviousInvoices.Cols.ExpensesEUR.Name, ID.Table.PlannedAndPreviousInvoices.Cols.ExpensesEUR.ID, err))
-    }
-    if dto.ReturnOfRounding, err = ToFloat64(ID.Table.PlannedAndPreviousInvoices.Cols.ReturnOfRounding.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.PlannedAndPreviousInvoices.Cols.ReturnOfRounding.Name, ID.Table.PlannedAndPreviousInvoices.Cols.ReturnOfRounding.ID, err))
-    }
-    if dto.Subtotal, err = ToFloat64(ID.Table.PlannedAndPreviousInvoices.Cols.Subtotal.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.PlannedAndPreviousInvoices.Cols.Subtotal.Name, ID.Table.PlannedAndPreviousInvoices.Cols.Subtotal.ID, err))
-    }
-    if dto.HourRateRounding, err = ToFloat64(ID.Table.PlannedAndPreviousInvoices.Cols.HourRateRounding.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.PlannedAndPreviousInvoices.Cols.HourRateRounding.Name, ID.Table.PlannedAndPreviousInvoices.Cols.HourRateRounding.ID, err))
-    }
-    if dto.TotalEUR, err = ToFloat64(ID.Table.PlannedAndPreviousInvoices.Cols.TotalEUR.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.PlannedAndPreviousInvoices.Cols.TotalEUR.Name, ID.Table.PlannedAndPreviousInvoices.Cols.TotalEUR.ID, err))
-    }
-    if dto.Hours, err = ToFloat64(ID.Table.PlannedAndPreviousInvoices.Cols.Hours.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.PlannedAndPreviousInvoices.Cols.Hours.Name, ID.Table.PlannedAndPreviousInvoices.Cols.Hours.ID, err))
-    }
-    if dto.InvoicePayment, err = ToInvoicePaymentLookup(ID.Table.PlannedAndPreviousInvoices.Cols.InvoicePayment.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.PlannedAndPreviousInvoices.Cols.InvoicePayment.Name, ID.Table.PlannedAndPreviousInvoices.Cols.InvoicePayment.ID, err))
-    }
-    if dto.InvoicePaymentAdd, err = ToString(ID.Table.PlannedAndPreviousInvoices.Cols.InvoicePaymentAdd.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.PlannedAndPreviousInvoices.Cols.InvoicePaymentAdd.Name, ID.Table.PlannedAndPreviousInvoices.Cols.InvoicePaymentAdd.ID, err))
-    }
-    if dto.PSRateRisk, err = ToFloat64(ID.Table.PlannedAndPreviousInvoices.Cols.PSRateRisk.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.PlannedAndPreviousInvoices.Cols.PSRateRisk.Name, ID.Table.PlannedAndPreviousInvoices.Cols.PSRateRisk.ID, err))
-    }
-    if dto.PSCCFee, err = ToFloat64(ID.Table.PlannedAndPreviousInvoices.Cols.PSCCFee.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.PlannedAndPreviousInvoices.Cols.PSCCFee.Name, ID.Table.PlannedAndPreviousInvoices.Cols.PSCCFee.ID, err))
-    }
-    if dto.ActuallySpent, err = ToFloat64(ID.Table.PlannedAndPreviousInvoices.Cols.ActuallySpent.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.PlannedAndPreviousInvoices.Cols.ActuallySpent.Name, ID.Table.PlannedAndPreviousInvoices.Cols.ActuallySpent.ID, err))
-    }
-    if dto.PendingSpend, err = ToFloat64(ID.Table.PlannedAndPreviousInvoices.Cols.PendingSpend.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.PlannedAndPreviousInvoices.Cols.PendingSpend.Name, ID.Table.PlannedAndPreviousInvoices.Cols.PendingSpend.ID, err))
-    }
-    if dto.Balance, err = ToFloat64(ID.Table.PlannedAndPreviousInvoices.Cols.Balance.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.PlannedAndPreviousInvoices.Cols.Balance.Name, ID.Table.PlannedAndPreviousInvoices.Cols.Balance.ID, err))
-    }
-    if dto.PrevInvoice, err = ToInvoicesLookup(ID.Table.PlannedAndPreviousInvoices.Cols.PrevInvoice.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.PlannedAndPreviousInvoices.Cols.PrevInvoice.Name, ID.Table.PlannedAndPreviousInvoices.Cols.PrevInvoice.ID, err))
-    }
+	if dto.No, err = ToString(ID.Table.PlannedAndPreviousInvoices.Cols.No.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.PlannedAndPreviousInvoices.Cols.No.Name, ID.Table.PlannedAndPreviousInvoices.Cols.No.ID, err))
+	}
+	if dto.InsertTemplate, err = ToString(ID.Table.PlannedAndPreviousInvoices.Cols.InsertTemplate.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.PlannedAndPreviousInvoices.Cols.InsertTemplate.Name, ID.Table.PlannedAndPreviousInvoices.Cols.InsertTemplate.ID, err))
+	}
+	if dto.Status, err = ToString(ID.Table.PlannedAndPreviousInvoices.Cols.Status.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.PlannedAndPreviousInvoices.Cols.Status.Name, ID.Table.PlannedAndPreviousInvoices.Cols.Status.ID, err))
+	}
+	if dto.Number, err = ToFloat64(ID.Table.PlannedAndPreviousInvoices.Cols.Number.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.PlannedAndPreviousInvoices.Cols.Number.Name, ID.Table.PlannedAndPreviousInvoices.Cols.Number.ID, err))
+	}
+	if dto.Date, err = ToDate(ID.Table.PlannedAndPreviousInvoices.Cols.Date.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.PlannedAndPreviousInvoices.Cols.Date.Name, ID.Table.PlannedAndPreviousInvoices.Cols.Date.ID, err))
+	}
+	if dto.HourRate, err = ToFloat64(ID.Table.PlannedAndPreviousInvoices.Cols.HourRate.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.PlannedAndPreviousInvoices.Cols.HourRate.Name, ID.Table.PlannedAndPreviousInvoices.Cols.HourRate.ID, err))
+	}
+	if dto.ApprovalLink, err = ToString(ID.Table.PlannedAndPreviousInvoices.Cols.ApprovalLink.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.PlannedAndPreviousInvoices.Cols.ApprovalLink.Name, ID.Table.PlannedAndPreviousInvoices.Cols.ApprovalLink.ID, err))
+	}
+	if dto.EURFixedRate, err = ToFloat64(ID.Table.PlannedAndPreviousInvoices.Cols.EURFixedRate.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.PlannedAndPreviousInvoices.Cols.EURFixedRate.Name, ID.Table.PlannedAndPreviousInvoices.Cols.EURFixedRate.ID, err))
+	}
+	if dto.EURRateWorst, err = ToFloat64(ID.Table.PlannedAndPreviousInvoices.Cols.EURRateWorst.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.PlannedAndPreviousInvoices.Cols.EURRateWorst.Name, ID.Table.PlannedAndPreviousInvoices.Cols.EURRateWorst.ID, err))
+	}
+	if dto.PlannedExpenses, err = ToExpensesLookup(ID.Table.PlannedAndPreviousInvoices.Cols.PlannedExpenses.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.PlannedAndPreviousInvoices.Cols.PlannedExpenses.Name, ID.Table.PlannedAndPreviousInvoices.Cols.PlannedExpenses.ID, err))
+	}
+	if dto.ExpensesRUB, err = ToFloat64(ID.Table.PlannedAndPreviousInvoices.Cols.ExpensesRUB.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.PlannedAndPreviousInvoices.Cols.ExpensesRUB.Name, ID.Table.PlannedAndPreviousInvoices.Cols.ExpensesRUB.ID, err))
+	}
+	if dto.ExpensesEUR, err = ToFloat64(ID.Table.PlannedAndPreviousInvoices.Cols.ExpensesEUR.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.PlannedAndPreviousInvoices.Cols.ExpensesEUR.Name, ID.Table.PlannedAndPreviousInvoices.Cols.ExpensesEUR.ID, err))
+	}
+	if dto.ReturnOfRounding, err = ToFloat64(ID.Table.PlannedAndPreviousInvoices.Cols.ReturnOfRounding.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.PlannedAndPreviousInvoices.Cols.ReturnOfRounding.Name, ID.Table.PlannedAndPreviousInvoices.Cols.ReturnOfRounding.ID, err))
+	}
+	if dto.Subtotal, err = ToFloat64(ID.Table.PlannedAndPreviousInvoices.Cols.Subtotal.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.PlannedAndPreviousInvoices.Cols.Subtotal.Name, ID.Table.PlannedAndPreviousInvoices.Cols.Subtotal.ID, err))
+	}
+	if dto.HourRateRounding, err = ToFloat64(ID.Table.PlannedAndPreviousInvoices.Cols.HourRateRounding.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.PlannedAndPreviousInvoices.Cols.HourRateRounding.Name, ID.Table.PlannedAndPreviousInvoices.Cols.HourRateRounding.ID, err))
+	}
+	if dto.TotalEUR, err = ToFloat64(ID.Table.PlannedAndPreviousInvoices.Cols.TotalEUR.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.PlannedAndPreviousInvoices.Cols.TotalEUR.Name, ID.Table.PlannedAndPreviousInvoices.Cols.TotalEUR.ID, err))
+	}
+	if dto.Hours, err = ToFloat64(ID.Table.PlannedAndPreviousInvoices.Cols.Hours.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.PlannedAndPreviousInvoices.Cols.Hours.Name, ID.Table.PlannedAndPreviousInvoices.Cols.Hours.ID, err))
+	}
+	if dto.InvoicePayment, err = ToInvoicePaymentLookup(ID.Table.PlannedAndPreviousInvoices.Cols.InvoicePayment.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.PlannedAndPreviousInvoices.Cols.InvoicePayment.Name, ID.Table.PlannedAndPreviousInvoices.Cols.InvoicePayment.ID, err))
+	}
+	if dto.InvoicePaymentAdd, err = ToString(ID.Table.PlannedAndPreviousInvoices.Cols.InvoicePaymentAdd.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.PlannedAndPreviousInvoices.Cols.InvoicePaymentAdd.Name, ID.Table.PlannedAndPreviousInvoices.Cols.InvoicePaymentAdd.ID, err))
+	}
+	if dto.PSRateRisk, err = ToFloat64(ID.Table.PlannedAndPreviousInvoices.Cols.PSRateRisk.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.PlannedAndPreviousInvoices.Cols.PSRateRisk.Name, ID.Table.PlannedAndPreviousInvoices.Cols.PSRateRisk.ID, err))
+	}
+	if dto.PSCCFee, err = ToFloat64(ID.Table.PlannedAndPreviousInvoices.Cols.PSCCFee.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.PlannedAndPreviousInvoices.Cols.PSCCFee.Name, ID.Table.PlannedAndPreviousInvoices.Cols.PSCCFee.ID, err))
+	}
+	if dto.ActuallySpent, err = ToFloat64(ID.Table.PlannedAndPreviousInvoices.Cols.ActuallySpent.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.PlannedAndPreviousInvoices.Cols.ActuallySpent.Name, ID.Table.PlannedAndPreviousInvoices.Cols.ActuallySpent.ID, err))
+	}
+	if dto.PendingSpend, err = ToFloat64(ID.Table.PlannedAndPreviousInvoices.Cols.PendingSpend.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.PlannedAndPreviousInvoices.Cols.PendingSpend.Name, ID.Table.PlannedAndPreviousInvoices.Cols.PendingSpend.ID, err))
+	}
+	if dto.Balance, err = ToFloat64(ID.Table.PlannedAndPreviousInvoices.Cols.Balance.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.PlannedAndPreviousInvoices.Cols.Balance.Name, ID.Table.PlannedAndPreviousInvoices.Cols.Balance.ID, err))
+	}
+	if dto.PrevInvoice, err = ToInvoicesLookup(ID.Table.PlannedAndPreviousInvoices.Cols.PrevInvoice.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.PlannedAndPreviousInvoices.Cols.PrevInvoice.Name, ID.Table.PlannedAndPreviousInvoices.Cols.PrevInvoice.ID, err))
+	}
 
-    if len(errc) > 0 {
-        return PlannedAndPreviousInvoices{}, errc
-    }
+	if len(errc) > 0 {
+		return PlannedAndPreviousInvoices{}, errc
+	}
 
 	return
 }
 
 // PlannedExpenses is DTO for Planned expenses table
 type PlannedExpenses struct {
-    Invoice InvoicesLookup
-    Subject string
-    Comment string
-    AuditCategory AuditCategoryLookup
-    Category string
-    Status string
-    AmountRUB float64
-    AmountEUR float64
-    ActuallySpent float64
-    PendingSpend float64
-    Balance float64
-    CashFlow string
+	Invoice       InvoicesLookup
+	Subject       string
+	Comment       string
+	AuditCategory AuditCategoryLookup
+	Category      string
+	Status        string
+	AmountRUB     float64
+	AmountEUR     float64
+	ActuallySpent float64
+	PendingSpend  float64
+	Balance       float64
+	CashFlow      string
 }
 
 func NewPlannedExpenses(row Valuer) (dto PlannedExpenses, errs error) {
 	var err error
 	errc := NewErrorContainer()
-    if dto.Invoice, err = ToInvoicesLookup(ID.Table.PlannedExpenses.Cols.Invoice.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.PlannedExpenses.Cols.Invoice.Name, ID.Table.PlannedExpenses.Cols.Invoice.ID, err))
-    }
-    if dto.Subject, err = ToString(ID.Table.PlannedExpenses.Cols.Subject.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.PlannedExpenses.Cols.Subject.Name, ID.Table.PlannedExpenses.Cols.Subject.ID, err))
-    }
-    if dto.Comment, err = ToString(ID.Table.PlannedExpenses.Cols.Comment.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.PlannedExpenses.Cols.Comment.Name, ID.Table.PlannedExpenses.Cols.Comment.ID, err))
-    }
-    if dto.AuditCategory, err = ToAuditCategoryLookup(ID.Table.PlannedExpenses.Cols.AuditCategory.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.PlannedExpenses.Cols.AuditCategory.Name, ID.Table.PlannedExpenses.Cols.AuditCategory.ID, err))
-    }
-    if dto.Category, err = ToString(ID.Table.PlannedExpenses.Cols.Category.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.PlannedExpenses.Cols.Category.Name, ID.Table.PlannedExpenses.Cols.Category.ID, err))
-    }
-    if dto.Status, err = ToString(ID.Table.PlannedExpenses.Cols.Status.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.PlannedExpenses.Cols.Status.Name, ID.Table.PlannedExpenses.Cols.Status.ID, err))
-    }
-    if dto.AmountRUB, err = ToFloat64(ID.Table.PlannedExpenses.Cols.AmountRUB.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.PlannedExpenses.Cols.AmountRUB.Name, ID.Table.PlannedExpenses.Cols.AmountRUB.ID, err))
-    }
-    if dto.AmountEUR, err = ToFloat64(ID.Table.PlannedExpenses.Cols.AmountEUR.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.PlannedExpenses.Cols.AmountEUR.Name, ID.Table.PlannedExpenses.Cols.AmountEUR.ID, err))
-    }
-    if dto.ActuallySpent, err = ToFloat64(ID.Table.PlannedExpenses.Cols.ActuallySpent.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.PlannedExpenses.Cols.ActuallySpent.Name, ID.Table.PlannedExpenses.Cols.ActuallySpent.ID, err))
-    }
-    if dto.PendingSpend, err = ToFloat64(ID.Table.PlannedExpenses.Cols.PendingSpend.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.PlannedExpenses.Cols.PendingSpend.Name, ID.Table.PlannedExpenses.Cols.PendingSpend.ID, err))
-    }
-    if dto.Balance, err = ToFloat64(ID.Table.PlannedExpenses.Cols.Balance.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.PlannedExpenses.Cols.Balance.Name, ID.Table.PlannedExpenses.Cols.Balance.ID, err))
-    }
-    if dto.CashFlow, err = ToString(ID.Table.PlannedExpenses.Cols.CashFlow.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.PlannedExpenses.Cols.CashFlow.Name, ID.Table.PlannedExpenses.Cols.CashFlow.ID, err))
-    }
+	if dto.Invoice, err = ToInvoicesLookup(ID.Table.PlannedExpenses.Cols.Invoice.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.PlannedExpenses.Cols.Invoice.Name, ID.Table.PlannedExpenses.Cols.Invoice.ID, err))
+	}
+	if dto.Subject, err = ToString(ID.Table.PlannedExpenses.Cols.Subject.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.PlannedExpenses.Cols.Subject.Name, ID.Table.PlannedExpenses.Cols.Subject.ID, err))
+	}
+	if dto.Comment, err = ToString(ID.Table.PlannedExpenses.Cols.Comment.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.PlannedExpenses.Cols.Comment.Name, ID.Table.PlannedExpenses.Cols.Comment.ID, err))
+	}
+	if dto.AuditCategory, err = ToAuditCategoryLookup(ID.Table.PlannedExpenses.Cols.AuditCategory.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.PlannedExpenses.Cols.AuditCategory.Name, ID.Table.PlannedExpenses.Cols.AuditCategory.ID, err))
+	}
+	if dto.Category, err = ToString(ID.Table.PlannedExpenses.Cols.Category.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.PlannedExpenses.Cols.Category.Name, ID.Table.PlannedExpenses.Cols.Category.ID, err))
+	}
+	if dto.Status, err = ToString(ID.Table.PlannedExpenses.Cols.Status.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.PlannedExpenses.Cols.Status.Name, ID.Table.PlannedExpenses.Cols.Status.ID, err))
+	}
+	if dto.AmountRUB, err = ToFloat64(ID.Table.PlannedExpenses.Cols.AmountRUB.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.PlannedExpenses.Cols.AmountRUB.Name, ID.Table.PlannedExpenses.Cols.AmountRUB.ID, err))
+	}
+	if dto.AmountEUR, err = ToFloat64(ID.Table.PlannedExpenses.Cols.AmountEUR.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.PlannedExpenses.Cols.AmountEUR.Name, ID.Table.PlannedExpenses.Cols.AmountEUR.ID, err))
+	}
+	if dto.ActuallySpent, err = ToFloat64(ID.Table.PlannedExpenses.Cols.ActuallySpent.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.PlannedExpenses.Cols.ActuallySpent.Name, ID.Table.PlannedExpenses.Cols.ActuallySpent.ID, err))
+	}
+	if dto.PendingSpend, err = ToFloat64(ID.Table.PlannedExpenses.Cols.PendingSpend.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.PlannedExpenses.Cols.PendingSpend.Name, ID.Table.PlannedExpenses.Cols.PendingSpend.ID, err))
+	}
+	if dto.Balance, err = ToFloat64(ID.Table.PlannedExpenses.Cols.Balance.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.PlannedExpenses.Cols.Balance.Name, ID.Table.PlannedExpenses.Cols.Balance.ID, err))
+	}
+	if dto.CashFlow, err = ToString(ID.Table.PlannedExpenses.Cols.CashFlow.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.PlannedExpenses.Cols.CashFlow.Name, ID.Table.PlannedExpenses.Cols.CashFlow.ID, err))
+	}
 
-    if len(errc) > 0 {
-        return PlannedExpenses{}, errc
-    }
+	if len(errc) > 0 {
+		return PlannedExpenses{}, errc
+	}
 
 	return
 }
 
 // CashFlow2020 is DTO for Cash flow 2020 table
 type CashFlow2020 struct {
-    Author []Person
-    Reconciled bool
-    Account AccountsLookup
-    Date time.Time
-    AmountRUB float64
-    PaidAmtRUB float64
-    CashOutPurpose ExpensesLookup
-    Count float64
-    ComissionAmtRUB float64
-    Comment string
-    CashIn InvoicePaymentLookup
+	Author          []Person
+	Reconciled      bool
+	Account         AccountsLookup
+	Date            time.Time
+	AmountRUB       float64
+	PaidAmtRUB      float64
+	CashOutPurpose  ExpensesLookup
+	Count           float64
+	ComissionAmtRUB float64
+	Comment         string
+	CashIn          InvoicePaymentLookup
 }
 
 func NewCashFlow2020(row Valuer) (dto CashFlow2020, errs error) {
 	var err error
 	errc := NewErrorContainer()
-    if dto.Author, err = ToPersons(ID.Table.CashFlow2020.Cols.Author.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.CashFlow2020.Cols.Author.Name, ID.Table.CashFlow2020.Cols.Author.ID, err))
-    }
-    if dto.Reconciled, err = ToBool(ID.Table.CashFlow2020.Cols.Reconciled.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.CashFlow2020.Cols.Reconciled.Name, ID.Table.CashFlow2020.Cols.Reconciled.ID, err))
-    }
-    if dto.Account, err = ToAccountsLookup(ID.Table.CashFlow2020.Cols.Account.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.CashFlow2020.Cols.Account.Name, ID.Table.CashFlow2020.Cols.Account.ID, err))
-    }
-    if dto.Date, err = ToDate(ID.Table.CashFlow2020.Cols.Date.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.CashFlow2020.Cols.Date.Name, ID.Table.CashFlow2020.Cols.Date.ID, err))
-    }
-    if dto.AmountRUB, err = ToFloat64(ID.Table.CashFlow2020.Cols.AmountRUB.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.CashFlow2020.Cols.AmountRUB.Name, ID.Table.CashFlow2020.Cols.AmountRUB.ID, err))
-    }
-    if dto.PaidAmtRUB, err = ToFloat64(ID.Table.CashFlow2020.Cols.PaidAmtRUB.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.CashFlow2020.Cols.PaidAmtRUB.Name, ID.Table.CashFlow2020.Cols.PaidAmtRUB.ID, err))
-    }
-    if dto.CashOutPurpose, err = ToExpensesLookup(ID.Table.CashFlow2020.Cols.CashOutPurpose.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.CashFlow2020.Cols.CashOutPurpose.Name, ID.Table.CashFlow2020.Cols.CashOutPurpose.ID, err))
-    }
-    if dto.Count, err = ToFloat64(ID.Table.CashFlow2020.Cols.Count.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.CashFlow2020.Cols.Count.Name, ID.Table.CashFlow2020.Cols.Count.ID, err))
-    }
-    if dto.ComissionAmtRUB, err = ToFloat64(ID.Table.CashFlow2020.Cols.ComissionAmtRUB.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.CashFlow2020.Cols.ComissionAmtRUB.Name, ID.Table.CashFlow2020.Cols.ComissionAmtRUB.ID, err))
-    }
-    if dto.Comment, err = ToString(ID.Table.CashFlow2020.Cols.Comment.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.CashFlow2020.Cols.Comment.Name, ID.Table.CashFlow2020.Cols.Comment.ID, err))
-    }
-    if dto.CashIn, err = ToInvoicePaymentLookup(ID.Table.CashFlow2020.Cols.CashIn.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.CashFlow2020.Cols.CashIn.Name, ID.Table.CashFlow2020.Cols.CashIn.ID, err))
-    }
+	if dto.Author, err = ToPersons(ID.Table.CashFlow2020.Cols.Author.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.CashFlow2020.Cols.Author.Name, ID.Table.CashFlow2020.Cols.Author.ID, err))
+	}
+	if dto.Reconciled, err = ToBool(ID.Table.CashFlow2020.Cols.Reconciled.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.CashFlow2020.Cols.Reconciled.Name, ID.Table.CashFlow2020.Cols.Reconciled.ID, err))
+	}
+	if dto.Account, err = ToAccountsLookup(ID.Table.CashFlow2020.Cols.Account.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.CashFlow2020.Cols.Account.Name, ID.Table.CashFlow2020.Cols.Account.ID, err))
+	}
+	if dto.Date, err = ToDate(ID.Table.CashFlow2020.Cols.Date.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.CashFlow2020.Cols.Date.Name, ID.Table.CashFlow2020.Cols.Date.ID, err))
+	}
+	if dto.AmountRUB, err = ToFloat64(ID.Table.CashFlow2020.Cols.AmountRUB.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.CashFlow2020.Cols.AmountRUB.Name, ID.Table.CashFlow2020.Cols.AmountRUB.ID, err))
+	}
+	if dto.PaidAmtRUB, err = ToFloat64(ID.Table.CashFlow2020.Cols.PaidAmtRUB.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.CashFlow2020.Cols.PaidAmtRUB.Name, ID.Table.CashFlow2020.Cols.PaidAmtRUB.ID, err))
+	}
+	if dto.CashOutPurpose, err = ToExpensesLookup(ID.Table.CashFlow2020.Cols.CashOutPurpose.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.CashFlow2020.Cols.CashOutPurpose.Name, ID.Table.CashFlow2020.Cols.CashOutPurpose.ID, err))
+	}
+	if dto.Count, err = ToFloat64(ID.Table.CashFlow2020.Cols.Count.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.CashFlow2020.Cols.Count.Name, ID.Table.CashFlow2020.Cols.Count.ID, err))
+	}
+	if dto.ComissionAmtRUB, err = ToFloat64(ID.Table.CashFlow2020.Cols.ComissionAmtRUB.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.CashFlow2020.Cols.ComissionAmtRUB.Name, ID.Table.CashFlow2020.Cols.ComissionAmtRUB.ID, err))
+	}
+	if dto.Comment, err = ToString(ID.Table.CashFlow2020.Cols.Comment.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.CashFlow2020.Cols.Comment.Name, ID.Table.CashFlow2020.Cols.Comment.ID, err))
+	}
+	if dto.CashIn, err = ToInvoicePaymentLookup(ID.Table.CashFlow2020.Cols.CashIn.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.CashFlow2020.Cols.CashIn.Name, ID.Table.CashFlow2020.Cols.CashIn.ID, err))
+	}
 
-    if len(errc) > 0 {
-        return CashFlow2020{}, errc
-    }
+	if len(errc) > 0 {
+		return CashFlow2020{}, errc
+	}
 
 	return
 }
 
 // CashFlowOfPersonalAcc is DTO for Cash flow of personal acc table
 type CashFlowOfPersonalAcc struct {
-    Account AccountsLookup
-    Date time.Time
-    AmountRUB float64
-    Comment string
-    CashOutPurpose ExpensesLookup
-    PersonalPaidIn ExpensesLookup
+	Account        AccountsLookup
+	Date           time.Time
+	AmountRUB      float64
+	Comment        string
+	CashOutPurpose ExpensesLookup
+	PersonalPaidIn ExpensesLookup
 }
 
 func NewCashFlowOfPersonalAcc(row Valuer) (dto CashFlowOfPersonalAcc, errs error) {
 	var err error
 	errc := NewErrorContainer()
-    if dto.Account, err = ToAccountsLookup(ID.Table.CashFlowOfPersonalAcc.Cols.Account.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.CashFlowOfPersonalAcc.Cols.Account.Name, ID.Table.CashFlowOfPersonalAcc.Cols.Account.ID, err))
-    }
-    if dto.Date, err = ToDate(ID.Table.CashFlowOfPersonalAcc.Cols.Date.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.CashFlowOfPersonalAcc.Cols.Date.Name, ID.Table.CashFlowOfPersonalAcc.Cols.Date.ID, err))
-    }
-    if dto.AmountRUB, err = ToFloat64(ID.Table.CashFlowOfPersonalAcc.Cols.AmountRUB.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.CashFlowOfPersonalAcc.Cols.AmountRUB.Name, ID.Table.CashFlowOfPersonalAcc.Cols.AmountRUB.ID, err))
-    }
-    if dto.Comment, err = ToString(ID.Table.CashFlowOfPersonalAcc.Cols.Comment.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.CashFlowOfPersonalAcc.Cols.Comment.Name, ID.Table.CashFlowOfPersonalAcc.Cols.Comment.ID, err))
-    }
-    if dto.CashOutPurpose, err = ToExpensesLookup(ID.Table.CashFlowOfPersonalAcc.Cols.CashOutPurpose.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.CashFlowOfPersonalAcc.Cols.CashOutPurpose.Name, ID.Table.CashFlowOfPersonalAcc.Cols.CashOutPurpose.ID, err))
-    }
-    if dto.PersonalPaidIn, err = ToExpensesLookup(ID.Table.CashFlowOfPersonalAcc.Cols.PersonalPaidIn.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.CashFlowOfPersonalAcc.Cols.PersonalPaidIn.Name, ID.Table.CashFlowOfPersonalAcc.Cols.PersonalPaidIn.ID, err))
-    }
+	if dto.Account, err = ToAccountsLookup(ID.Table.CashFlowOfPersonalAcc.Cols.Account.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.CashFlowOfPersonalAcc.Cols.Account.Name, ID.Table.CashFlowOfPersonalAcc.Cols.Account.ID, err))
+	}
+	if dto.Date, err = ToDate(ID.Table.CashFlowOfPersonalAcc.Cols.Date.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.CashFlowOfPersonalAcc.Cols.Date.Name, ID.Table.CashFlowOfPersonalAcc.Cols.Date.ID, err))
+	}
+	if dto.AmountRUB, err = ToFloat64(ID.Table.CashFlowOfPersonalAcc.Cols.AmountRUB.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.CashFlowOfPersonalAcc.Cols.AmountRUB.Name, ID.Table.CashFlowOfPersonalAcc.Cols.AmountRUB.ID, err))
+	}
+	if dto.Comment, err = ToString(ID.Table.CashFlowOfPersonalAcc.Cols.Comment.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.CashFlowOfPersonalAcc.Cols.Comment.Name, ID.Table.CashFlowOfPersonalAcc.Cols.Comment.ID, err))
+	}
+	if dto.CashOutPurpose, err = ToExpensesLookup(ID.Table.CashFlowOfPersonalAcc.Cols.CashOutPurpose.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.CashFlowOfPersonalAcc.Cols.CashOutPurpose.Name, ID.Table.CashFlowOfPersonalAcc.Cols.CashOutPurpose.ID, err))
+	}
+	if dto.PersonalPaidIn, err = ToExpensesLookup(ID.Table.CashFlowOfPersonalAcc.Cols.PersonalPaidIn.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.CashFlowOfPersonalAcc.Cols.PersonalPaidIn.Name, ID.Table.CashFlowOfPersonalAcc.Cols.PersonalPaidIn.ID, err))
+	}
 
-    if len(errc) > 0 {
-        return CashFlowOfPersonalAcc{}, errc
-    }
+	if len(errc) > 0 {
+		return CashFlowOfPersonalAcc{}, errc
+	}
 
 	return
 }
 
 // CashFlow2021 is DTO for Cash flow 2021 table
 type CashFlow2021 struct {
-    Author []Person
-    Reconciled bool
-    Account AccountsLookup
-    Date time.Time
-    AmountRUB float64
-    PaidAmtRUB float64
-    CashOutPurpose ExpensesLookup
-    Count float64
-    ComissionAmtRUB float64
-    Comment string
-    CashIn InvoicePaymentLookup
+	Author          []Person
+	Reconciled      bool
+	Account         AccountsLookup
+	Date            time.Time
+	AmountRUB       float64
+	PaidAmtRUB      float64
+	CashOutPurpose  ExpensesLookup
+	Count           float64
+	ComissionAmtRUB float64
+	Comment         string
+	CashIn          InvoicePaymentLookup
 }
 
 func NewCashFlow2021(row Valuer) (dto CashFlow2021, errs error) {
 	var err error
 	errc := NewErrorContainer()
-    if dto.Author, err = ToPersons(ID.Table.CashFlow2021.Cols.Author.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.CashFlow2021.Cols.Author.Name, ID.Table.CashFlow2021.Cols.Author.ID, err))
-    }
-    if dto.Reconciled, err = ToBool(ID.Table.CashFlow2021.Cols.Reconciled.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.CashFlow2021.Cols.Reconciled.Name, ID.Table.CashFlow2021.Cols.Reconciled.ID, err))
-    }
-    if dto.Account, err = ToAccountsLookup(ID.Table.CashFlow2021.Cols.Account.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.CashFlow2021.Cols.Account.Name, ID.Table.CashFlow2021.Cols.Account.ID, err))
-    }
-    if dto.Date, err = ToDate(ID.Table.CashFlow2021.Cols.Date.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.CashFlow2021.Cols.Date.Name, ID.Table.CashFlow2021.Cols.Date.ID, err))
-    }
-    if dto.AmountRUB, err = ToFloat64(ID.Table.CashFlow2021.Cols.AmountRUB.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.CashFlow2021.Cols.AmountRUB.Name, ID.Table.CashFlow2021.Cols.AmountRUB.ID, err))
-    }
-    if dto.PaidAmtRUB, err = ToFloat64(ID.Table.CashFlow2021.Cols.PaidAmtRUB.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.CashFlow2021.Cols.PaidAmtRUB.Name, ID.Table.CashFlow2021.Cols.PaidAmtRUB.ID, err))
-    }
-    if dto.CashOutPurpose, err = ToExpensesLookup(ID.Table.CashFlow2021.Cols.CashOutPurpose.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.CashFlow2021.Cols.CashOutPurpose.Name, ID.Table.CashFlow2021.Cols.CashOutPurpose.ID, err))
-    }
-    if dto.Count, err = ToFloat64(ID.Table.CashFlow2021.Cols.Count.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.CashFlow2021.Cols.Count.Name, ID.Table.CashFlow2021.Cols.Count.ID, err))
-    }
-    if dto.ComissionAmtRUB, err = ToFloat64(ID.Table.CashFlow2021.Cols.ComissionAmtRUB.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.CashFlow2021.Cols.ComissionAmtRUB.Name, ID.Table.CashFlow2021.Cols.ComissionAmtRUB.ID, err))
-    }
-    if dto.Comment, err = ToString(ID.Table.CashFlow2021.Cols.Comment.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.CashFlow2021.Cols.Comment.Name, ID.Table.CashFlow2021.Cols.Comment.ID, err))
-    }
-    if dto.CashIn, err = ToInvoicePaymentLookup(ID.Table.CashFlow2021.Cols.CashIn.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.CashFlow2021.Cols.CashIn.Name, ID.Table.CashFlow2021.Cols.CashIn.ID, err))
-    }
+	if dto.Author, err = ToPersons(ID.Table.CashFlow2021.Cols.Author.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.CashFlow2021.Cols.Author.Name, ID.Table.CashFlow2021.Cols.Author.ID, err))
+	}
+	if dto.Reconciled, err = ToBool(ID.Table.CashFlow2021.Cols.Reconciled.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.CashFlow2021.Cols.Reconciled.Name, ID.Table.CashFlow2021.Cols.Reconciled.ID, err))
+	}
+	if dto.Account, err = ToAccountsLookup(ID.Table.CashFlow2021.Cols.Account.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.CashFlow2021.Cols.Account.Name, ID.Table.CashFlow2021.Cols.Account.ID, err))
+	}
+	if dto.Date, err = ToDate(ID.Table.CashFlow2021.Cols.Date.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.CashFlow2021.Cols.Date.Name, ID.Table.CashFlow2021.Cols.Date.ID, err))
+	}
+	if dto.AmountRUB, err = ToFloat64(ID.Table.CashFlow2021.Cols.AmountRUB.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.CashFlow2021.Cols.AmountRUB.Name, ID.Table.CashFlow2021.Cols.AmountRUB.ID, err))
+	}
+	if dto.PaidAmtRUB, err = ToFloat64(ID.Table.CashFlow2021.Cols.PaidAmtRUB.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.CashFlow2021.Cols.PaidAmtRUB.Name, ID.Table.CashFlow2021.Cols.PaidAmtRUB.ID, err))
+	}
+	if dto.CashOutPurpose, err = ToExpensesLookup(ID.Table.CashFlow2021.Cols.CashOutPurpose.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.CashFlow2021.Cols.CashOutPurpose.Name, ID.Table.CashFlow2021.Cols.CashOutPurpose.ID, err))
+	}
+	if dto.Count, err = ToFloat64(ID.Table.CashFlow2021.Cols.Count.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.CashFlow2021.Cols.Count.Name, ID.Table.CashFlow2021.Cols.Count.ID, err))
+	}
+	if dto.ComissionAmtRUB, err = ToFloat64(ID.Table.CashFlow2021.Cols.ComissionAmtRUB.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.CashFlow2021.Cols.ComissionAmtRUB.Name, ID.Table.CashFlow2021.Cols.ComissionAmtRUB.ID, err))
+	}
+	if dto.Comment, err = ToString(ID.Table.CashFlow2021.Cols.Comment.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.CashFlow2021.Cols.Comment.Name, ID.Table.CashFlow2021.Cols.Comment.ID, err))
+	}
+	if dto.CashIn, err = ToInvoicePaymentLookup(ID.Table.CashFlow2021.Cols.CashIn.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.CashFlow2021.Cols.CashIn.Name, ID.Table.CashFlow2021.Cols.CashIn.ID, err))
+	}
 
-    if len(errc) > 0 {
-        return CashFlow2021{}, errc
-    }
+	if len(errc) > 0 {
+		return CashFlow2021{}, errc
+	}
 
 	return
 }
 
 // AuditCategory is DTO for Audit Category table
 type AuditCategory struct {
-    AuditCategory string
+	AuditCategory string
 }
 
 func NewAuditCategory(row Valuer) (dto AuditCategory, errs error) {
 	var err error
 	errc := NewErrorContainer()
-    if dto.AuditCategory, err = ToString(ID.Table.AuditCategory.Cols.AuditCategory.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.AuditCategory.Cols.AuditCategory.Name, ID.Table.AuditCategory.Cols.AuditCategory.ID, err))
-    }
+	if dto.AuditCategory, err = ToString(ID.Table.AuditCategory.Cols.AuditCategory.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.AuditCategory.Cols.AuditCategory.Name, ID.Table.AuditCategory.Cols.AuditCategory.ID, err))
+	}
 
-    if len(errc) > 0 {
-        return AuditCategory{}, errc
-    }
+	if len(errc) > 0 {
+		return AuditCategory{}, errc
+	}
 
 	return
 }
 
 // ExpensesByCategory is DTO for Expenses by category table
 type ExpensesByCategory struct {
-    Group string
-    AmountRUB float64
-    AmountEUR float64
-    AuditCategory AuditCategoryLookup
+	Group         string
+	AmountRUB     float64
+	AmountEUR     float64
+	AuditCategory AuditCategoryLookup
 }
 
 func NewExpensesByCategory(row Valuer) (dto ExpensesByCategory, errs error) {
 	var err error
 	errc := NewErrorContainer()
-    if dto.Group, err = ToString(ID.Table.ExpensesByCategory.Cols.Group.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.ExpensesByCategory.Cols.Group.Name, ID.Table.ExpensesByCategory.Cols.Group.ID, err))
-    }
-    if dto.AmountRUB, err = ToFloat64(ID.Table.ExpensesByCategory.Cols.AmountRUB.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.ExpensesByCategory.Cols.AmountRUB.Name, ID.Table.ExpensesByCategory.Cols.AmountRUB.ID, err))
-    }
-    if dto.AmountEUR, err = ToFloat64(ID.Table.ExpensesByCategory.Cols.AmountEUR.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.ExpensesByCategory.Cols.AmountEUR.Name, ID.Table.ExpensesByCategory.Cols.AmountEUR.ID, err))
-    }
-    if dto.AuditCategory, err = ToAuditCategoryLookup(ID.Table.ExpensesByCategory.Cols.AuditCategory.ID, row); err != nil {
-        errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.ExpensesByCategory.Cols.AuditCategory.Name, ID.Table.ExpensesByCategory.Cols.AuditCategory.ID, err))
-    }
+	if dto.Group, err = ToString(ID.Table.ExpensesByCategory.Cols.Group.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.ExpensesByCategory.Cols.Group.Name, ID.Table.ExpensesByCategory.Cols.Group.ID, err))
+	}
+	if dto.AmountRUB, err = ToFloat64(ID.Table.ExpensesByCategory.Cols.AmountRUB.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.ExpensesByCategory.Cols.AmountRUB.Name, ID.Table.ExpensesByCategory.Cols.AmountRUB.ID, err))
+	}
+	if dto.AmountEUR, err = ToFloat64(ID.Table.ExpensesByCategory.Cols.AmountEUR.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.ExpensesByCategory.Cols.AmountEUR.Name, ID.Table.ExpensesByCategory.Cols.AmountEUR.ID, err))
+	}
+	if dto.AuditCategory, err = ToAuditCategoryLookup(ID.Table.ExpensesByCategory.Cols.AuditCategory.ID, row); err != nil {
+		errc.AddError(fmt.Errorf("field [%v] %v: %w", ID.Table.ExpensesByCategory.Cols.AuditCategory.Name, ID.Table.ExpensesByCategory.Cols.AuditCategory.ID, err))
+	}
 
-    if len(errc) > 0 {
-        return ExpensesByCategory{}, errc
-    }
+	if len(errc) > 0 {
+		return ExpensesByCategory{}, errc
+	}
 
 	return
 }
+
 type CashFlowLookup struct {
-    Values []CashFlowRowRef
+	Values []CashFlowRowRef
 }
 
 // FirstRef returns a first referenced row metadata
@@ -2848,22 +2844,21 @@ func (l *CashFlowLookup) Hydrate(mapOf map[RowID]*CashFlow) {
 	}
 }
 
-
 type CashFlowRowRef struct {
-    Name  string
-    RowID string
-    Data  *CashFlow
+	Name  string
+	RowID string
+	Data  *CashFlow
 }
 
 func ToCashFlowLookup(colID string, row Valuer) (values CashFlowLookup, err error) {
-    rawv, ok := row.GetValue(colID)
-    if !ok {
-        return CashFlowLookup{}, fmt.Errorf("missing column %v in Cash flow row", colID)
-    }
+	rawv, ok := row.GetValue(colID)
+	if !ok {
+		return CashFlowLookup{}, fmt.Errorf("missing column %v in Cash flow row", colID)
+	}
 
-    if strv, ok := rawv.(string); ok && strv == "" {
-        return CashFlowLookup{}, nil
-    }
+	if strv, ok := rawv.(string); ok && strv == "" {
+		return CashFlowLookup{}, nil
+	}
 
 	if slicev, ok := rawv.([]interface{}); ok {
 		for i, interv := range slicev {
@@ -2886,16 +2881,17 @@ func ToCashFlowLookup(colID string, row Valuer) (values CashFlowLookup, err erro
 	}
 
 	values.Values = []CashFlowRowRef{
-	    {
-            Name:  sv.Name,
-            RowID: sv.RowId,
-	    },
+		{
+			Name:  sv.Name,
+			RowID: sv.RowId,
+		},
 	}
 
 	return
 }
+
 type InventoryTypesLookup struct {
-    Values []InventoryTypesRowRef
+	Values []InventoryTypesRowRef
 }
 
 // FirstRef returns a first referenced row metadata
@@ -2984,22 +2980,21 @@ func (l *InventoryTypesLookup) Hydrate(mapOf map[RowID]*InventoryTypes) {
 	}
 }
 
-
 type InventoryTypesRowRef struct {
-    Name  string
-    RowID string
-    Data  *InventoryTypes
+	Name  string
+	RowID string
+	Data  *InventoryTypes
 }
 
 func ToInventoryTypesLookup(colID string, row Valuer) (values InventoryTypesLookup, err error) {
-    rawv, ok := row.GetValue(colID)
-    if !ok {
-        return InventoryTypesLookup{}, fmt.Errorf("missing column %v in Inventory Types row", colID)
-    }
+	rawv, ok := row.GetValue(colID)
+	if !ok {
+		return InventoryTypesLookup{}, fmt.Errorf("missing column %v in Inventory Types row", colID)
+	}
 
-    if strv, ok := rawv.(string); ok && strv == "" {
-        return InventoryTypesLookup{}, nil
-    }
+	if strv, ok := rawv.(string); ok && strv == "" {
+		return InventoryTypesLookup{}, nil
+	}
 
 	if slicev, ok := rawv.([]interface{}); ok {
 		for i, interv := range slicev {
@@ -3022,16 +3017,17 @@ func ToInventoryTypesLookup(colID string, row Valuer) (values InventoryTypesLook
 	}
 
 	values.Values = []InventoryTypesRowRef{
-	    {
-            Name:  sv.Name,
-            RowID: sv.RowId,
-	    },
+		{
+			Name:  sv.Name,
+			RowID: sv.RowId,
+		},
 	}
 
 	return
 }
+
 type AuditCategoryLookup struct {
-    Values []AuditCategoryRowRef
+	Values []AuditCategoryRowRef
 }
 
 // FirstRef returns a first referenced row metadata
@@ -3120,22 +3116,21 @@ func (l *AuditCategoryLookup) Hydrate(mapOf map[RowID]*AuditCategory) {
 	}
 }
 
-
 type AuditCategoryRowRef struct {
-    Name  string
-    RowID string
-    Data  *AuditCategory
+	Name  string
+	RowID string
+	Data  *AuditCategory
 }
 
 func ToAuditCategoryLookup(colID string, row Valuer) (values AuditCategoryLookup, err error) {
-    rawv, ok := row.GetValue(colID)
-    if !ok {
-        return AuditCategoryLookup{}, fmt.Errorf("missing column %v in Audit Category row", colID)
-    }
+	rawv, ok := row.GetValue(colID)
+	if !ok {
+		return AuditCategoryLookup{}, fmt.Errorf("missing column %v in Audit Category row", colID)
+	}
 
-    if strv, ok := rawv.(string); ok && strv == "" {
-        return AuditCategoryLookup{}, nil
-    }
+	if strv, ok := rawv.(string); ok && strv == "" {
+		return AuditCategoryLookup{}, nil
+	}
 
 	if slicev, ok := rawv.([]interface{}); ok {
 		for i, interv := range slicev {
@@ -3158,16 +3153,17 @@ func ToAuditCategoryLookup(colID string, row Valuer) (values AuditCategoryLookup
 	}
 
 	values.Values = []AuditCategoryRowRef{
-	    {
-            Name:  sv.Name,
-            RowID: sv.RowId,
-	    },
+		{
+			Name:  sv.Name,
+			RowID: sv.RowId,
+		},
 	}
 
 	return
 }
+
 type AccountsLookup struct {
-    Values []AccountsRowRef
+	Values []AccountsRowRef
 }
 
 // FirstRef returns a first referenced row metadata
@@ -3256,22 +3252,21 @@ func (l *AccountsLookup) Hydrate(mapOf map[RowID]*Accounts) {
 	}
 }
 
-
 type AccountsRowRef struct {
-    Name  string
-    RowID string
-    Data  *Accounts
+	Name  string
+	RowID string
+	Data  *Accounts
 }
 
 func ToAccountsLookup(colID string, row Valuer) (values AccountsLookup, err error) {
-    rawv, ok := row.GetValue(colID)
-    if !ok {
-        return AccountsLookup{}, fmt.Errorf("missing column %v in Accounts row", colID)
-    }
+	rawv, ok := row.GetValue(colID)
+	if !ok {
+		return AccountsLookup{}, fmt.Errorf("missing column %v in Accounts row", colID)
+	}
 
-    if strv, ok := rawv.(string); ok && strv == "" {
-        return AccountsLookup{}, nil
-    }
+	if strv, ok := rawv.(string); ok && strv == "" {
+		return AccountsLookup{}, nil
+	}
 
 	if slicev, ok := rawv.([]interface{}); ok {
 		for i, interv := range slicev {
@@ -3294,16 +3289,17 @@ func ToAccountsLookup(colID string, row Valuer) (values AccountsLookup, err erro
 	}
 
 	values.Values = []AccountsRowRef{
-	    {
-            Name:  sv.Name,
-            RowID: sv.RowId,
-	    },
+		{
+			Name:  sv.Name,
+			RowID: sv.RowId,
+		},
 	}
 
 	return
 }
+
 type ExpensesLookup struct {
-    Values []ExpensesRowRef
+	Values []ExpensesRowRef
 }
 
 // FirstRef returns a first referenced row metadata
@@ -3392,22 +3388,21 @@ func (l *ExpensesLookup) Hydrate(mapOf map[RowID]*Expenses) {
 	}
 }
 
-
 type ExpensesRowRef struct {
-    Name  string
-    RowID string
-    Data  *Expenses
+	Name  string
+	RowID string
+	Data  *Expenses
 }
 
 func ToExpensesLookup(colID string, row Valuer) (values ExpensesLookup, err error) {
-    rawv, ok := row.GetValue(colID)
-    if !ok {
-        return ExpensesLookup{}, fmt.Errorf("missing column %v in Expenses row", colID)
-    }
+	rawv, ok := row.GetValue(colID)
+	if !ok {
+		return ExpensesLookup{}, fmt.Errorf("missing column %v in Expenses row", colID)
+	}
 
-    if strv, ok := rawv.(string); ok && strv == "" {
-        return ExpensesLookup{}, nil
-    }
+	if strv, ok := rawv.(string); ok && strv == "" {
+		return ExpensesLookup{}, nil
+	}
 
 	if slicev, ok := rawv.([]interface{}); ok {
 		for i, interv := range slicev {
@@ -3430,16 +3425,17 @@ func ToExpensesLookup(colID string, row Valuer) (values ExpensesLookup, err erro
 	}
 
 	values.Values = []ExpensesRowRef{
-	    {
-            Name:  sv.Name,
-            RowID: sv.RowId,
-	    },
+		{
+			Name:  sv.Name,
+			RowID: sv.RowId,
+		},
 	}
 
 	return
 }
+
 type InvoicePaymentLookup struct {
-    Values []InvoicePaymentRowRef
+	Values []InvoicePaymentRowRef
 }
 
 // FirstRef returns a first referenced row metadata
@@ -3528,22 +3524,21 @@ func (l *InvoicePaymentLookup) Hydrate(mapOf map[RowID]*InvoicePayment) {
 	}
 }
 
-
 type InvoicePaymentRowRef struct {
-    Name  string
-    RowID string
-    Data  *InvoicePayment
+	Name  string
+	RowID string
+	Data  *InvoicePayment
 }
 
 func ToInvoicePaymentLookup(colID string, row Valuer) (values InvoicePaymentLookup, err error) {
-    rawv, ok := row.GetValue(colID)
-    if !ok {
-        return InvoicePaymentLookup{}, fmt.Errorf("missing column %v in Invoice payment row", colID)
-    }
+	rawv, ok := row.GetValue(colID)
+	if !ok {
+		return InvoicePaymentLookup{}, fmt.Errorf("missing column %v in Invoice payment row", colID)
+	}
 
-    if strv, ok := rawv.(string); ok && strv == "" {
-        return InvoicePaymentLookup{}, nil
-    }
+	if strv, ok := rawv.(string); ok && strv == "" {
+		return InvoicePaymentLookup{}, nil
+	}
 
 	if slicev, ok := rawv.([]interface{}); ok {
 		for i, interv := range slicev {
@@ -3566,16 +3561,17 @@ func ToInvoicePaymentLookup(colID string, row Valuer) (values InvoicePaymentLook
 	}
 
 	values.Values = []InvoicePaymentRowRef{
-	    {
-            Name:  sv.Name,
-            RowID: sv.RowId,
-	    },
+		{
+			Name:  sv.Name,
+			RowID: sv.RowId,
+		},
 	}
 
 	return
 }
+
 type InvoicesLookup struct {
-    Values []InvoicesRowRef
+	Values []InvoicesRowRef
 }
 
 // FirstRef returns a first referenced row metadata
@@ -3664,22 +3660,21 @@ func (l *InvoicesLookup) Hydrate(mapOf map[RowID]*Invoices) {
 	}
 }
 
-
 type InvoicesRowRef struct {
-    Name  string
-    RowID string
-    Data  *Invoices
+	Name  string
+	RowID string
+	Data  *Invoices
 }
 
 func ToInvoicesLookup(colID string, row Valuer) (values InvoicesLookup, err error) {
-    rawv, ok := row.GetValue(colID)
-    if !ok {
-        return InvoicesLookup{}, fmt.Errorf("missing column %v in Invoices row", colID)
-    }
+	rawv, ok := row.GetValue(colID)
+	if !ok {
+		return InvoicesLookup{}, fmt.Errorf("missing column %v in Invoices row", colID)
+	}
 
-    if strv, ok := rawv.(string); ok && strv == "" {
-        return InvoicesLookup{}, nil
-    }
+	if strv, ok := rawv.(string); ok && strv == "" {
+		return InvoicesLookup{}, nil
+	}
 
 	if slicev, ok := rawv.([]interface{}); ok {
 		for i, interv := range slicev {
@@ -3702,10 +3697,10 @@ func ToInvoicesLookup(colID string, row Valuer) (values InvoicesLookup, err erro
 	}
 
 	values.Values = []InvoicesRowRef{
-	    {
-            Name:  sv.Name,
-            RowID: sv.RowId,
-	    },
+		{
+			Name:  sv.Name,
+			RowID: sv.RowId,
+		},
 	}
 
 	return
@@ -3716,742 +3711,738 @@ func ToInvoicesLookup(colID string, row Valuer) (values InvoicesLookup, err erro
 //region Document
 
 var tokenMiddleware = func(token string) codaapi.RequestEditorFn {
-    return func(ctx context.Context, req *http.Request) error {
-        req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
-        return nil
-    }
+	return func(ctx context.Context, req *http.Request) error {
+		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
+		return nil
+	}
 }
 
 func NewCodaDocument(server, token, docID string, clientOpts ...codaapi.ClientOption) (*CodaDocument, error) {
-    clientOpts = append(clientOpts, codaapi.WithRequestEditorFn(tokenMiddleware(token)))
+	clientOpts = append(clientOpts, codaapi.WithRequestEditorFn(tokenMiddleware(token)))
 
-    client, err := codaapi.NewClientWithResponses(server, clientOpts...)
-    if err != nil {
-        return nil, err
-    }
+	client, err := codaapi.NewClientWithResponses(server, clientOpts...)
+	if err != nil {
+		return nil, err
+	}
 
-    return &CodaDocument{
-        docID:  docID,
-        client: client,
-        relationsCache: &sync.Map{},
-    }, nil
+	return &CodaDocument{
+		docID:          docID,
+		client:         client,
+		relationsCache: &sync.Map{},
+	}, nil
 }
 
 type CodaDocument struct {
-    docID  string
-    client *codaapi.ClientWithResponses
-    relationsCache *sync.Map // Used for deep loading to share loaded sub-entities
+	docID          string
+	client         *codaapi.ClientWithResponses
+	relationsCache *sync.Map // Used for deep loading to share loaded sub-entities
 }
 
 func (d *CodaDocument) ListAllRows(ctx context.Context, tableID string, extraParams ...codaapi.ListRowsParam) (list []codaapi.Row, err error) {
-    valueFormat := codaapi.ValueFormatRich
-    var pageToken codaapi.PageToken
+	valueFormat := codaapi.ValueFormatRich
+	var pageToken codaapi.PageToken
 
-    params := codaapi.ListRowsParams{}
+	params := codaapi.ListRowsParams{}
 	for _, p := range extraParams {
 		p(&params)
 	}
-    params.ValueFormat = &valueFormat
-    params.PageToken = &pageToken
+	params.ValueFormat = &valueFormat
+	params.PageToken = &pageToken
 
-    for {
-        resp, err := d.client.ListRowsWithResponse(
-            ctx,
-            codaapi.DocId(d.docID),
-            codaapi.TableIdOrName(tableID),
-            &params,
-        )
-        if err != nil {
-            return nil, err
-        }
+	for {
+		resp, err := d.client.ListRowsWithResponse(
+			ctx,
+			codaapi.DocId(d.docID),
+			codaapi.TableIdOrName(tableID),
+			&params,
+		)
+		if err != nil {
+			return nil, err
+		}
 
-        if resp.StatusCode() != 200 || resp.JSON200 == nil {
-            return nil, fmt.Errorf("response status %v, body: %s", resp.StatusCode(), resp.Body)
-        }
+		if resp.StatusCode() != 200 || resp.JSON200 == nil {
+			return nil, fmt.Errorf("response status %v, body: %s", resp.StatusCode(), resp.Body)
+		}
 
-        for _, row := range resp.JSON200.Items {
-            list = append(list, row)
-        }
+		for _, row := range resp.JSON200.Items {
+			list = append(list, row)
+		}
 
-        if resp.JSON200.NextPageToken == nil {
-            return list, nil
-        }
+		if resp.JSON200.NextPageToken == nil {
+			return list, nil
+		}
 
-        pageToken = codaapi.PageToken(*resp.JSON200.NextPageToken)
-    }
+		pageToken = codaapi.PageToken(*resp.JSON200.NextPageToken)
+	}
 }
 
 //endregion
-
 
 //region Methods for shallow data fetching (without loading relations)
 
 type RowID string
 
-
-
 func (d *CodaDocument) ListMonths(ctx context.Context, extraParams ...codaapi.ListRowsParam) (list []Months, err error) {
-    rows, err := d.ListAllRows(ctx, ID.Table.Months.ID, extraParams...)
-    if err != nil {
-        return
-    }
+	rows, err := d.ListAllRows(ctx, ID.Table.Months.ID, extraParams...)
+	if err != nil {
+		return
+	}
 
-    for idx, row := range rows {
-        item, err := NewMonths(&row)
-        if err != nil {
-            return nil, fmt.Errorf("failed to create Months from row %d (%v): %w", idx, row.BrowserLink, err)
-        }
-        list = append(list, item)
-    }
+	for idx, row := range rows {
+		item, err := NewMonths(&row)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create Months from row %d (%v): %w", idx, row.BrowserLink, err)
+		}
+		list = append(list, item)
+	}
 
-    return
+	return
 }
 
 func (d *CodaDocument) MapOfMonths(ctx context.Context, extraParams ...codaapi.ListRowsParam) (m map[RowID]*Months, maporder []RowID, err error) {
-    rows, err := d.ListAllRows(ctx, ID.Table.Months.ID, extraParams...)
-    if err != nil {
-        return
-    }
+	rows, err := d.ListAllRows(ctx, ID.Table.Months.ID, extraParams...)
+	if err != nil {
+		return
+	}
 
-    m = make(map[RowID]*Months, len(rows))
-    maporder = make([]RowID, 0, len(rows))
+	m = make(map[RowID]*Months, len(rows))
+	maporder = make([]RowID, 0, len(rows))
 
-    for idx, row := range rows {
-        item, err := NewMonths(&row)
-        if err != nil {
-            return nil, nil, fmt.Errorf("failed to create Months from row %d (%v): %w", idx, row.BrowserLink, err)
-        }
-        maporder = append(maporder, RowID(row.Id))
-        m[RowID(row.Id)] = &item
-    }
+	for idx, row := range rows {
+		item, err := NewMonths(&row)
+		if err != nil {
+			return nil, nil, fmt.Errorf("failed to create Months from row %d (%v): %w", idx, row.BrowserLink, err)
+		}
+		maporder = append(maporder, RowID(row.Id))
+		m[RowID(row.Id)] = &item
+	}
 
-    return
+	return
 }
 
 func (d *CodaDocument) ListCashFlow(ctx context.Context, extraParams ...codaapi.ListRowsParam) (list []CashFlow, err error) {
-    rows, err := d.ListAllRows(ctx, ID.Table.CashFlow.ID, extraParams...)
-    if err != nil {
-        return
-    }
+	rows, err := d.ListAllRows(ctx, ID.Table.CashFlow.ID, extraParams...)
+	if err != nil {
+		return
+	}
 
-    for idx, row := range rows {
-        item, err := NewCashFlow(&row)
-        if err != nil {
-            return nil, fmt.Errorf("failed to create CashFlow from row %d (%v): %w", idx, row.BrowserLink, err)
-        }
-        list = append(list, item)
-    }
+	for idx, row := range rows {
+		item, err := NewCashFlow(&row)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create CashFlow from row %d (%v): %w", idx, row.BrowserLink, err)
+		}
+		list = append(list, item)
+	}
 
-    return
+	return
 }
 
 func (d *CodaDocument) MapOfCashFlow(ctx context.Context, extraParams ...codaapi.ListRowsParam) (m map[RowID]*CashFlow, maporder []RowID, err error) {
-    rows, err := d.ListAllRows(ctx, ID.Table.CashFlow.ID, extraParams...)
-    if err != nil {
-        return
-    }
+	rows, err := d.ListAllRows(ctx, ID.Table.CashFlow.ID, extraParams...)
+	if err != nil {
+		return
+	}
 
-    m = make(map[RowID]*CashFlow, len(rows))
-    maporder = make([]RowID, 0, len(rows))
+	m = make(map[RowID]*CashFlow, len(rows))
+	maporder = make([]RowID, 0, len(rows))
 
-    for idx, row := range rows {
-        item, err := NewCashFlow(&row)
-        if err != nil {
-            return nil, nil, fmt.Errorf("failed to create CashFlow from row %d (%v): %w", idx, row.BrowserLink, err)
-        }
-        maporder = append(maporder, RowID(row.Id))
-        m[RowID(row.Id)] = &item
-    }
+	for idx, row := range rows {
+		item, err := NewCashFlow(&row)
+		if err != nil {
+			return nil, nil, fmt.Errorf("failed to create CashFlow from row %d (%v): %w", idx, row.BrowserLink, err)
+		}
+		maporder = append(maporder, RowID(row.Id))
+		m[RowID(row.Id)] = &item
+	}
 
-    return
+	return
 }
 
 func (d *CodaDocument) ListInvoicePayment(ctx context.Context, extraParams ...codaapi.ListRowsParam) (list []InvoicePayment, err error) {
-    rows, err := d.ListAllRows(ctx, ID.Table.InvoicePayment.ID, extraParams...)
-    if err != nil {
-        return
-    }
+	rows, err := d.ListAllRows(ctx, ID.Table.InvoicePayment.ID, extraParams...)
+	if err != nil {
+		return
+	}
 
-    for idx, row := range rows {
-        item, err := NewInvoicePayment(&row)
-        if err != nil {
-            return nil, fmt.Errorf("failed to create InvoicePayment from row %d (%v): %w", idx, row.BrowserLink, err)
-        }
-        list = append(list, item)
-    }
+	for idx, row := range rows {
+		item, err := NewInvoicePayment(&row)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create InvoicePayment from row %d (%v): %w", idx, row.BrowserLink, err)
+		}
+		list = append(list, item)
+	}
 
-    return
+	return
 }
 
 func (d *CodaDocument) MapOfInvoicePayment(ctx context.Context, extraParams ...codaapi.ListRowsParam) (m map[RowID]*InvoicePayment, maporder []RowID, err error) {
-    rows, err := d.ListAllRows(ctx, ID.Table.InvoicePayment.ID, extraParams...)
-    if err != nil {
-        return
-    }
+	rows, err := d.ListAllRows(ctx, ID.Table.InvoicePayment.ID, extraParams...)
+	if err != nil {
+		return
+	}
 
-    m = make(map[RowID]*InvoicePayment, len(rows))
-    maporder = make([]RowID, 0, len(rows))
+	m = make(map[RowID]*InvoicePayment, len(rows))
+	maporder = make([]RowID, 0, len(rows))
 
-    for idx, row := range rows {
-        item, err := NewInvoicePayment(&row)
-        if err != nil {
-            return nil, nil, fmt.Errorf("failed to create InvoicePayment from row %d (%v): %w", idx, row.BrowserLink, err)
-        }
-        maporder = append(maporder, RowID(row.Id))
-        m[RowID(row.Id)] = &item
-    }
+	for idx, row := range rows {
+		item, err := NewInvoicePayment(&row)
+		if err != nil {
+			return nil, nil, fmt.Errorf("failed to create InvoicePayment from row %d (%v): %w", idx, row.BrowserLink, err)
+		}
+		maporder = append(maporder, RowID(row.Id))
+		m[RowID(row.Id)] = &item
+	}
 
-    return
+	return
 }
 
 func (d *CodaDocument) ListExpenses(ctx context.Context, extraParams ...codaapi.ListRowsParam) (list []Expenses, err error) {
-    rows, err := d.ListAllRows(ctx, ID.Table.Expenses.ID, extraParams...)
-    if err != nil {
-        return
-    }
+	rows, err := d.ListAllRows(ctx, ID.Table.Expenses.ID, extraParams...)
+	if err != nil {
+		return
+	}
 
-    for idx, row := range rows {
-        item, err := NewExpenses(&row)
-        if err != nil {
-            return nil, fmt.Errorf("failed to create Expenses from row %d (%v): %w", idx, row.BrowserLink, err)
-        }
-        list = append(list, item)
-    }
+	for idx, row := range rows {
+		item, err := NewExpenses(&row)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create Expenses from row %d (%v): %w", idx, row.BrowserLink, err)
+		}
+		list = append(list, item)
+	}
 
-    return
+	return
 }
 
 func (d *CodaDocument) MapOfExpenses(ctx context.Context, extraParams ...codaapi.ListRowsParam) (m map[RowID]*Expenses, maporder []RowID, err error) {
-    rows, err := d.ListAllRows(ctx, ID.Table.Expenses.ID, extraParams...)
-    if err != nil {
-        return
-    }
+	rows, err := d.ListAllRows(ctx, ID.Table.Expenses.ID, extraParams...)
+	if err != nil {
+		return
+	}
 
-    m = make(map[RowID]*Expenses, len(rows))
-    maporder = make([]RowID, 0, len(rows))
+	m = make(map[RowID]*Expenses, len(rows))
+	maporder = make([]RowID, 0, len(rows))
 
-    for idx, row := range rows {
-        item, err := NewExpenses(&row)
-        if err != nil {
-            return nil, nil, fmt.Errorf("failed to create Expenses from row %d (%v): %w", idx, row.BrowserLink, err)
-        }
-        maporder = append(maporder, RowID(row.Id))
-        m[RowID(row.Id)] = &item
-    }
+	for idx, row := range rows {
+		item, err := NewExpenses(&row)
+		if err != nil {
+			return nil, nil, fmt.Errorf("failed to create Expenses from row %d (%v): %w", idx, row.BrowserLink, err)
+		}
+		maporder = append(maporder, RowID(row.Id))
+		m[RowID(row.Id)] = &item
+	}
 
-    return
+	return
 }
 
 func (d *CodaDocument) ListInvoices(ctx context.Context, extraParams ...codaapi.ListRowsParam) (list []Invoices, err error) {
-    rows, err := d.ListAllRows(ctx, ID.Table.Invoices.ID, extraParams...)
-    if err != nil {
-        return
-    }
+	rows, err := d.ListAllRows(ctx, ID.Table.Invoices.ID, extraParams...)
+	if err != nil {
+		return
+	}
 
-    for idx, row := range rows {
-        item, err := NewInvoices(&row)
-        if err != nil {
-            return nil, fmt.Errorf("failed to create Invoices from row %d (%v): %w", idx, row.BrowserLink, err)
-        }
-        list = append(list, item)
-    }
+	for idx, row := range rows {
+		item, err := NewInvoices(&row)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create Invoices from row %d (%v): %w", idx, row.BrowserLink, err)
+		}
+		list = append(list, item)
+	}
 
-    return
+	return
 }
 
 func (d *CodaDocument) MapOfInvoices(ctx context.Context, extraParams ...codaapi.ListRowsParam) (m map[RowID]*Invoices, maporder []RowID, err error) {
-    rows, err := d.ListAllRows(ctx, ID.Table.Invoices.ID, extraParams...)
-    if err != nil {
-        return
-    }
+	rows, err := d.ListAllRows(ctx, ID.Table.Invoices.ID, extraParams...)
+	if err != nil {
+		return
+	}
 
-    m = make(map[RowID]*Invoices, len(rows))
-    maporder = make([]RowID, 0, len(rows))
+	m = make(map[RowID]*Invoices, len(rows))
+	maporder = make([]RowID, 0, len(rows))
 
-    for idx, row := range rows {
-        item, err := NewInvoices(&row)
-        if err != nil {
-            return nil, nil, fmt.Errorf("failed to create Invoices from row %d (%v): %w", idx, row.BrowserLink, err)
-        }
-        maporder = append(maporder, RowID(row.Id))
-        m[RowID(row.Id)] = &item
-    }
+	for idx, row := range rows {
+		item, err := NewInvoices(&row)
+		if err != nil {
+			return nil, nil, fmt.Errorf("failed to create Invoices from row %d (%v): %w", idx, row.BrowserLink, err)
+		}
+		maporder = append(maporder, RowID(row.Id))
+		m[RowID(row.Id)] = &item
+	}
 
-    return
+	return
 }
 
 func (d *CodaDocument) ListAccounts(ctx context.Context, extraParams ...codaapi.ListRowsParam) (list []Accounts, err error) {
-    rows, err := d.ListAllRows(ctx, ID.Table.Accounts.ID, extraParams...)
-    if err != nil {
-        return
-    }
+	rows, err := d.ListAllRows(ctx, ID.Table.Accounts.ID, extraParams...)
+	if err != nil {
+		return
+	}
 
-    for idx, row := range rows {
-        item, err := NewAccounts(&row)
-        if err != nil {
-            return nil, fmt.Errorf("failed to create Accounts from row %d (%v): %w", idx, row.BrowserLink, err)
-        }
-        list = append(list, item)
-    }
+	for idx, row := range rows {
+		item, err := NewAccounts(&row)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create Accounts from row %d (%v): %w", idx, row.BrowserLink, err)
+		}
+		list = append(list, item)
+	}
 
-    return
+	return
 }
 
 func (d *CodaDocument) MapOfAccounts(ctx context.Context, extraParams ...codaapi.ListRowsParam) (m map[RowID]*Accounts, maporder []RowID, err error) {
-    rows, err := d.ListAllRows(ctx, ID.Table.Accounts.ID, extraParams...)
-    if err != nil {
-        return
-    }
+	rows, err := d.ListAllRows(ctx, ID.Table.Accounts.ID, extraParams...)
+	if err != nil {
+		return
+	}
 
-    m = make(map[RowID]*Accounts, len(rows))
-    maporder = make([]RowID, 0, len(rows))
+	m = make(map[RowID]*Accounts, len(rows))
+	maporder = make([]RowID, 0, len(rows))
 
-    for idx, row := range rows {
-        item, err := NewAccounts(&row)
-        if err != nil {
-            return nil, nil, fmt.Errorf("failed to create Accounts from row %d (%v): %w", idx, row.BrowserLink, err)
-        }
-        maporder = append(maporder, RowID(row.Id))
-        m[RowID(row.Id)] = &item
-    }
+	for idx, row := range rows {
+		item, err := NewAccounts(&row)
+		if err != nil {
+			return nil, nil, fmt.Errorf("failed to create Accounts from row %d (%v): %w", idx, row.BrowserLink, err)
+		}
+		maporder = append(maporder, RowID(row.Id))
+		m[RowID(row.Id)] = &item
+	}
 
-    return
+	return
 }
 
 func (d *CodaDocument) ListUnplannedLast40d(ctx context.Context, extraParams ...codaapi.ListRowsParam) (list []UnplannedLast40d, err error) {
-    rows, err := d.ListAllRows(ctx, ID.Table.UnplannedLast40d.ID, extraParams...)
-    if err != nil {
-        return
-    }
+	rows, err := d.ListAllRows(ctx, ID.Table.UnplannedLast40d.ID, extraParams...)
+	if err != nil {
+		return
+	}
 
-    for idx, row := range rows {
-        item, err := NewUnplannedLast40d(&row)
-        if err != nil {
-            return nil, fmt.Errorf("failed to create UnplannedLast40d from row %d (%v): %w", idx, row.BrowserLink, err)
-        }
-        list = append(list, item)
-    }
+	for idx, row := range rows {
+		item, err := NewUnplannedLast40d(&row)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create UnplannedLast40d from row %d (%v): %w", idx, row.BrowserLink, err)
+		}
+		list = append(list, item)
+	}
 
-    return
+	return
 }
 
 func (d *CodaDocument) MapOfUnplannedLast40d(ctx context.Context, extraParams ...codaapi.ListRowsParam) (m map[RowID]*UnplannedLast40d, maporder []RowID, err error) {
-    rows, err := d.ListAllRows(ctx, ID.Table.UnplannedLast40d.ID, extraParams...)
-    if err != nil {
-        return
-    }
+	rows, err := d.ListAllRows(ctx, ID.Table.UnplannedLast40d.ID, extraParams...)
+	if err != nil {
+		return
+	}
 
-    m = make(map[RowID]*UnplannedLast40d, len(rows))
-    maporder = make([]RowID, 0, len(rows))
+	m = make(map[RowID]*UnplannedLast40d, len(rows))
+	maporder = make([]RowID, 0, len(rows))
 
-    for idx, row := range rows {
-        item, err := NewUnplannedLast40d(&row)
-        if err != nil {
-            return nil, nil, fmt.Errorf("failed to create UnplannedLast40d from row %d (%v): %w", idx, row.BrowserLink, err)
-        }
-        maporder = append(maporder, RowID(row.Id))
-        m[RowID(row.Id)] = &item
-    }
+	for idx, row := range rows {
+		item, err := NewUnplannedLast40d(&row)
+		if err != nil {
+			return nil, nil, fmt.Errorf("failed to create UnplannedLast40d from row %d (%v): %w", idx, row.BrowserLink, err)
+		}
+		maporder = append(maporder, RowID(row.Id))
+		m[RowID(row.Id)] = &item
+	}
 
-    return
+	return
 }
 
 func (d *CodaDocument) ListPlannedSpendsAndCurrentInvoice(ctx context.Context, extraParams ...codaapi.ListRowsParam) (list []PlannedSpendsAndCurrentInvoice, err error) {
-    rows, err := d.ListAllRows(ctx, ID.Table.PlannedSpendsAndCurrentInvoice.ID, extraParams...)
-    if err != nil {
-        return
-    }
+	rows, err := d.ListAllRows(ctx, ID.Table.PlannedSpendsAndCurrentInvoice.ID, extraParams...)
+	if err != nil {
+		return
+	}
 
-    for idx, row := range rows {
-        item, err := NewPlannedSpendsAndCurrentInvoice(&row)
-        if err != nil {
-            return nil, fmt.Errorf("failed to create PlannedSpendsAndCurrentInvoice from row %d (%v): %w", idx, row.BrowserLink, err)
-        }
-        list = append(list, item)
-    }
+	for idx, row := range rows {
+		item, err := NewPlannedSpendsAndCurrentInvoice(&row)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create PlannedSpendsAndCurrentInvoice from row %d (%v): %w", idx, row.BrowserLink, err)
+		}
+		list = append(list, item)
+	}
 
-    return
+	return
 }
 
 func (d *CodaDocument) MapOfPlannedSpendsAndCurrentInvoice(ctx context.Context, extraParams ...codaapi.ListRowsParam) (m map[RowID]*PlannedSpendsAndCurrentInvoice, maporder []RowID, err error) {
-    rows, err := d.ListAllRows(ctx, ID.Table.PlannedSpendsAndCurrentInvoice.ID, extraParams...)
-    if err != nil {
-        return
-    }
+	rows, err := d.ListAllRows(ctx, ID.Table.PlannedSpendsAndCurrentInvoice.ID, extraParams...)
+	if err != nil {
+		return
+	}
 
-    m = make(map[RowID]*PlannedSpendsAndCurrentInvoice, len(rows))
-    maporder = make([]RowID, 0, len(rows))
+	m = make(map[RowID]*PlannedSpendsAndCurrentInvoice, len(rows))
+	maporder = make([]RowID, 0, len(rows))
 
-    for idx, row := range rows {
-        item, err := NewPlannedSpendsAndCurrentInvoice(&row)
-        if err != nil {
-            return nil, nil, fmt.Errorf("failed to create PlannedSpendsAndCurrentInvoice from row %d (%v): %w", idx, row.BrowserLink, err)
-        }
-        maporder = append(maporder, RowID(row.Id))
-        m[RowID(row.Id)] = &item
-    }
+	for idx, row := range rows {
+		item, err := NewPlannedSpendsAndCurrentInvoice(&row)
+		if err != nil {
+			return nil, nil, fmt.Errorf("failed to create PlannedSpendsAndCurrentInvoice from row %d (%v): %w", idx, row.BrowserLink, err)
+		}
+		maporder = append(maporder, RowID(row.Id))
+		m[RowID(row.Id)] = &item
+	}
 
-    return
+	return
 }
 
 func (d *CodaDocument) ListInventoryTypes(ctx context.Context, extraParams ...codaapi.ListRowsParam) (list []InventoryTypes, err error) {
-    rows, err := d.ListAllRows(ctx, ID.Table.InventoryTypes.ID, extraParams...)
-    if err != nil {
-        return
-    }
+	rows, err := d.ListAllRows(ctx, ID.Table.InventoryTypes.ID, extraParams...)
+	if err != nil {
+		return
+	}
 
-    for idx, row := range rows {
-        item, err := NewInventoryTypes(&row)
-        if err != nil {
-            return nil, fmt.Errorf("failed to create InventoryTypes from row %d (%v): %w", idx, row.BrowserLink, err)
-        }
-        list = append(list, item)
-    }
+	for idx, row := range rows {
+		item, err := NewInventoryTypes(&row)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create InventoryTypes from row %d (%v): %w", idx, row.BrowserLink, err)
+		}
+		list = append(list, item)
+	}
 
-    return
+	return
 }
 
 func (d *CodaDocument) MapOfInventoryTypes(ctx context.Context, extraParams ...codaapi.ListRowsParam) (m map[RowID]*InventoryTypes, maporder []RowID, err error) {
-    rows, err := d.ListAllRows(ctx, ID.Table.InventoryTypes.ID, extraParams...)
-    if err != nil {
-        return
-    }
+	rows, err := d.ListAllRows(ctx, ID.Table.InventoryTypes.ID, extraParams...)
+	if err != nil {
+		return
+	}
 
-    m = make(map[RowID]*InventoryTypes, len(rows))
-    maporder = make([]RowID, 0, len(rows))
+	m = make(map[RowID]*InventoryTypes, len(rows))
+	maporder = make([]RowID, 0, len(rows))
 
-    for idx, row := range rows {
-        item, err := NewInventoryTypes(&row)
-        if err != nil {
-            return nil, nil, fmt.Errorf("failed to create InventoryTypes from row %d (%v): %w", idx, row.BrowserLink, err)
-        }
-        maporder = append(maporder, RowID(row.Id))
-        m[RowID(row.Id)] = &item
-    }
+	for idx, row := range rows {
+		item, err := NewInventoryTypes(&row)
+		if err != nil {
+			return nil, nil, fmt.Errorf("failed to create InventoryTypes from row %d (%v): %w", idx, row.BrowserLink, err)
+		}
+		maporder = append(maporder, RowID(row.Id))
+		m[RowID(row.Id)] = &item
+	}
 
-    return
+	return
 }
 
 func (d *CodaDocument) ListInvoiceTemplate(ctx context.Context, extraParams ...codaapi.ListRowsParam) (list []InvoiceTemplate, err error) {
-    rows, err := d.ListAllRows(ctx, ID.Table.InvoiceTemplate.ID, extraParams...)
-    if err != nil {
-        return
-    }
+	rows, err := d.ListAllRows(ctx, ID.Table.InvoiceTemplate.ID, extraParams...)
+	if err != nil {
+		return
+	}
 
-    for idx, row := range rows {
-        item, err := NewInvoiceTemplate(&row)
-        if err != nil {
-            return nil, fmt.Errorf("failed to create InvoiceTemplate from row %d (%v): %w", idx, row.BrowserLink, err)
-        }
-        list = append(list, item)
-    }
+	for idx, row := range rows {
+		item, err := NewInvoiceTemplate(&row)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create InvoiceTemplate from row %d (%v): %w", idx, row.BrowserLink, err)
+		}
+		list = append(list, item)
+	}
 
-    return
+	return
 }
 
 func (d *CodaDocument) MapOfInvoiceTemplate(ctx context.Context, extraParams ...codaapi.ListRowsParam) (m map[RowID]*InvoiceTemplate, maporder []RowID, err error) {
-    rows, err := d.ListAllRows(ctx, ID.Table.InvoiceTemplate.ID, extraParams...)
-    if err != nil {
-        return
-    }
+	rows, err := d.ListAllRows(ctx, ID.Table.InvoiceTemplate.ID, extraParams...)
+	if err != nil {
+		return
+	}
 
-    m = make(map[RowID]*InvoiceTemplate, len(rows))
-    maporder = make([]RowID, 0, len(rows))
+	m = make(map[RowID]*InvoiceTemplate, len(rows))
+	maporder = make([]RowID, 0, len(rows))
 
-    for idx, row := range rows {
-        item, err := NewInvoiceTemplate(&row)
-        if err != nil {
-            return nil, nil, fmt.Errorf("failed to create InvoiceTemplate from row %d (%v): %w", idx, row.BrowserLink, err)
-        }
-        maporder = append(maporder, RowID(row.Id))
-        m[RowID(row.Id)] = &item
-    }
+	for idx, row := range rows {
+		item, err := NewInvoiceTemplate(&row)
+		if err != nil {
+			return nil, nil, fmt.Errorf("failed to create InvoiceTemplate from row %d (%v): %w", idx, row.BrowserLink, err)
+		}
+		maporder = append(maporder, RowID(row.Id))
+		m[RowID(row.Id)] = &item
+	}
 
-    return
+	return
 }
 
 func (d *CodaDocument) ListPlannedAndPreviousInvoices(ctx context.Context, extraParams ...codaapi.ListRowsParam) (list []PlannedAndPreviousInvoices, err error) {
-    rows, err := d.ListAllRows(ctx, ID.Table.PlannedAndPreviousInvoices.ID, extraParams...)
-    if err != nil {
-        return
-    }
+	rows, err := d.ListAllRows(ctx, ID.Table.PlannedAndPreviousInvoices.ID, extraParams...)
+	if err != nil {
+		return
+	}
 
-    for idx, row := range rows {
-        item, err := NewPlannedAndPreviousInvoices(&row)
-        if err != nil {
-            return nil, fmt.Errorf("failed to create PlannedAndPreviousInvoices from row %d (%v): %w", idx, row.BrowserLink, err)
-        }
-        list = append(list, item)
-    }
+	for idx, row := range rows {
+		item, err := NewPlannedAndPreviousInvoices(&row)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create PlannedAndPreviousInvoices from row %d (%v): %w", idx, row.BrowserLink, err)
+		}
+		list = append(list, item)
+	}
 
-    return
+	return
 }
 
 func (d *CodaDocument) MapOfPlannedAndPreviousInvoices(ctx context.Context, extraParams ...codaapi.ListRowsParam) (m map[RowID]*PlannedAndPreviousInvoices, maporder []RowID, err error) {
-    rows, err := d.ListAllRows(ctx, ID.Table.PlannedAndPreviousInvoices.ID, extraParams...)
-    if err != nil {
-        return
-    }
+	rows, err := d.ListAllRows(ctx, ID.Table.PlannedAndPreviousInvoices.ID, extraParams...)
+	if err != nil {
+		return
+	}
 
-    m = make(map[RowID]*PlannedAndPreviousInvoices, len(rows))
-    maporder = make([]RowID, 0, len(rows))
+	m = make(map[RowID]*PlannedAndPreviousInvoices, len(rows))
+	maporder = make([]RowID, 0, len(rows))
 
-    for idx, row := range rows {
-        item, err := NewPlannedAndPreviousInvoices(&row)
-        if err != nil {
-            return nil, nil, fmt.Errorf("failed to create PlannedAndPreviousInvoices from row %d (%v): %w", idx, row.BrowserLink, err)
-        }
-        maporder = append(maporder, RowID(row.Id))
-        m[RowID(row.Id)] = &item
-    }
+	for idx, row := range rows {
+		item, err := NewPlannedAndPreviousInvoices(&row)
+		if err != nil {
+			return nil, nil, fmt.Errorf("failed to create PlannedAndPreviousInvoices from row %d (%v): %w", idx, row.BrowserLink, err)
+		}
+		maporder = append(maporder, RowID(row.Id))
+		m[RowID(row.Id)] = &item
+	}
 
-    return
+	return
 }
 
 func (d *CodaDocument) ListPlannedExpenses(ctx context.Context, extraParams ...codaapi.ListRowsParam) (list []PlannedExpenses, err error) {
-    rows, err := d.ListAllRows(ctx, ID.Table.PlannedExpenses.ID, extraParams...)
-    if err != nil {
-        return
-    }
+	rows, err := d.ListAllRows(ctx, ID.Table.PlannedExpenses.ID, extraParams...)
+	if err != nil {
+		return
+	}
 
-    for idx, row := range rows {
-        item, err := NewPlannedExpenses(&row)
-        if err != nil {
-            return nil, fmt.Errorf("failed to create PlannedExpenses from row %d (%v): %w", idx, row.BrowserLink, err)
-        }
-        list = append(list, item)
-    }
+	for idx, row := range rows {
+		item, err := NewPlannedExpenses(&row)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create PlannedExpenses from row %d (%v): %w", idx, row.BrowserLink, err)
+		}
+		list = append(list, item)
+	}
 
-    return
+	return
 }
 
 func (d *CodaDocument) MapOfPlannedExpenses(ctx context.Context, extraParams ...codaapi.ListRowsParam) (m map[RowID]*PlannedExpenses, maporder []RowID, err error) {
-    rows, err := d.ListAllRows(ctx, ID.Table.PlannedExpenses.ID, extraParams...)
-    if err != nil {
-        return
-    }
+	rows, err := d.ListAllRows(ctx, ID.Table.PlannedExpenses.ID, extraParams...)
+	if err != nil {
+		return
+	}
 
-    m = make(map[RowID]*PlannedExpenses, len(rows))
-    maporder = make([]RowID, 0, len(rows))
+	m = make(map[RowID]*PlannedExpenses, len(rows))
+	maporder = make([]RowID, 0, len(rows))
 
-    for idx, row := range rows {
-        item, err := NewPlannedExpenses(&row)
-        if err != nil {
-            return nil, nil, fmt.Errorf("failed to create PlannedExpenses from row %d (%v): %w", idx, row.BrowserLink, err)
-        }
-        maporder = append(maporder, RowID(row.Id))
-        m[RowID(row.Id)] = &item
-    }
+	for idx, row := range rows {
+		item, err := NewPlannedExpenses(&row)
+		if err != nil {
+			return nil, nil, fmt.Errorf("failed to create PlannedExpenses from row %d (%v): %w", idx, row.BrowserLink, err)
+		}
+		maporder = append(maporder, RowID(row.Id))
+		m[RowID(row.Id)] = &item
+	}
 
-    return
+	return
 }
 
 func (d *CodaDocument) ListCashFlow2020(ctx context.Context, extraParams ...codaapi.ListRowsParam) (list []CashFlow2020, err error) {
-    rows, err := d.ListAllRows(ctx, ID.Table.CashFlow2020.ID, extraParams...)
-    if err != nil {
-        return
-    }
+	rows, err := d.ListAllRows(ctx, ID.Table.CashFlow2020.ID, extraParams...)
+	if err != nil {
+		return
+	}
 
-    for idx, row := range rows {
-        item, err := NewCashFlow2020(&row)
-        if err != nil {
-            return nil, fmt.Errorf("failed to create CashFlow2020 from row %d (%v): %w", idx, row.BrowserLink, err)
-        }
-        list = append(list, item)
-    }
+	for idx, row := range rows {
+		item, err := NewCashFlow2020(&row)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create CashFlow2020 from row %d (%v): %w", idx, row.BrowserLink, err)
+		}
+		list = append(list, item)
+	}
 
-    return
+	return
 }
 
 func (d *CodaDocument) MapOfCashFlow2020(ctx context.Context, extraParams ...codaapi.ListRowsParam) (m map[RowID]*CashFlow2020, maporder []RowID, err error) {
-    rows, err := d.ListAllRows(ctx, ID.Table.CashFlow2020.ID, extraParams...)
-    if err != nil {
-        return
-    }
+	rows, err := d.ListAllRows(ctx, ID.Table.CashFlow2020.ID, extraParams...)
+	if err != nil {
+		return
+	}
 
-    m = make(map[RowID]*CashFlow2020, len(rows))
-    maporder = make([]RowID, 0, len(rows))
+	m = make(map[RowID]*CashFlow2020, len(rows))
+	maporder = make([]RowID, 0, len(rows))
 
-    for idx, row := range rows {
-        item, err := NewCashFlow2020(&row)
-        if err != nil {
-            return nil, nil, fmt.Errorf("failed to create CashFlow2020 from row %d (%v): %w", idx, row.BrowserLink, err)
-        }
-        maporder = append(maporder, RowID(row.Id))
-        m[RowID(row.Id)] = &item
-    }
+	for idx, row := range rows {
+		item, err := NewCashFlow2020(&row)
+		if err != nil {
+			return nil, nil, fmt.Errorf("failed to create CashFlow2020 from row %d (%v): %w", idx, row.BrowserLink, err)
+		}
+		maporder = append(maporder, RowID(row.Id))
+		m[RowID(row.Id)] = &item
+	}
 
-    return
+	return
 }
 
 func (d *CodaDocument) ListCashFlowOfPersonalAcc(ctx context.Context, extraParams ...codaapi.ListRowsParam) (list []CashFlowOfPersonalAcc, err error) {
-    rows, err := d.ListAllRows(ctx, ID.Table.CashFlowOfPersonalAcc.ID, extraParams...)
-    if err != nil {
-        return
-    }
+	rows, err := d.ListAllRows(ctx, ID.Table.CashFlowOfPersonalAcc.ID, extraParams...)
+	if err != nil {
+		return
+	}
 
-    for idx, row := range rows {
-        item, err := NewCashFlowOfPersonalAcc(&row)
-        if err != nil {
-            return nil, fmt.Errorf("failed to create CashFlowOfPersonalAcc from row %d (%v): %w", idx, row.BrowserLink, err)
-        }
-        list = append(list, item)
-    }
+	for idx, row := range rows {
+		item, err := NewCashFlowOfPersonalAcc(&row)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create CashFlowOfPersonalAcc from row %d (%v): %w", idx, row.BrowserLink, err)
+		}
+		list = append(list, item)
+	}
 
-    return
+	return
 }
 
 func (d *CodaDocument) MapOfCashFlowOfPersonalAcc(ctx context.Context, extraParams ...codaapi.ListRowsParam) (m map[RowID]*CashFlowOfPersonalAcc, maporder []RowID, err error) {
-    rows, err := d.ListAllRows(ctx, ID.Table.CashFlowOfPersonalAcc.ID, extraParams...)
-    if err != nil {
-        return
-    }
+	rows, err := d.ListAllRows(ctx, ID.Table.CashFlowOfPersonalAcc.ID, extraParams...)
+	if err != nil {
+		return
+	}
 
-    m = make(map[RowID]*CashFlowOfPersonalAcc, len(rows))
-    maporder = make([]RowID, 0, len(rows))
+	m = make(map[RowID]*CashFlowOfPersonalAcc, len(rows))
+	maporder = make([]RowID, 0, len(rows))
 
-    for idx, row := range rows {
-        item, err := NewCashFlowOfPersonalAcc(&row)
-        if err != nil {
-            return nil, nil, fmt.Errorf("failed to create CashFlowOfPersonalAcc from row %d (%v): %w", idx, row.BrowserLink, err)
-        }
-        maporder = append(maporder, RowID(row.Id))
-        m[RowID(row.Id)] = &item
-    }
+	for idx, row := range rows {
+		item, err := NewCashFlowOfPersonalAcc(&row)
+		if err != nil {
+			return nil, nil, fmt.Errorf("failed to create CashFlowOfPersonalAcc from row %d (%v): %w", idx, row.BrowserLink, err)
+		}
+		maporder = append(maporder, RowID(row.Id))
+		m[RowID(row.Id)] = &item
+	}
 
-    return
+	return
 }
 
 func (d *CodaDocument) ListCashFlow2021(ctx context.Context, extraParams ...codaapi.ListRowsParam) (list []CashFlow2021, err error) {
-    rows, err := d.ListAllRows(ctx, ID.Table.CashFlow2021.ID, extraParams...)
-    if err != nil {
-        return
-    }
+	rows, err := d.ListAllRows(ctx, ID.Table.CashFlow2021.ID, extraParams...)
+	if err != nil {
+		return
+	}
 
-    for idx, row := range rows {
-        item, err := NewCashFlow2021(&row)
-        if err != nil {
-            return nil, fmt.Errorf("failed to create CashFlow2021 from row %d (%v): %w", idx, row.BrowserLink, err)
-        }
-        list = append(list, item)
-    }
+	for idx, row := range rows {
+		item, err := NewCashFlow2021(&row)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create CashFlow2021 from row %d (%v): %w", idx, row.BrowserLink, err)
+		}
+		list = append(list, item)
+	}
 
-    return
+	return
 }
 
 func (d *CodaDocument) MapOfCashFlow2021(ctx context.Context, extraParams ...codaapi.ListRowsParam) (m map[RowID]*CashFlow2021, maporder []RowID, err error) {
-    rows, err := d.ListAllRows(ctx, ID.Table.CashFlow2021.ID, extraParams...)
-    if err != nil {
-        return
-    }
+	rows, err := d.ListAllRows(ctx, ID.Table.CashFlow2021.ID, extraParams...)
+	if err != nil {
+		return
+	}
 
-    m = make(map[RowID]*CashFlow2021, len(rows))
-    maporder = make([]RowID, 0, len(rows))
+	m = make(map[RowID]*CashFlow2021, len(rows))
+	maporder = make([]RowID, 0, len(rows))
 
-    for idx, row := range rows {
-        item, err := NewCashFlow2021(&row)
-        if err != nil {
-            return nil, nil, fmt.Errorf("failed to create CashFlow2021 from row %d (%v): %w", idx, row.BrowserLink, err)
-        }
-        maporder = append(maporder, RowID(row.Id))
-        m[RowID(row.Id)] = &item
-    }
+	for idx, row := range rows {
+		item, err := NewCashFlow2021(&row)
+		if err != nil {
+			return nil, nil, fmt.Errorf("failed to create CashFlow2021 from row %d (%v): %w", idx, row.BrowserLink, err)
+		}
+		maporder = append(maporder, RowID(row.Id))
+		m[RowID(row.Id)] = &item
+	}
 
-    return
+	return
 }
 
 func (d *CodaDocument) ListAuditCategory(ctx context.Context, extraParams ...codaapi.ListRowsParam) (list []AuditCategory, err error) {
-    rows, err := d.ListAllRows(ctx, ID.Table.AuditCategory.ID, extraParams...)
-    if err != nil {
-        return
-    }
+	rows, err := d.ListAllRows(ctx, ID.Table.AuditCategory.ID, extraParams...)
+	if err != nil {
+		return
+	}
 
-    for idx, row := range rows {
-        item, err := NewAuditCategory(&row)
-        if err != nil {
-            return nil, fmt.Errorf("failed to create AuditCategory from row %d (%v): %w", idx, row.BrowserLink, err)
-        }
-        list = append(list, item)
-    }
+	for idx, row := range rows {
+		item, err := NewAuditCategory(&row)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create AuditCategory from row %d (%v): %w", idx, row.BrowserLink, err)
+		}
+		list = append(list, item)
+	}
 
-    return
+	return
 }
 
 func (d *CodaDocument) MapOfAuditCategory(ctx context.Context, extraParams ...codaapi.ListRowsParam) (m map[RowID]*AuditCategory, maporder []RowID, err error) {
-    rows, err := d.ListAllRows(ctx, ID.Table.AuditCategory.ID, extraParams...)
-    if err != nil {
-        return
-    }
+	rows, err := d.ListAllRows(ctx, ID.Table.AuditCategory.ID, extraParams...)
+	if err != nil {
+		return
+	}
 
-    m = make(map[RowID]*AuditCategory, len(rows))
-    maporder = make([]RowID, 0, len(rows))
+	m = make(map[RowID]*AuditCategory, len(rows))
+	maporder = make([]RowID, 0, len(rows))
 
-    for idx, row := range rows {
-        item, err := NewAuditCategory(&row)
-        if err != nil {
-            return nil, nil, fmt.Errorf("failed to create AuditCategory from row %d (%v): %w", idx, row.BrowserLink, err)
-        }
-        maporder = append(maporder, RowID(row.Id))
-        m[RowID(row.Id)] = &item
-    }
+	for idx, row := range rows {
+		item, err := NewAuditCategory(&row)
+		if err != nil {
+			return nil, nil, fmt.Errorf("failed to create AuditCategory from row %d (%v): %w", idx, row.BrowserLink, err)
+		}
+		maporder = append(maporder, RowID(row.Id))
+		m[RowID(row.Id)] = &item
+	}
 
-    return
+	return
 }
 
 func (d *CodaDocument) ListExpensesByCategory(ctx context.Context, extraParams ...codaapi.ListRowsParam) (list []ExpensesByCategory, err error) {
-    rows, err := d.ListAllRows(ctx, ID.Table.ExpensesByCategory.ID, extraParams...)
-    if err != nil {
-        return
-    }
+	rows, err := d.ListAllRows(ctx, ID.Table.ExpensesByCategory.ID, extraParams...)
+	if err != nil {
+		return
+	}
 
-    for idx, row := range rows {
-        item, err := NewExpensesByCategory(&row)
-        if err != nil {
-            return nil, fmt.Errorf("failed to create ExpensesByCategory from row %d (%v): %w", idx, row.BrowserLink, err)
-        }
-        list = append(list, item)
-    }
+	for idx, row := range rows {
+		item, err := NewExpensesByCategory(&row)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create ExpensesByCategory from row %d (%v): %w", idx, row.BrowserLink, err)
+		}
+		list = append(list, item)
+	}
 
-    return
+	return
 }
 
 func (d *CodaDocument) MapOfExpensesByCategory(ctx context.Context, extraParams ...codaapi.ListRowsParam) (m map[RowID]*ExpensesByCategory, maporder []RowID, err error) {
-    rows, err := d.ListAllRows(ctx, ID.Table.ExpensesByCategory.ID, extraParams...)
-    if err != nil {
-        return
-    }
+	rows, err := d.ListAllRows(ctx, ID.Table.ExpensesByCategory.ID, extraParams...)
+	if err != nil {
+		return
+	}
 
-    m = make(map[RowID]*ExpensesByCategory, len(rows))
-    maporder = make([]RowID, 0, len(rows))
+	m = make(map[RowID]*ExpensesByCategory, len(rows))
+	maporder = make([]RowID, 0, len(rows))
 
-    for idx, row := range rows {
-        item, err := NewExpensesByCategory(&row)
-        if err != nil {
-            return nil, nil, fmt.Errorf("failed to create ExpensesByCategory from row %d (%v): %w", idx, row.BrowserLink, err)
-        }
-        maporder = append(maporder, RowID(row.Id))
-        m[RowID(row.Id)] = &item
-    }
+	for idx, row := range rows {
+		item, err := NewExpensesByCategory(&row)
+		if err != nil {
+			return nil, nil, fmt.Errorf("failed to create ExpensesByCategory from row %d (%v): %w", idx, row.BrowserLink, err)
+		}
+		maporder = append(maporder, RowID(row.Id))
+		m[RowID(row.Id)] = &item
+	}
 
-    return
+	return
 }
 
 //endregion
-
 
 //region Methods for deep data fetching (with loading relations)
 
 // Tables enumeration is used for specification of the tables to deep load
 type Tables struct {
-    Months bool // Months
-    CashFlow bool // Cash flow
-    InvoicePayment bool // Invoice payment
-    Expenses bool // Expenses
-    Invoices bool // Invoices
-    Accounts bool // Accounts
-    InventoryTypes bool // Inventory Types
-    InvoiceTemplate bool // Invoice template
-    AuditCategory bool // Audit Category
+	Months          bool // Months
+	CashFlow        bool // Cash flow
+	InvoicePayment  bool // Invoice payment
+	Expenses        bool // Expenses
+	Invoices        bool // Invoices
+	Accounts        bool // Accounts
+	InventoryTypes  bool // Inventory Types
+	InvoiceTemplate bool // Invoice template
+	AuditCategory   bool // Audit Category
 }
 
 // LoadRelationsCashFlow loads data into lookup fields of the CashFlow struct
@@ -4460,7 +4451,7 @@ func (doc *CodaDocument) LoadRelationsCashFlow(ctx context.Context, shallow map[
 	var _accountsMap map[RowID]*Accounts
 	var _expensesMap map[RowID]*Expenses
 	var _invoicePaymentMap map[RowID]*InvoicePayment
-	func(){
+	func() {
 		if !rels.Accounts {
 			return
 		}
@@ -4472,14 +4463,14 @@ func (doc *CodaDocument) LoadRelationsCashFlow(ctx context.Context, shallow map[
 		}
 
 		wg.Add(1)
-		go func(){
+		go func() {
 			defer wg.Done()
 
 			_accountsMap, _, err = doc.MapOfAccounts(ctx)
 			doc.relationsCache.Store("Accounts", _accountsMap)
 		}()
 	}()
-	func(){
+	func() {
 		if !rels.Expenses {
 			return
 		}
@@ -4491,14 +4482,14 @@ func (doc *CodaDocument) LoadRelationsCashFlow(ctx context.Context, shallow map[
 		}
 
 		wg.Add(1)
-		go func(){
+		go func() {
 			defer wg.Done()
 
 			_expensesMap, _, err = doc.MapOfExpenses(ctx)
 			doc.relationsCache.Store("Expenses", _expensesMap)
 		}()
 	}()
-	func(){
+	func() {
 		if !rels.InvoicePayment {
 			return
 		}
@@ -4510,7 +4501,7 @@ func (doc *CodaDocument) LoadRelationsCashFlow(ctx context.Context, shallow map[
 		}
 
 		wg.Add(1)
-		go func(){
+		go func() {
 			defer wg.Done()
 
 			_invoicePaymentMap, _, err = doc.MapOfInvoicePayment(ctx)
@@ -4544,7 +4535,7 @@ func (doc *CodaDocument) LoadRelationsCashFlow(ctx context.Context, shallow map[
 func (doc *CodaDocument) LoadRelationsInvoicePayment(ctx context.Context, shallow map[RowID]*InvoicePayment, rels Tables) (err error) {
 	var wg sync.WaitGroup
 	var _invoicesMap map[RowID]*Invoices
-	func(){
+	func() {
 		if !rels.Invoices {
 			return
 		}
@@ -4556,7 +4547,7 @@ func (doc *CodaDocument) LoadRelationsInvoicePayment(ctx context.Context, shallo
 		}
 
 		wg.Add(1)
-		go func(){
+		go func() {
 			defer wg.Done()
 
 			_invoicesMap, _, err = doc.MapOfInvoices(ctx)
@@ -4586,7 +4577,7 @@ func (doc *CodaDocument) LoadRelationsExpenses(ctx context.Context, shallow map[
 	var _cashFlowMap map[RowID]*CashFlow
 	var _inventoryTypesMap map[RowID]*InventoryTypes
 	var _auditCategoryMap map[RowID]*AuditCategory
-	func(){
+	func() {
 		if !rels.Invoices {
 			return
 		}
@@ -4598,14 +4589,14 @@ func (doc *CodaDocument) LoadRelationsExpenses(ctx context.Context, shallow map[
 		}
 
 		wg.Add(1)
-		go func(){
+		go func() {
 			defer wg.Done()
 
 			_invoicesMap, _, err = doc.MapOfInvoices(ctx)
 			doc.relationsCache.Store("Invoices", _invoicesMap)
 		}()
 	}()
-	func(){
+	func() {
 		if !rels.CashFlow {
 			return
 		}
@@ -4617,14 +4608,14 @@ func (doc *CodaDocument) LoadRelationsExpenses(ctx context.Context, shallow map[
 		}
 
 		wg.Add(1)
-		go func(){
+		go func() {
 			defer wg.Done()
 
 			_cashFlowMap, _, err = doc.MapOfCashFlow(ctx)
 			doc.relationsCache.Store("CashFlow", _cashFlowMap)
 		}()
 	}()
-	func(){
+	func() {
 		if !rels.InventoryTypes {
 			return
 		}
@@ -4636,14 +4627,14 @@ func (doc *CodaDocument) LoadRelationsExpenses(ctx context.Context, shallow map[
 		}
 
 		wg.Add(1)
-		go func(){
+		go func() {
 			defer wg.Done()
 
 			_inventoryTypesMap, _, err = doc.MapOfInventoryTypes(ctx)
 			doc.relationsCache.Store("InventoryTypes", _inventoryTypesMap)
 		}()
 	}()
-	func(){
+	func() {
 		if !rels.AuditCategory {
 			return
 		}
@@ -4655,7 +4646,7 @@ func (doc *CodaDocument) LoadRelationsExpenses(ctx context.Context, shallow map[
 		}
 
 		wg.Add(1)
-		go func(){
+		go func() {
 			defer wg.Done()
 
 			_auditCategoryMap, _, err = doc.MapOfAuditCategory(ctx)
@@ -4670,9 +4661,6 @@ func (doc *CodaDocument) LoadRelationsExpenses(ctx context.Context, shallow map[
 	}
 
 	for ii, _ := range shallow {
-		if rels.Invoices {
-			shallow[ii].Invoice.Hydrate(_invoicesMap)
-		}
 		if rels.CashFlow {
 			shallow[ii].CashOutRefs.Hydrate(_cashFlowMap)
 		}
@@ -4681,6 +4669,9 @@ func (doc *CodaDocument) LoadRelationsExpenses(ctx context.Context, shallow map[
 		}
 		if rels.AuditCategory {
 			shallow[ii].AuditCategory.Hydrate(_auditCategoryMap)
+		}
+		if rels.Invoices {
+			shallow[ii].Invoice.Hydrate(_invoicesMap)
 		}
 	}
 
@@ -4693,26 +4684,7 @@ func (doc *CodaDocument) LoadRelationsInvoices(ctx context.Context, shallow map[
 	var _invoicePaymentMap map[RowID]*InvoicePayment
 	var _invoicesMap map[RowID]*Invoices
 	var _expensesMap map[RowID]*Expenses
-	func(){
-		if !rels.InvoicePayment {
-			return
-		}
-
-		if _invoicePaymentInter, ok := doc.relationsCache.Load("InvoicePayment"); ok {
-			if _invoicePaymentMap, ok = _invoicePaymentInter.(map[RowID]*InvoicePayment); ok {
-				return
-			}
-		}
-
-		wg.Add(1)
-		go func(){
-			defer wg.Done()
-
-			_invoicePaymentMap, _, err = doc.MapOfInvoicePayment(ctx)
-			doc.relationsCache.Store("InvoicePayment", _invoicePaymentMap)
-		}()
-	}()
-	func(){
+	func() {
 		if !rels.Invoices {
 			return
 		}
@@ -4724,14 +4696,14 @@ func (doc *CodaDocument) LoadRelationsInvoices(ctx context.Context, shallow map[
 		}
 
 		wg.Add(1)
-		go func(){
+		go func() {
 			defer wg.Done()
 
 			_invoicesMap, _, err = doc.MapOfInvoices(ctx)
 			doc.relationsCache.Store("Invoices", _invoicesMap)
 		}()
 	}()
-	func(){
+	func() {
 		if !rels.Expenses {
 			return
 		}
@@ -4743,11 +4715,30 @@ func (doc *CodaDocument) LoadRelationsInvoices(ctx context.Context, shallow map[
 		}
 
 		wg.Add(1)
-		go func(){
+		go func() {
 			defer wg.Done()
 
 			_expensesMap, _, err = doc.MapOfExpenses(ctx)
 			doc.relationsCache.Store("Expenses", _expensesMap)
+		}()
+	}()
+	func() {
+		if !rels.InvoicePayment {
+			return
+		}
+
+		if _invoicePaymentInter, ok := doc.relationsCache.Load("InvoicePayment"); ok {
+			if _invoicePaymentMap, ok = _invoicePaymentInter.(map[RowID]*InvoicePayment); ok {
+				return
+			}
+		}
+
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+
+			_invoicePaymentMap, _, err = doc.MapOfInvoicePayment(ctx)
+			doc.relationsCache.Store("InvoicePayment", _invoicePaymentMap)
 		}()
 	}()
 
