@@ -2,16 +2,151 @@
 
 {{ define "sidebar"}}
     <a class="nav-link" href="{{ link "OfficeHome" }}">&larr; Return to all invoices</a>
-    <a class="nav-link active" href="{{ link "OfficeShowInvoiceData" "invoice" .Page.InvoiceID }}">{{ .Page.InvoiceID }}</a>
+    <a class="nav-link active" href="{{ link "OfficeShowInvoiceData" "invoice" .Page.SelectedInvoice }}">{{ .Page.SelectedInvoice }}</a>
 
         <br>
-    <a type="button" class="btn btn-secondary" href="{{ link "OfficeDownloadInvoice" "invoice" .Page.InvoiceID }}">Download invoice</a>
+    <a type="button" class="btn btn-secondary" href="{{ link "OfficeDownloadInvoice" "invoice" .Page.SelectedInvoice }}">Download invoice</a>
 {{end}}
 
 {{ define "content"}}
+    <!-- Generated at {{ .Timestamp.Format "2006-01-02T15:04:05Z07:00" }} -->
+
     {{- if .Page.Error }}
-        {{ .Page.Error }}
-    {{ else }}
-        {{ .Page.Body }}
-    {{ end -}}
+        <div class="alert alert-danger" role="alert">{{ .Page.Error }}</div>
+    {{- else }}
+        <!-- no errors -->
+    {{- end }}
+
+<h3>{{ .Page.Office.Invoice.DateYm }} Invoice</h3>
+
+<table border="1" cellpadding="2" cellspacing="0" width="80%" class="standart">
+    <thead style="background-color: #cacaca">
+        <tr>
+            <th width="400">Item</th>
+            <th width="100">Category</th>
+            <th width="500">Comment</th>
+            <th>RUB</th>
+            <th>EUR</th>
+        </tr>
+    </thead>
+    <tbody>
+        {{ range $group := .Page.Office.ExpenseGroups}}
+            {{ range $expense := $group.Items}}
+                <tr>
+                    <td>{{ $expense.Subject }}</td>
+                    <td>{{ $expense.Category }} </td>
+                    <td>{{ $expense.Comment }} </td>
+                    <td align="right">{{ $expense.AmountRub }}</td>
+                    <td align="right">{{ $expense.AmountEur }}</td>
+                </tr>
+            {{ end }}
+            <tr>
+                <td></td>
+                <td><b>{{ $group.Name }}</b></td>
+                <td></td>
+                <td align="right">{{ $group.TotalRub }}</td>
+                <td align="right">{{ $group.TotalEur }}</td>
+            </tr>
+        {{ end }}
+        <tr>
+            <td></td>
+            <td><b>Expenses Total</b></td>
+            <td></td>
+            <td></td>
+            <td align="right">{{ .Page.Office.Invoice.Subtotal }}</td>
+        </tr>
+        <tr>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td><b>Return of rounding</b></td>
+            <td align="right" style="color: red">-{{ .Page.Office.Invoice.ReturnOfRounding }}</td>
+        </tr>
+        <tr>
+            <td></td>
+            <td></td>
+            <td>{{ .Page.Office.Invoice.Hours }} hours</td>
+            <td><b>Rounding</b></td>
+            <td align="right">{{ .Page.Office.Invoice.HourRateRounding }}</td>
+        </tr>
+        <tr>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td><b>Total</b></td>
+            <td align="right">{{ .Page.Office.Invoice.TotalEur }}</td>
+        </tr>
+    </tbody>
+</table>
+
+<p><br /><br /></p>
+
+<h3>Report on money usage ({{ .Page.Office.History.FirstInvoice.DateYm }} &ndash; {{ .Page.Office.History.LastInvoice.DateYm }})</h3>
+<table border="1" cellpadding="2" cellspacing="0" width="80%" class="standart">
+    <thead style="background-color: #cacaca">
+        <tr>
+            <th width="160">Invoice</th>
+            <th width="230">Subject</th>
+            <th width="90">Tag</th>
+            <th width="40">Status</th>
+            <th width="150">Requested Amount RUB</th>
+            <th width="150">Actually spent</th>
+            <th width="150">Pending spend</th>
+            <th width="150">Under/over-use</th>
+            <th width="310">Pending spend comment</th>
+        </tr>
+    </thead>
+    <tbody>
+        {{ range $invoice := .Page.Office.History.Invoices }}
+            <tr bgcolor="{{if $invoice.HasPendingSpends}}#F6F9D4{{else}}#EEEEEE{{end}}">
+                <td>{{ $invoice.No }}</td>
+                <td></td>
+                <td></td>
+                <td>{{ $invoice.Status }}</td>
+                <td>{{ $invoice.ExpensesRub }}</td>
+                <td>{{ $invoice.ActuallySpent }}</td>
+                <td>{{ $invoice.PendingSpend }}</td>
+                <td>{{ $invoice.Balance }}</td>
+                <td></td>
+            </tr>
+        {{ end }}
+
+        {{ range $expense := .Page.Office.History.LastInvoice.Expenses }}
+            <tr bgcolor="{{if $expense.HasPendingSpends}}#F6F9D4{{else}}#FFFFFF{{end}}">
+                <td>{{ $expense.Invoice }}</td>
+                <td>{{ $expense.Subject }}</td>
+                <td>{{ $expense.Category }}</td>
+                <td>{{ $expense.Status }}</td>
+                <td>{{ $expense.AmountRub }}</td>
+                <td>{{ $expense.ActuallySpent }}</td>
+                <td>{{ $expense.PendingSpend }}</td>
+                <td>{{ $expense.Balance }}</td>
+                <td></td>
+            </tr>
+        {{ end }}
+        <tr style="font-weight: bold">
+            <td>{{ .Page.Office.History.LastInvoice.No }} Subtotal</td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td>{{ .Page.Office.History.LastInvoice.ExpensesRub }}</td>
+            <td>{{ .Page.Office.History.LastInvoice.ActuallySpent }}</td>
+            <td>{{ .Page.Office.History.LastInvoice.PendingSpend }}</td>
+            <td>{{ .Page.Office.History.LastInvoice.Balance }}</td>
+            <td></td>
+        </tr>
+        <tr style="font-weight: bold">
+            <td>Grand total</td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td>{{ .Page.Office.History.GrandTotal.ExpensesRub }}</td>
+            <td>{{ .Page.Office.History.GrandTotal.ActuallySpent }}</td>
+            <td>{{ .Page.Office.History.GrandTotal.PendingSpend }}</td>
+            <td>{{ .Page.Office.History.GrandTotal.Balance }}</td>
+            <td></td>
+        </tr>
+    </tbody>
+</table>
+
 {{end}}

@@ -7,6 +7,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
+	"html/template"
 	"net/http"
 	"net/url"
 	"oea-go/internal/auth/authtoken"
@@ -37,7 +38,7 @@ func authErrorRedirect(resp http.ResponseWriter, err string) {
 	web.HttpRedirect(resp, "/auth?err="+url.QueryEscape(err), http.StatusFound)
 }
 
-func NewHandler(cfg *config.Config, partial web.Partial, logger *zap.SugaredLogger, router *mux.Router) *Controller {
+func NewHandler(cfg *config.Config, partial *template.Template, logger *zap.SugaredLogger, router *mux.Router) *Controller {
 	return &Controller{
 		config:  cfg,
 		partial: partial,
@@ -48,7 +49,7 @@ func NewHandler(cfg *config.Config, partial web.Partial, logger *zap.SugaredLogg
 
 type Controller struct {
 	config  *config.Config
-	partial web.Partial
+	partial *template.Template
 	logger  *zap.SugaredLogger
 	router  *mux.Router
 }
@@ -80,7 +81,7 @@ func sanitizeReturnUrl(returnUrl string) string {
 }
 
 func (ctl Controller) HandleFirstFactorSendSuccess(resp http.ResponseWriter, req *http.Request) {
-	ctl.partial.MustRenderWithData(resp, web.NewPartialData(ctl.config.AppVersion, authControllerData{}.WithFirstFactor(), req))
+	ctl.partial.Execute(resp, web.NewTemplateData(ctl.config.AppVersion, authControllerData{}.WithFirstFactor(), req))
 }
 
 func extractAccountFromJWT(req *http.Request, config *config.Config) (account *config.Account, token *authtoken.Token, err error) {
@@ -136,7 +137,7 @@ func (ctl Controller) HandleBeginSecondFactor(resp http.ResponseWriter, req *htt
 		}
 	}
 
-	ctl.partial.MustRenderWithData(resp, web.NewPartialData(ctl.config.AppVersion, partialData, req))
+	ctl.partial.Execute(resp, web.NewTemplateData(ctl.config.AppVersion, partialData, req))
 }
 
 func (ctl Controller) HandleCheckSecondFactor(resp http.ResponseWriter, req *http.Request) {
@@ -207,8 +208,10 @@ func (ctl Controller) HandleLogout(resp http.ResponseWriter, req *http.Request) 
 func (ctl Controller) HandleAuthStart(resp http.ResponseWriter, req *http.Request) {
 	data := newAuthControllerDataFromRequest(req)
 
+	templateCtx := web.TemplateData{Version: ctl.config.AppVersion, RequestURI: req.RequestURI}
+
 	if req.Method == http.MethodGet {
-		ctl.partial.MustRenderWithData(resp, web.NewPartialData(ctl.config.AppVersion, data, req))
+		ctl.partial.Execute(resp, templateCtx.WithData(data))
 		return
 	}
 
@@ -216,16 +219,16 @@ func (ctl Controller) HandleAuthStart(resp http.ResponseWriter, req *http.Reques
 	data.PrevEmail = recipient
 
 	if !ctl.config.IsAuthAllowed(recipient) {
-		ctl.partial.MustRenderWithData(resp, web.NewPartialData(ctl.config.AppVersion, data.WithError("specified email is not permitted"), req))
+		ctl.partial.Execute(resp, templateCtx.WithData(data.WithError("specified email is not permitted")))
 		return
 	}
 
 	if emailValidErr := checkmail.ValidateFormat(recipient); emailValidErr != nil {
-		ctl.partial.MustRenderWithData(resp, web.NewPartialData(ctl.config.AppVersion, data.WithError(fmt.Sprintf("submitted email is incorrect: %s", emailValidErr)), req))
+		ctl.partial.Execute(resp, templateCtx.WithData(data.WithError(fmt.Sprintf("submitted email is incorrect: %s", emailValidErr))))
 		return
 	}
 	if emailValidErr := checkmail.ValidateHost(recipient); emailValidErr != nil {
-		ctl.partial.MustRenderWithData(resp, web.NewPartialData(ctl.config.AppVersion, data.WithError(fmt.Sprintf("submitted email is incorrect: %s", emailValidErr)), req))
+		ctl.partial.Execute(resp, templateCtx.WithData(data.WithError(fmt.Sprintf("submitted email is incorrect: %s", emailValidErr))))
 		return
 	}
 
@@ -237,7 +240,7 @@ func (ctl Controller) HandleAuthStart(resp http.ResponseWriter, req *http.Reques
 	)
 
 	if tokErr != nil {
-		ctl.partial.MustRenderWithData(resp, web.NewPartialData(ctl.config.AppVersion, data.WithError(fmt.Sprintf("error generating token: %v", tokErr)), req))
+		ctl.partial.Execute(resp, templateCtx.WithData(data.WithError(fmt.Sprintf("error generating token: %v", tokErr))))
 		return
 	}
 
@@ -257,7 +260,7 @@ func (ctl Controller) HandleAuthStart(resp http.ResponseWriter, req *http.Reques
 
 	if ctl.config.IsEmailsEnabled() {
 		if err := sendMail(authInfo, link, recipient, ctl.config); err != nil {
-			ctl.partial.MustRenderWithData(resp, web.NewPartialData(ctl.config.AppVersion, data.WithError(err.Error()), req))
+			ctl.partial.Execute(resp, templateCtx.WithData(data.WithError(err.Error())))
 			return
 		}
 	} else {

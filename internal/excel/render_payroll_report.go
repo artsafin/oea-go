@@ -5,8 +5,7 @@ import (
 	x "github.com/360EntSecGroup-Skylar/excelize/v2"
 	"io"
 	"log"
-	"oea-go/internal/codatypes"
-	"oea-go/internal/employee/dto"
+	"oea-go/internal/employee/codaschema"
 	"sort"
 	"strings"
 )
@@ -64,7 +63,7 @@ func (c column) GetSort() uint32 {
 	return uint32(c.group.sort)<<16 + uint32(c.sort)
 }
 
-func getGroupByEntry(e dto.Entry) columnGroup {
+func getGroupByEntry(e codaschema.Entries) columnGroup {
 	special := map[string]columnGroup{
 		"pension fund fixed":   groupEmployerContributions,
 		"pension fund percent": groupEmployerContributions,
@@ -76,7 +75,7 @@ func getGroupByEntry(e dto.Entry) columnGroup {
 		"patent":                     groupSubcontractorTax,
 	}
 
-	if group, ok := special[strings.ToLower(e.Type)]; ok {
+	if group, ok := special[strings.ToLower(e.Type.String())]; ok {
 		return group
 	}
 
@@ -87,12 +86,16 @@ func getGroupByEntry(e dto.Entry) columnGroup {
 	return groupEarnings
 }
 
-func columnsFromInvoices(invoices dto.Invoices) (cols []column) {
+func columnsFromInvoices(invoices []codaschema.Invoice) (cols []column) {
 	cm := make(map[string]*column)
 
+	// Prelude
 	cm["#"] = &column{"", groupPrelude, 0, map[int]interface{}{}}
-	cm["Entity name"] = &column{"Entity name", groupPrelude, 1, map[int]interface{}{}}
-	cm["Employee"] = &column{"Employee", groupPrelude, 2, map[int]interface{}{}}
+	cm["Location"] = &column{"Location", groupPrelude, 1, map[int]interface{}{}}
+	cm["Entity name"] = &column{"Entity name", groupPrelude, 2, map[int]interface{}{}}
+	cm["Employee"] = &column{"Employee", groupPrelude, 3, map[int]interface{}{}}
+
+	// Totals
 	cm["Net salaries"] = &column{"Net salaries", groupTotals, 0, map[int]interface{}{}}
 	cm["Company cost"] = &column{"Company cost", groupTotals, 1, map[int]interface{}{}}
 	cm["Rounding"] = &column{"Rounding", groupTotals, 2, map[int]interface{}{}}
@@ -100,40 +103,41 @@ func columnsFromInvoices(invoices dto.Invoices) (cols []column) {
 
 	for invoiceIndex, inv := range invoices {
 		cm["#"].vals[invoiceIndex] = cell{value: invoiceIndex + 1}
-		cm["Entity name"].vals[invoiceIndex] = cell{value: inv.SenderEntityName}
-		cm["Employee"].vals[invoiceIndex] = cell{value: inv.EmployeeName}
+		cm["Location"].vals[invoiceIndex] = cell{value: inv.Employee.FirstMaybe().Location.String()}
+		cm["Entity name"].vals[invoiceIndex] = cell{value: inv.SenderDetails.String()}
+		cm["Employee"].vals[invoiceIndex] = cell{value: inv.Employee.String()}
 
-		var netSalariesEUR codatypes.MoneyEur
-		var companyCostsEUR codatypes.MoneyEur
+		var netSalariesEUR float64
+		var companyCostsEUR float64
 
-		for _, entry := range inv.Entries {
+		for _, entry := range inv.EntriesSorted() {
 			var ok bool
 
-			group := getGroupByEntry(*entry)
+			group := getGroupByEntry(entry)
 
-			if _, ok = cm[entry.Type]; !ok {
-				cm[entry.Type] = &column{
-					header: entry.Type,
+			if _, ok = cm[entry.Type.String()]; !ok {
+				cm[entry.Type.String()] = &column{
+					header: entry.Type.String(),
 					group:  group,
-					sort:   entry.Sort,
+					sort:   uint16(entry.Sort),
 					vals:   make(columnValues),
 				}
 			}
 
 			comment := entry.Comment
 			if entry.RUBAmount != 0 {
-				comment = fmt.Sprintf("\nOriginal amount: %s\n%s", entry.RUBAmount.String(), entry.Comment)
+				comment = fmt.Sprintf("\nOriginal amount: %s\n%s", entry.RUBAmountMoney().String(), entry.Comment)
 			}
 
 			var cellVal numberCell
-			if cellVal, ok = cm[entry.Type].vals[invoiceIndex].(numberCell); !ok {
-				cellVal = numberCell{value: entry.EURTotal().Number(), comment: comment}
+			if cellVal, ok = cm[entry.Type.String()].vals[invoiceIndex].(numberCell); !ok {
+				cellVal = numberCell{value: entry.EURTotal(), comment: comment}
 			} else {
-				cellVal.value += entry.EURTotal().Number()
+				cellVal.value += entry.EURTotal()
 				cellVal.comment += "\n" + comment
 			}
 
-			cm[entry.Type].vals[invoiceIndex] = cellVal
+			cm[entry.Type.String()].vals[invoiceIndex] = cellVal
 
 			if group == groupDeductions || group == groupEarnings {
 				netSalariesEUR += entry.EURTotal()
@@ -142,11 +146,11 @@ func columnsFromInvoices(invoices dto.Invoices) (cols []column) {
 			}
 		}
 
-		excelRoundingError := inv.EURTotal.Number() - inv.EURRounding.Number() - netSalariesEUR.Number() - companyCostsEUR.Number()
-		cm["Net salaries"].vals[invoiceIndex] = numberCell{value: netSalariesEUR.Number()}
-		cm["Company cost"].vals[invoiceIndex] = numberCell{value: companyCostsEUR.Number()}
-		cm["Rounding"].vals[invoiceIndex] = numberCell{value: inv.EURRounding.Number() + excelRoundingError}
-		cm["Total"].vals[invoiceIndex] = numberCell{value: inv.EURTotal.Number()}
+		excelRoundingError := inv.EURTotal - inv.EURRounding - netSalariesEUR - companyCostsEUR
+		cm["Net salaries"].vals[invoiceIndex] = numberCell{value: netSalariesEUR}
+		cm["Company cost"].vals[invoiceIndex] = numberCell{value: companyCostsEUR}
+		cm["Rounding"].vals[invoiceIndex] = numberCell{value: inv.EURRounding + excelRoundingError}
+		cm["Total"].vals[invoiceIndex] = numberCell{value: inv.EURTotal}
 	}
 
 	for _, col := range cm {
@@ -249,7 +253,7 @@ func styleReport(sheet *sheetRef, columnRanges []columnColorRange, totalColumns 
 	return nil
 }
 
-func RenderPayrollReport(wr io.Writer, invoices dto.Invoices) error {
+func RenderPayrollReport(wr io.Writer, invoices []codaschema.Invoice) error {
 	f := x.NewFile()
 	//f.SetPanes(payrollReportSheetName, `{"freeze":true,"split":false,"x_split":1,"y_split":0,"top_left_cell":"B1","active_pane":"topRight","panes":[{"sqref":"B1","active_cell":"B1","pane":"topRight"}]}`)
 
@@ -298,117 +302,6 @@ func RenderPayrollReport(wr io.Writer, invoices dto.Invoices) error {
 	if err != nil {
 		log.Printf("RenderPayrollReport styleReport error: %v", err)
 	}
-
-	//f.SetColWidth(payrollReportSheetName, "A", "A", 35)
-	//f.SetColWidth(payrollReportSheetName, "B", "B", 50)
-	//f.SetColWidth(payrollReportSheetName, "C", "C", 18)
-	//f.SetColWidth(payrollReportSheetName, "D", "D", 18)
-	//f.SetColWidth(payrollReportSheetName, "E", "E", 50)
-
-	//var grandTotalRub codatypes.MoneyRub
-	//var grandTotalEur codatypes.MoneyEur
-	//rowNum := 1
-
-	//for _, invoice := range invoices {
-	//	if invoice.BaseSalaryRub > 0 {
-	//		sheet.writeRowAndIncr(&rowNum,
-	//			invoice.EmployeeName,
-	//			fmt.Sprintf("Salary %s", invoice.DateYm()),
-	//			invoice.BaseSalaryRub.Number(),
-	//		)
-	//	} else {
-	//		sheet.writeRowAndIncr(&rowNum,
-	//			invoice.EmployeeName,
-	//			fmt.Sprintf("Salary %s", invoice.DateYm()),
-	//			"",
-	//			invoice.BaseSalaryEur.Number(),
-	//		)
-	//	}
-	//	if invoice.BankFees > 0 {
-	//		sheet.writeRowAndIncr(&rowNum, invoice.EmployeeName, "Bank fees", invoice.BankFees.Number())
-	//	}
-	//	if invoice.PatentRub > 0 {
-	//		sheet.writeRowAndIncr(&rowNum, invoice.EmployeeName, "Patent", invoice.PatentRub.Number())
-	//	}
-	//	if invoice.TaxesRub > 0 {
-	//		sheet.writeRowAndIncr(&rowNum, invoice.EmployeeName, "Taxes", invoice.TaxesRub.Number())
-	//	}
-	//	if invoice.RateErrorPrevMon > 0 {
-	//		sheet.writeRowAndIncr(
-	//			&rowNum,
-	//			invoice.EmployeeName,
-	//			"Currency rate variance from previous month",
-	//			invoice.RateErrorPrevMon.Number(),
-	//			"",
-	//			fmt.Sprintf(
-	//				"Expected: %s, actual: %s",
-	//				invoice.PrevInvoice.EURRUBExpected.Number(),
-	//				invoice.PrevInvoice.EURRUBActual.Number(),
-	//			),
-	//		)
-	//	}
-	//
-	//	for _, entry := range invoice.Entries {
-	//		sheet.writeRowAndIncr(
-	//			&rowNum,
-	//			invoice.EmployeeName,
-	//			entry.Comment,
-	//			entry.RUBAmount.Number(),
-	//			"",
-	//			entry.Type,
-	//		)
-	//	}
-	//
-	//	sheet.writeRowAndIncr(
-	//		&rowNum,
-	//		sheet.bold(fmt.Sprintf("%s Subtotal", invoice.EmployeeName)),
-	//		"",
-	//		invoice.RequestedSubtotalRub.Number(),
-	//		invoice.EURSubtotal.Number(),
-	//		fmt.Sprintf("EURRUB %s", invoice.EURRUBExpected),
-	//	)
-	//
-	//	if invoice.RoundingPrevMonEur > 0 {
-	//		sheet.writeRowAndIncr(
-	//			&rowNum,
-	//			invoice.EmployeeName,
-	//			"Rounding in previous month",
-	//			"",
-	//			invoice.RoundingPrevMonEur.Neg().Number(),
-	//		)
-	//	}
-	//
-	//	sheet.writeRowAndIncr(
-	//		&rowNum,
-	//		invoice.EmployeeName,
-	//		"Rounding",
-	//		"",
-	//		invoice.EURRounding.Number(),
-	//	)
-	//
-	//	sheet.writeRowAndIncr(
-	//		&rowNum,
-	//		sheet.bold(fmt.Sprintf("%s Total", invoice.EmployeeName)),
-	//		"",
-	//		"",
-	//		invoice.EURTotal.Number(),
-	//	)
-	//
-	//	grandTotalRub += invoice.EURTotal.ToRub(invoice.EURRUBExpected)
-	//	grandTotalEur += invoice.EURTotal
-	//}
-	//
-	//sheet.writeRow(
-	//	rowNum,
-	//	sheet.bold("Grand Total"),
-	//	"",
-	//	grandTotalRub.Number(),
-	//	grandTotalEur.Number(),
-	//	fmt.Sprintf("Total %v employees", len(invoices)),
-	//)
-
-	//wrapTextStyleID, _ := sheet.file.NewStyle(`{"alignment":{"wrap_text":true}}`)
-	//f.SetCellStyle(payrollReportSheetName, "B2", fmt.Sprintf("E%d", rowNum), wrapTextStyleID)
 
 	if writeErr := f.Write(wr); writeErr != nil {
 		return writeErr

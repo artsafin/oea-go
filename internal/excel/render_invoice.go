@@ -1,7 +1,6 @@
 package excel
 
 import (
-	"bytes"
 	"fmt"
 	"io"
 	"oea-go/internal/codatypes"
@@ -35,8 +34,8 @@ func invoiceCell(file *excelize.File, cell, placeholder, value string) {
 	file.SetCellValue(invoiceSheetName, cell, newValue)
 }
 
-func RenderInvoice(wr io.Writer, templateSource []byte, data InvoiceDataProvider) error {
-	f, err := excelize.OpenReader(bytes.NewReader(templateSource))
+func RenderInvoice(wr io.Writer, template io.Reader, data InvoiceDataProvider) error {
+	f, err := excelize.OpenReader(template)
 	if err != nil {
 		return err
 	}

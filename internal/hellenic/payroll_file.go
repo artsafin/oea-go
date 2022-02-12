@@ -3,41 +3,48 @@ package hellenic
 import (
 	"fmt"
 	"io"
-	"oea-go/internal/employee/dto"
+	"oea-go/internal/employee/codaschema"
 	"oea-go/internal/hellenic/txt"
 	"time"
 )
 
-func CreatePayrollFile(wr io.Writer, invoices dto.Invoices, submissionDate time.Time, valueDate time.Time) error {
+func CreatePayrollFile(wr io.Writer, invoices []codaschema.Invoice, submissionDate time.Time, valueDate time.Time) error {
 	f := txt.NewFile(submissionDate)
 
 	for _, invoice := range invoices {
 
-		if invoice.RecipientDetails == nil {
+		if invoice.RecipientDetails.First() == nil ||
+			invoice.RecipientDetails.First().BeneficiaryBank.First() == nil ||
+			invoice.Employee.First() == nil ||
+			invoice.Employee.First().LegalEntity.First() == nil {
 			continue
 		}
 
+		legalEntity := invoice.Employee.First().LegalEntity.First()
+		rcpt := invoice.RecipientDetails.First()
+		rcptBank := rcpt.BeneficiaryBank.First()
+
 		senderBankDetails := txt.SenderBankDetails{
-			Account:   invoice.Employee.LegalEntity.AccountNumber,
+			Account:   legalEntity.AccountNumber,
 			ValueDate: valueDate,
 			Notes: []string{
-				fmt.Sprintf("Invoice Number:%s", invoice.InvoiceNo),
-				fmt.Sprintf("Paid from %s", invoice.Employee.LegalEntity.OfficialName),
+				fmt.Sprintf("Invoice Number:%s", invoice.InvoiceHash),
+				fmt.Sprintf("Paid from %s", legalEntity.OfficialName),
 			},
 		}
 
 		recipientBankDetails := txt.RecipientBankDetails{
-			Account:                 invoice.RecipientDetails.Account,
-			Amount:                  invoice.EURTotal,
-			BeneficiaryName:         invoice.EmployeeName,
-			BeneficiaryAddress1:     invoice.RecipientDetails.Address1,
-			BeneficiaryAddress2:     invoice.RecipientDetails.Address2,
-			BeneficiaryBankName:     invoice.RecipientDetails.Bank.Name,
-			BeneficiaryBankAddress1: invoice.RecipientDetails.Bank.Address1,
-			BeneficiaryBankAddress2: invoice.RecipientDetails.Bank.Address2,
-			BeneficiaryBankAddress3: invoice.RecipientDetails.Bank.Address3,
-			BeneficiarySWIFT:        invoice.RecipientDetails.Bank.BeneficiarySWIFT,
-			IntermediarySWIFT:       invoice.RecipientDetails.Bank.IntermediarySWIFT,
+			Account:                 rcpt.Account,
+			Amount:                  invoice.EURTotalMoney(),
+			BeneficiaryName:         invoice.Employee.String(),
+			BeneficiaryAddress1:     rcpt.Address1,
+			BeneficiaryAddress2:     rcpt.Address2,
+			BeneficiaryBankName:     rcptBank.Name,
+			BeneficiaryBankAddress1: rcptBank.Address1,
+			BeneficiaryBankAddress2: rcptBank.Address2,
+			BeneficiaryBankAddress3: rcptBank.Address3,
+			BeneficiarySWIFT:        rcptBank.BeneficiarySWIFT,
+			IntermediarySWIFT:       rcptBank.IntermediarySWIFT,
 		}
 
 		f.AddRecord(senderBankDetails, recipientBankDetails)

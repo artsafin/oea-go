@@ -95,6 +95,6 @@ func (auth *Middleware) MiddlewareFunc(next http.Handler) http.Handler {
 		}
 
 		// If nothing can be done, just throw 403 page
-		auth.Router.Page(web.NilTemplateData, "403")(w, r)
+		auth.Router.Page(nil, "403")(w, r)
 	})
 }

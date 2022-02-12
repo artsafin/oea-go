@@ -12,6 +12,7 @@ import (
     "net/http"
     "strconv"
     "strings"
+	"sync"
     "time"
 )
 
@@ -2757,193 +2758,11 @@ func NewExpensesByCategory(row Valuer) (dto ExpensesByCategory, errs error) {
 
 	return
 }
-type InvoicePaymentLookup struct {
-    Values []InvoicePaymentRowRef
-}
-func (l InvoicePaymentLookup) FirstRef() (first InvoicePaymentRowRef, found bool) {
-	if len(l.Values) > 0 {
-		return l.Values[0], true
-	}
-
-	return InvoicePaymentRowRef{}, false
-}
-
-func (l InvoicePaymentLookup) FirstRefName() string {
-	if len(l.Values) > 0 {
-		return l.Values[0].Name
-	}
-
-	return ""
-}
-
-func (l InvoicePaymentLookup) RefNames() (names []string) {
-	for _, v := range l.Values {
-		names = append(names, v.Name)
-	}
-
-	return
-}
-
-
-func (l InvoicePaymentLookup) FirstData() InvoicePayment {
-	if len(l.Values) > 0 && l.Values[0].Data != nil {
-		return *l.Values[0].Data
-	}
-
-	return InvoicePayment{}
-}
-
-func (l InvoicePaymentLookup) Data() (data []InvoicePayment) {
-	for _, i := range l.Values {
-		if i.Data != nil {
-			data = append(data, *i.Data)
-		}
-	}
-
-	return
-}
-
-
-type InvoicePaymentRowRef struct {
-    Name  string
-    RowID string
-    Data  *InvoicePayment
-}
-
-func ToInvoicePaymentLookup(colID string, row Valuer) (values InvoicePaymentLookup, err error) {
-    rawv, ok := row.GetValue(colID)
-    if !ok {
-        return InvoicePaymentLookup{}, fmt.Errorf("missing column %v in Invoice payment row", colID)
-    }
-
-    if strv, ok := rawv.(string); ok && strv == "" {
-        return InvoicePaymentLookup{}, nil
-    }
-
-	if slicev, ok := rawv.([]interface{}); ok {
-		for i, interv := range slicev {
-			sv, err := toStructuredValue(interv)
-			if err != nil {
-				return InvoicePaymentLookup{}, fmt.Errorf("slice value #%v: %w", i, err)
-			}
-			values.Values = append(values.Values, InvoicePaymentRowRef{
-				Name:  sv.Name,
-				RowID: sv.RowId,
-			})
-		}
-
-		return
-	}
-
-	sv, err := toStructuredValue(rawv)
-	if err != nil {
-		return InvoicePaymentLookup{}, err
-	}
-
-	values.Values = []InvoicePaymentRowRef{
-	    {
-            Name:  sv.Name,
-            RowID: sv.RowId,
-	    },
-	}
-
-	return
-}
-type InvoicesLookup struct {
-    Values []InvoicesRowRef
-}
-func (l InvoicesLookup) FirstRef() (first InvoicesRowRef, found bool) {
-	if len(l.Values) > 0 {
-		return l.Values[0], true
-	}
-
-	return InvoicesRowRef{}, false
-}
-
-func (l InvoicesLookup) FirstRefName() string {
-	if len(l.Values) > 0 {
-		return l.Values[0].Name
-	}
-
-	return ""
-}
-
-func (l InvoicesLookup) RefNames() (names []string) {
-	for _, v := range l.Values {
-		names = append(names, v.Name)
-	}
-
-	return
-}
-
-
-func (l InvoicesLookup) FirstData() Invoices {
-	if len(l.Values) > 0 && l.Values[0].Data != nil {
-		return *l.Values[0].Data
-	}
-
-	return Invoices{}
-}
-
-func (l InvoicesLookup) Data() (data []Invoices) {
-	for _, i := range l.Values {
-		if i.Data != nil {
-			data = append(data, *i.Data)
-		}
-	}
-
-	return
-}
-
-
-type InvoicesRowRef struct {
-    Name  string
-    RowID string
-    Data  *Invoices
-}
-
-func ToInvoicesLookup(colID string, row Valuer) (values InvoicesLookup, err error) {
-    rawv, ok := row.GetValue(colID)
-    if !ok {
-        return InvoicesLookup{}, fmt.Errorf("missing column %v in Invoices row", colID)
-    }
-
-    if strv, ok := rawv.(string); ok && strv == "" {
-        return InvoicesLookup{}, nil
-    }
-
-	if slicev, ok := rawv.([]interface{}); ok {
-		for i, interv := range slicev {
-			sv, err := toStructuredValue(interv)
-			if err != nil {
-				return InvoicesLookup{}, fmt.Errorf("slice value #%v: %w", i, err)
-			}
-			values.Values = append(values.Values, InvoicesRowRef{
-				Name:  sv.Name,
-				RowID: sv.RowId,
-			})
-		}
-
-		return
-	}
-
-	sv, err := toStructuredValue(rawv)
-	if err != nil {
-		return InvoicesLookup{}, err
-	}
-
-	values.Values = []InvoicesRowRef{
-	    {
-            Name:  sv.Name,
-            RowID: sv.RowId,
-	    },
-	}
-
-	return
-}
 type CashFlowLookup struct {
     Values []CashFlowRowRef
 }
+
+// FirstRef returns a first referenced row metadata
 func (l CashFlowLookup) FirstRef() (first CashFlowRowRef, found bool) {
 	if len(l.Values) > 0 {
 		return l.Values[0], true
@@ -2952,6 +2771,7 @@ func (l CashFlowLookup) FirstRef() (first CashFlowRowRef, found bool) {
 	return CashFlowRowRef{}, false
 }
 
+// FirstRefName returns a first referenced row's Display Column value
 func (l CashFlowLookup) FirstRefName() string {
 	if len(l.Values) > 0 {
 		return l.Values[0].Name
@@ -2960,6 +2780,7 @@ func (l CashFlowLookup) FirstRefName() string {
 	return ""
 }
 
+// RefNames returns a slice of referenced rows' Display Columns values
 func (l CashFlowLookup) RefNames() (names []string) {
 	for _, v := range l.Values {
 		names = append(names, v.Name)
@@ -2968,16 +2789,44 @@ func (l CashFlowLookup) RefNames() (names []string) {
 	return
 }
 
+// String returns a comma-separated Display Columns of referenced rows.
+// This representation is similar to what is shown in the browser.
+func (l CashFlowLookup) String() string {
+	return strings.Join(l.RefNames(), ", ")
+}
 
-func (l CashFlowLookup) FirstData() CashFlow {
-	if len(l.Values) > 0 && l.Values[0].Data != nil {
+// First returns a pointer to a CashFlow struct containing data of the first referenced row.
+// It will return nil unless the lookup contains references and container of this CashFlowLookup was preloaded by the LoadRelations<Original Table> method
+func (l CashFlowLookup) First() *CashFlow {
+	if len(l.Values) > 0 {
+		return l.Values[0].Data
+	}
+
+	return nil
+}
+
+// FirstMaybe returns a CashFlow struct containing data of the first referenced row.
+// If the lookup doesn't contain any references or if reference data was not preloaded by the LoadRelations<Original Table> method it will return an empty structure with nil-values of it's fields
+func (l CashFlowLookup) FirstMaybe() CashFlow {
+	if len(l.Values) > 0 {
 		return *l.Values[0].Data
 	}
 
 	return CashFlow{}
 }
 
-func (l CashFlowLookup) Data() (data []CashFlow) {
+// MustFirst returns a CashFlow struct containing data of the first referenced row.
+// It will panic if the lookup doesn't contain any references or if reference data was not preloaded by the LoadRelations<Original Table> method
+func (l CashFlowLookup) MustFirst() CashFlow {
+	if len(l.Values) > 0 && l.Values[0].Data != nil {
+		return *l.Values[0].Data
+	}
+
+	panic("required CashFlow value is not present in data row of CashFlowLookup, table [Cash flow]")
+}
+
+// All returns all loaded data of the referenced rows if any
+func (l CashFlowLookup) All() (data []CashFlow) {
 	for _, i := range l.Values {
 		if i.Data != nil {
 			data = append(data, *i.Data)
@@ -2985,6 +2834,18 @@ func (l CashFlowLookup) Data() (data []CashFlow) {
 	}
 
 	return
+}
+
+// Hydrate fills this lookup values with the corresponding rows from the map[RowID]CashFlow
+func (l *CashFlowLookup) Hydrate(mapOf map[RowID]*CashFlow) {
+	for vi, v := range l.Values {
+		if v.Data != nil {
+			continue
+		}
+		if data, ok := mapOf[RowID(v.RowID)]; ok {
+			l.Values[vi].Data = data
+		}
+	}
 }
 
 
@@ -3036,6 +2897,8 @@ func ToCashFlowLookup(colID string, row Valuer) (values CashFlowLookup, err erro
 type InventoryTypesLookup struct {
     Values []InventoryTypesRowRef
 }
+
+// FirstRef returns a first referenced row metadata
 func (l InventoryTypesLookup) FirstRef() (first InventoryTypesRowRef, found bool) {
 	if len(l.Values) > 0 {
 		return l.Values[0], true
@@ -3044,6 +2907,7 @@ func (l InventoryTypesLookup) FirstRef() (first InventoryTypesRowRef, found bool
 	return InventoryTypesRowRef{}, false
 }
 
+// FirstRefName returns a first referenced row's Display Column value
 func (l InventoryTypesLookup) FirstRefName() string {
 	if len(l.Values) > 0 {
 		return l.Values[0].Name
@@ -3052,6 +2916,7 @@ func (l InventoryTypesLookup) FirstRefName() string {
 	return ""
 }
 
+// RefNames returns a slice of referenced rows' Display Columns values
 func (l InventoryTypesLookup) RefNames() (names []string) {
 	for _, v := range l.Values {
 		names = append(names, v.Name)
@@ -3060,16 +2925,44 @@ func (l InventoryTypesLookup) RefNames() (names []string) {
 	return
 }
 
+// String returns a comma-separated Display Columns of referenced rows.
+// This representation is similar to what is shown in the browser.
+func (l InventoryTypesLookup) String() string {
+	return strings.Join(l.RefNames(), ", ")
+}
 
-func (l InventoryTypesLookup) FirstData() InventoryTypes {
-	if len(l.Values) > 0 && l.Values[0].Data != nil {
+// First returns a pointer to a InventoryTypes struct containing data of the first referenced row.
+// It will return nil unless the lookup contains references and container of this InventoryTypesLookup was preloaded by the LoadRelations<Original Table> method
+func (l InventoryTypesLookup) First() *InventoryTypes {
+	if len(l.Values) > 0 {
+		return l.Values[0].Data
+	}
+
+	return nil
+}
+
+// FirstMaybe returns a InventoryTypes struct containing data of the first referenced row.
+// If the lookup doesn't contain any references or if reference data was not preloaded by the LoadRelations<Original Table> method it will return an empty structure with nil-values of it's fields
+func (l InventoryTypesLookup) FirstMaybe() InventoryTypes {
+	if len(l.Values) > 0 {
 		return *l.Values[0].Data
 	}
 
 	return InventoryTypes{}
 }
 
-func (l InventoryTypesLookup) Data() (data []InventoryTypes) {
+// MustFirst returns a InventoryTypes struct containing data of the first referenced row.
+// It will panic if the lookup doesn't contain any references or if reference data was not preloaded by the LoadRelations<Original Table> method
+func (l InventoryTypesLookup) MustFirst() InventoryTypes {
+	if len(l.Values) > 0 && l.Values[0].Data != nil {
+		return *l.Values[0].Data
+	}
+
+	panic("required InventoryTypes value is not present in data row of InventoryTypesLookup, table [Inventory Types]")
+}
+
+// All returns all loaded data of the referenced rows if any
+func (l InventoryTypesLookup) All() (data []InventoryTypes) {
 	for _, i := range l.Values {
 		if i.Data != nil {
 			data = append(data, *i.Data)
@@ -3077,6 +2970,18 @@ func (l InventoryTypesLookup) Data() (data []InventoryTypes) {
 	}
 
 	return
+}
+
+// Hydrate fills this lookup values with the corresponding rows from the map[RowID]InventoryTypes
+func (l *InventoryTypesLookup) Hydrate(mapOf map[RowID]*InventoryTypes) {
+	for vi, v := range l.Values {
+		if v.Data != nil {
+			continue
+		}
+		if data, ok := mapOf[RowID(v.RowID)]; ok {
+			l.Values[vi].Data = data
+		}
+	}
 }
 
 
@@ -3128,6 +3033,8 @@ func ToInventoryTypesLookup(colID string, row Valuer) (values InventoryTypesLook
 type AuditCategoryLookup struct {
     Values []AuditCategoryRowRef
 }
+
+// FirstRef returns a first referenced row metadata
 func (l AuditCategoryLookup) FirstRef() (first AuditCategoryRowRef, found bool) {
 	if len(l.Values) > 0 {
 		return l.Values[0], true
@@ -3136,6 +3043,7 @@ func (l AuditCategoryLookup) FirstRef() (first AuditCategoryRowRef, found bool) 
 	return AuditCategoryRowRef{}, false
 }
 
+// FirstRefName returns a first referenced row's Display Column value
 func (l AuditCategoryLookup) FirstRefName() string {
 	if len(l.Values) > 0 {
 		return l.Values[0].Name
@@ -3144,6 +3052,7 @@ func (l AuditCategoryLookup) FirstRefName() string {
 	return ""
 }
 
+// RefNames returns a slice of referenced rows' Display Columns values
 func (l AuditCategoryLookup) RefNames() (names []string) {
 	for _, v := range l.Values {
 		names = append(names, v.Name)
@@ -3152,16 +3061,44 @@ func (l AuditCategoryLookup) RefNames() (names []string) {
 	return
 }
 
+// String returns a comma-separated Display Columns of referenced rows.
+// This representation is similar to what is shown in the browser.
+func (l AuditCategoryLookup) String() string {
+	return strings.Join(l.RefNames(), ", ")
+}
 
-func (l AuditCategoryLookup) FirstData() AuditCategory {
-	if len(l.Values) > 0 && l.Values[0].Data != nil {
+// First returns a pointer to a AuditCategory struct containing data of the first referenced row.
+// It will return nil unless the lookup contains references and container of this AuditCategoryLookup was preloaded by the LoadRelations<Original Table> method
+func (l AuditCategoryLookup) First() *AuditCategory {
+	if len(l.Values) > 0 {
+		return l.Values[0].Data
+	}
+
+	return nil
+}
+
+// FirstMaybe returns a AuditCategory struct containing data of the first referenced row.
+// If the lookup doesn't contain any references or if reference data was not preloaded by the LoadRelations<Original Table> method it will return an empty structure with nil-values of it's fields
+func (l AuditCategoryLookup) FirstMaybe() AuditCategory {
+	if len(l.Values) > 0 {
 		return *l.Values[0].Data
 	}
 
 	return AuditCategory{}
 }
 
-func (l AuditCategoryLookup) Data() (data []AuditCategory) {
+// MustFirst returns a AuditCategory struct containing data of the first referenced row.
+// It will panic if the lookup doesn't contain any references or if reference data was not preloaded by the LoadRelations<Original Table> method
+func (l AuditCategoryLookup) MustFirst() AuditCategory {
+	if len(l.Values) > 0 && l.Values[0].Data != nil {
+		return *l.Values[0].Data
+	}
+
+	panic("required AuditCategory value is not present in data row of AuditCategoryLookup, table [Audit Category]")
+}
+
+// All returns all loaded data of the referenced rows if any
+func (l AuditCategoryLookup) All() (data []AuditCategory) {
 	for _, i := range l.Values {
 		if i.Data != nil {
 			data = append(data, *i.Data)
@@ -3169,6 +3106,18 @@ func (l AuditCategoryLookup) Data() (data []AuditCategory) {
 	}
 
 	return
+}
+
+// Hydrate fills this lookup values with the corresponding rows from the map[RowID]AuditCategory
+func (l *AuditCategoryLookup) Hydrate(mapOf map[RowID]*AuditCategory) {
+	for vi, v := range l.Values {
+		if v.Data != nil {
+			continue
+		}
+		if data, ok := mapOf[RowID(v.RowID)]; ok {
+			l.Values[vi].Data = data
+		}
+	}
 }
 
 
@@ -3220,6 +3169,8 @@ func ToAuditCategoryLookup(colID string, row Valuer) (values AuditCategoryLookup
 type AccountsLookup struct {
     Values []AccountsRowRef
 }
+
+// FirstRef returns a first referenced row metadata
 func (l AccountsLookup) FirstRef() (first AccountsRowRef, found bool) {
 	if len(l.Values) > 0 {
 		return l.Values[0], true
@@ -3228,6 +3179,7 @@ func (l AccountsLookup) FirstRef() (first AccountsRowRef, found bool) {
 	return AccountsRowRef{}, false
 }
 
+// FirstRefName returns a first referenced row's Display Column value
 func (l AccountsLookup) FirstRefName() string {
 	if len(l.Values) > 0 {
 		return l.Values[0].Name
@@ -3236,6 +3188,7 @@ func (l AccountsLookup) FirstRefName() string {
 	return ""
 }
 
+// RefNames returns a slice of referenced rows' Display Columns values
 func (l AccountsLookup) RefNames() (names []string) {
 	for _, v := range l.Values {
 		names = append(names, v.Name)
@@ -3244,16 +3197,44 @@ func (l AccountsLookup) RefNames() (names []string) {
 	return
 }
 
+// String returns a comma-separated Display Columns of referenced rows.
+// This representation is similar to what is shown in the browser.
+func (l AccountsLookup) String() string {
+	return strings.Join(l.RefNames(), ", ")
+}
 
-func (l AccountsLookup) FirstData() Accounts {
-	if len(l.Values) > 0 && l.Values[0].Data != nil {
+// First returns a pointer to a Accounts struct containing data of the first referenced row.
+// It will return nil unless the lookup contains references and container of this AccountsLookup was preloaded by the LoadRelations<Original Table> method
+func (l AccountsLookup) First() *Accounts {
+	if len(l.Values) > 0 {
+		return l.Values[0].Data
+	}
+
+	return nil
+}
+
+// FirstMaybe returns a Accounts struct containing data of the first referenced row.
+// If the lookup doesn't contain any references or if reference data was not preloaded by the LoadRelations<Original Table> method it will return an empty structure with nil-values of it's fields
+func (l AccountsLookup) FirstMaybe() Accounts {
+	if len(l.Values) > 0 {
 		return *l.Values[0].Data
 	}
 
 	return Accounts{}
 }
 
-func (l AccountsLookup) Data() (data []Accounts) {
+// MustFirst returns a Accounts struct containing data of the first referenced row.
+// It will panic if the lookup doesn't contain any references or if reference data was not preloaded by the LoadRelations<Original Table> method
+func (l AccountsLookup) MustFirst() Accounts {
+	if len(l.Values) > 0 && l.Values[0].Data != nil {
+		return *l.Values[0].Data
+	}
+
+	panic("required Accounts value is not present in data row of AccountsLookup, table [Accounts]")
+}
+
+// All returns all loaded data of the referenced rows if any
+func (l AccountsLookup) All() (data []Accounts) {
 	for _, i := range l.Values {
 		if i.Data != nil {
 			data = append(data, *i.Data)
@@ -3261,6 +3242,18 @@ func (l AccountsLookup) Data() (data []Accounts) {
 	}
 
 	return
+}
+
+// Hydrate fills this lookup values with the corresponding rows from the map[RowID]Accounts
+func (l *AccountsLookup) Hydrate(mapOf map[RowID]*Accounts) {
+	for vi, v := range l.Values {
+		if v.Data != nil {
+			continue
+		}
+		if data, ok := mapOf[RowID(v.RowID)]; ok {
+			l.Values[vi].Data = data
+		}
+	}
 }
 
 
@@ -3312,6 +3305,8 @@ func ToAccountsLookup(colID string, row Valuer) (values AccountsLookup, err erro
 type ExpensesLookup struct {
     Values []ExpensesRowRef
 }
+
+// FirstRef returns a first referenced row metadata
 func (l ExpensesLookup) FirstRef() (first ExpensesRowRef, found bool) {
 	if len(l.Values) > 0 {
 		return l.Values[0], true
@@ -3320,6 +3315,7 @@ func (l ExpensesLookup) FirstRef() (first ExpensesRowRef, found bool) {
 	return ExpensesRowRef{}, false
 }
 
+// FirstRefName returns a first referenced row's Display Column value
 func (l ExpensesLookup) FirstRefName() string {
 	if len(l.Values) > 0 {
 		return l.Values[0].Name
@@ -3328,6 +3324,7 @@ func (l ExpensesLookup) FirstRefName() string {
 	return ""
 }
 
+// RefNames returns a slice of referenced rows' Display Columns values
 func (l ExpensesLookup) RefNames() (names []string) {
 	for _, v := range l.Values {
 		names = append(names, v.Name)
@@ -3336,16 +3333,44 @@ func (l ExpensesLookup) RefNames() (names []string) {
 	return
 }
 
+// String returns a comma-separated Display Columns of referenced rows.
+// This representation is similar to what is shown in the browser.
+func (l ExpensesLookup) String() string {
+	return strings.Join(l.RefNames(), ", ")
+}
 
-func (l ExpensesLookup) FirstData() Expenses {
-	if len(l.Values) > 0 && l.Values[0].Data != nil {
+// First returns a pointer to a Expenses struct containing data of the first referenced row.
+// It will return nil unless the lookup contains references and container of this ExpensesLookup was preloaded by the LoadRelations<Original Table> method
+func (l ExpensesLookup) First() *Expenses {
+	if len(l.Values) > 0 {
+		return l.Values[0].Data
+	}
+
+	return nil
+}
+
+// FirstMaybe returns a Expenses struct containing data of the first referenced row.
+// If the lookup doesn't contain any references or if reference data was not preloaded by the LoadRelations<Original Table> method it will return an empty structure with nil-values of it's fields
+func (l ExpensesLookup) FirstMaybe() Expenses {
+	if len(l.Values) > 0 {
 		return *l.Values[0].Data
 	}
 
 	return Expenses{}
 }
 
-func (l ExpensesLookup) Data() (data []Expenses) {
+// MustFirst returns a Expenses struct containing data of the first referenced row.
+// It will panic if the lookup doesn't contain any references or if reference data was not preloaded by the LoadRelations<Original Table> method
+func (l ExpensesLookup) MustFirst() Expenses {
+	if len(l.Values) > 0 && l.Values[0].Data != nil {
+		return *l.Values[0].Data
+	}
+
+	panic("required Expenses value is not present in data row of ExpensesLookup, table [Expenses]")
+}
+
+// All returns all loaded data of the referenced rows if any
+func (l ExpensesLookup) All() (data []Expenses) {
 	for _, i := range l.Values {
 		if i.Data != nil {
 			data = append(data, *i.Data)
@@ -3353,6 +3378,18 @@ func (l ExpensesLookup) Data() (data []Expenses) {
 	}
 
 	return
+}
+
+// Hydrate fills this lookup values with the corresponding rows from the map[RowID]Expenses
+func (l *ExpensesLookup) Hydrate(mapOf map[RowID]*Expenses) {
+	for vi, v := range l.Values {
+		if v.Data != nil {
+			continue
+		}
+		if data, ok := mapOf[RowID(v.RowID)]; ok {
+			l.Values[vi].Data = data
+		}
+	}
 }
 
 
@@ -3401,6 +3438,278 @@ func ToExpensesLookup(colID string, row Valuer) (values ExpensesLookup, err erro
 
 	return
 }
+type InvoicePaymentLookup struct {
+    Values []InvoicePaymentRowRef
+}
+
+// FirstRef returns a first referenced row metadata
+func (l InvoicePaymentLookup) FirstRef() (first InvoicePaymentRowRef, found bool) {
+	if len(l.Values) > 0 {
+		return l.Values[0], true
+	}
+
+	return InvoicePaymentRowRef{}, false
+}
+
+// FirstRefName returns a first referenced row's Display Column value
+func (l InvoicePaymentLookup) FirstRefName() string {
+	if len(l.Values) > 0 {
+		return l.Values[0].Name
+	}
+
+	return ""
+}
+
+// RefNames returns a slice of referenced rows' Display Columns values
+func (l InvoicePaymentLookup) RefNames() (names []string) {
+	for _, v := range l.Values {
+		names = append(names, v.Name)
+	}
+
+	return
+}
+
+// String returns a comma-separated Display Columns of referenced rows.
+// This representation is similar to what is shown in the browser.
+func (l InvoicePaymentLookup) String() string {
+	return strings.Join(l.RefNames(), ", ")
+}
+
+// First returns a pointer to a InvoicePayment struct containing data of the first referenced row.
+// It will return nil unless the lookup contains references and container of this InvoicePaymentLookup was preloaded by the LoadRelations<Original Table> method
+func (l InvoicePaymentLookup) First() *InvoicePayment {
+	if len(l.Values) > 0 {
+		return l.Values[0].Data
+	}
+
+	return nil
+}
+
+// FirstMaybe returns a InvoicePayment struct containing data of the first referenced row.
+// If the lookup doesn't contain any references or if reference data was not preloaded by the LoadRelations<Original Table> method it will return an empty structure with nil-values of it's fields
+func (l InvoicePaymentLookup) FirstMaybe() InvoicePayment {
+	if len(l.Values) > 0 {
+		return *l.Values[0].Data
+	}
+
+	return InvoicePayment{}
+}
+
+// MustFirst returns a InvoicePayment struct containing data of the first referenced row.
+// It will panic if the lookup doesn't contain any references or if reference data was not preloaded by the LoadRelations<Original Table> method
+func (l InvoicePaymentLookup) MustFirst() InvoicePayment {
+	if len(l.Values) > 0 && l.Values[0].Data != nil {
+		return *l.Values[0].Data
+	}
+
+	panic("required InvoicePayment value is not present in data row of InvoicePaymentLookup, table [Invoice payment]")
+}
+
+// All returns all loaded data of the referenced rows if any
+func (l InvoicePaymentLookup) All() (data []InvoicePayment) {
+	for _, i := range l.Values {
+		if i.Data != nil {
+			data = append(data, *i.Data)
+		}
+	}
+
+	return
+}
+
+// Hydrate fills this lookup values with the corresponding rows from the map[RowID]InvoicePayment
+func (l *InvoicePaymentLookup) Hydrate(mapOf map[RowID]*InvoicePayment) {
+	for vi, v := range l.Values {
+		if v.Data != nil {
+			continue
+		}
+		if data, ok := mapOf[RowID(v.RowID)]; ok {
+			l.Values[vi].Data = data
+		}
+	}
+}
+
+
+type InvoicePaymentRowRef struct {
+    Name  string
+    RowID string
+    Data  *InvoicePayment
+}
+
+func ToInvoicePaymentLookup(colID string, row Valuer) (values InvoicePaymentLookup, err error) {
+    rawv, ok := row.GetValue(colID)
+    if !ok {
+        return InvoicePaymentLookup{}, fmt.Errorf("missing column %v in Invoice payment row", colID)
+    }
+
+    if strv, ok := rawv.(string); ok && strv == "" {
+        return InvoicePaymentLookup{}, nil
+    }
+
+	if slicev, ok := rawv.([]interface{}); ok {
+		for i, interv := range slicev {
+			sv, err := toStructuredValue(interv)
+			if err != nil {
+				return InvoicePaymentLookup{}, fmt.Errorf("slice value #%v: %w", i, err)
+			}
+			values.Values = append(values.Values, InvoicePaymentRowRef{
+				Name:  sv.Name,
+				RowID: sv.RowId,
+			})
+		}
+
+		return
+	}
+
+	sv, err := toStructuredValue(rawv)
+	if err != nil {
+		return InvoicePaymentLookup{}, err
+	}
+
+	values.Values = []InvoicePaymentRowRef{
+	    {
+            Name:  sv.Name,
+            RowID: sv.RowId,
+	    },
+	}
+
+	return
+}
+type InvoicesLookup struct {
+    Values []InvoicesRowRef
+}
+
+// FirstRef returns a first referenced row metadata
+func (l InvoicesLookup) FirstRef() (first InvoicesRowRef, found bool) {
+	if len(l.Values) > 0 {
+		return l.Values[0], true
+	}
+
+	return InvoicesRowRef{}, false
+}
+
+// FirstRefName returns a first referenced row's Display Column value
+func (l InvoicesLookup) FirstRefName() string {
+	if len(l.Values) > 0 {
+		return l.Values[0].Name
+	}
+
+	return ""
+}
+
+// RefNames returns a slice of referenced rows' Display Columns values
+func (l InvoicesLookup) RefNames() (names []string) {
+	for _, v := range l.Values {
+		names = append(names, v.Name)
+	}
+
+	return
+}
+
+// String returns a comma-separated Display Columns of referenced rows.
+// This representation is similar to what is shown in the browser.
+func (l InvoicesLookup) String() string {
+	return strings.Join(l.RefNames(), ", ")
+}
+
+// First returns a pointer to a Invoices struct containing data of the first referenced row.
+// It will return nil unless the lookup contains references and container of this InvoicesLookup was preloaded by the LoadRelations<Original Table> method
+func (l InvoicesLookup) First() *Invoices {
+	if len(l.Values) > 0 {
+		return l.Values[0].Data
+	}
+
+	return nil
+}
+
+// FirstMaybe returns a Invoices struct containing data of the first referenced row.
+// If the lookup doesn't contain any references or if reference data was not preloaded by the LoadRelations<Original Table> method it will return an empty structure with nil-values of it's fields
+func (l InvoicesLookup) FirstMaybe() Invoices {
+	if len(l.Values) > 0 {
+		return *l.Values[0].Data
+	}
+
+	return Invoices{}
+}
+
+// MustFirst returns a Invoices struct containing data of the first referenced row.
+// It will panic if the lookup doesn't contain any references or if reference data was not preloaded by the LoadRelations<Original Table> method
+func (l InvoicesLookup) MustFirst() Invoices {
+	if len(l.Values) > 0 && l.Values[0].Data != nil {
+		return *l.Values[0].Data
+	}
+
+	panic("required Invoices value is not present in data row of InvoicesLookup, table [Invoices]")
+}
+
+// All returns all loaded data of the referenced rows if any
+func (l InvoicesLookup) All() (data []Invoices) {
+	for _, i := range l.Values {
+		if i.Data != nil {
+			data = append(data, *i.Data)
+		}
+	}
+
+	return
+}
+
+// Hydrate fills this lookup values with the corresponding rows from the map[RowID]Invoices
+func (l *InvoicesLookup) Hydrate(mapOf map[RowID]*Invoices) {
+	for vi, v := range l.Values {
+		if v.Data != nil {
+			continue
+		}
+		if data, ok := mapOf[RowID(v.RowID)]; ok {
+			l.Values[vi].Data = data
+		}
+	}
+}
+
+
+type InvoicesRowRef struct {
+    Name  string
+    RowID string
+    Data  *Invoices
+}
+
+func ToInvoicesLookup(colID string, row Valuer) (values InvoicesLookup, err error) {
+    rawv, ok := row.GetValue(colID)
+    if !ok {
+        return InvoicesLookup{}, fmt.Errorf("missing column %v in Invoices row", colID)
+    }
+
+    if strv, ok := rawv.(string); ok && strv == "" {
+        return InvoicesLookup{}, nil
+    }
+
+	if slicev, ok := rawv.([]interface{}); ok {
+		for i, interv := range slicev {
+			sv, err := toStructuredValue(interv)
+			if err != nil {
+				return InvoicesLookup{}, fmt.Errorf("slice value #%v: %w", i, err)
+			}
+			values.Values = append(values.Values, InvoicesRowRef{
+				Name:  sv.Name,
+				RowID: sv.RowId,
+			})
+		}
+
+		return
+	}
+
+	sv, err := toStructuredValue(rawv)
+	if err != nil {
+		return InvoicesLookup{}, err
+	}
+
+	values.Values = []InvoicesRowRef{
+	    {
+            Name:  sv.Name,
+            RowID: sv.RowId,
+	    },
+	}
+
+	return
+}
 
 //endregion
 
@@ -3424,14 +3733,14 @@ func NewCodaDocument(server, token, docID string, clientOpts ...codaapi.ClientOp
     return &CodaDocument{
         docID:  docID,
         client: client,
-        relationsCache: make(map[string]interface{}),
+        relationsCache: &sync.Map{},
     }, nil
 }
 
 type CodaDocument struct {
     docID  string
     client *codaapi.ClientWithResponses
-    relationsCache map[string]interface{} // Used for deep loading to share loaded sub-entities
+    relationsCache *sync.Map // Used for deep loading to share loaded sub-entities
 }
 
 func (d *CodaDocument) ListAllRows(ctx context.Context, tableID string, extraParams ...codaapi.ListRowsParam) (list []codaapi.Row, err error) {
@@ -3498,13 +3807,13 @@ func (d *CodaDocument) ListMonths(ctx context.Context, extraParams ...codaapi.Li
     return
 }
 
-func (d *CodaDocument) MapOfMonths(ctx context.Context, extraParams ...codaapi.ListRowsParam) (m map[RowID]Months, maporder []RowID, err error) {
+func (d *CodaDocument) MapOfMonths(ctx context.Context, extraParams ...codaapi.ListRowsParam) (m map[RowID]*Months, maporder []RowID, err error) {
     rows, err := d.ListAllRows(ctx, ID.Table.Months.ID, extraParams...)
     if err != nil {
         return
     }
 
-    m = make(map[RowID]Months, len(rows))
+    m = make(map[RowID]*Months, len(rows))
     maporder = make([]RowID, 0, len(rows))
 
     for idx, row := range rows {
@@ -3513,7 +3822,7 @@ func (d *CodaDocument) MapOfMonths(ctx context.Context, extraParams ...codaapi.L
             return nil, nil, fmt.Errorf("failed to create Months from row %d (%v): %w", idx, row.BrowserLink, err)
         }
         maporder = append(maporder, RowID(row.Id))
-        m[RowID(row.Id)] = item
+        m[RowID(row.Id)] = &item
     }
 
     return
@@ -3536,13 +3845,13 @@ func (d *CodaDocument) ListCashFlow(ctx context.Context, extraParams ...codaapi.
     return
 }
 
-func (d *CodaDocument) MapOfCashFlow(ctx context.Context, extraParams ...codaapi.ListRowsParam) (m map[RowID]CashFlow, maporder []RowID, err error) {
+func (d *CodaDocument) MapOfCashFlow(ctx context.Context, extraParams ...codaapi.ListRowsParam) (m map[RowID]*CashFlow, maporder []RowID, err error) {
     rows, err := d.ListAllRows(ctx, ID.Table.CashFlow.ID, extraParams...)
     if err != nil {
         return
     }
 
-    m = make(map[RowID]CashFlow, len(rows))
+    m = make(map[RowID]*CashFlow, len(rows))
     maporder = make([]RowID, 0, len(rows))
 
     for idx, row := range rows {
@@ -3551,7 +3860,7 @@ func (d *CodaDocument) MapOfCashFlow(ctx context.Context, extraParams ...codaapi
             return nil, nil, fmt.Errorf("failed to create CashFlow from row %d (%v): %w", idx, row.BrowserLink, err)
         }
         maporder = append(maporder, RowID(row.Id))
-        m[RowID(row.Id)] = item
+        m[RowID(row.Id)] = &item
     }
 
     return
@@ -3574,13 +3883,13 @@ func (d *CodaDocument) ListInvoicePayment(ctx context.Context, extraParams ...co
     return
 }
 
-func (d *CodaDocument) MapOfInvoicePayment(ctx context.Context, extraParams ...codaapi.ListRowsParam) (m map[RowID]InvoicePayment, maporder []RowID, err error) {
+func (d *CodaDocument) MapOfInvoicePayment(ctx context.Context, extraParams ...codaapi.ListRowsParam) (m map[RowID]*InvoicePayment, maporder []RowID, err error) {
     rows, err := d.ListAllRows(ctx, ID.Table.InvoicePayment.ID, extraParams...)
     if err != nil {
         return
     }
 
-    m = make(map[RowID]InvoicePayment, len(rows))
+    m = make(map[RowID]*InvoicePayment, len(rows))
     maporder = make([]RowID, 0, len(rows))
 
     for idx, row := range rows {
@@ -3589,7 +3898,7 @@ func (d *CodaDocument) MapOfInvoicePayment(ctx context.Context, extraParams ...c
             return nil, nil, fmt.Errorf("failed to create InvoicePayment from row %d (%v): %w", idx, row.BrowserLink, err)
         }
         maporder = append(maporder, RowID(row.Id))
-        m[RowID(row.Id)] = item
+        m[RowID(row.Id)] = &item
     }
 
     return
@@ -3612,13 +3921,13 @@ func (d *CodaDocument) ListExpenses(ctx context.Context, extraParams ...codaapi.
     return
 }
 
-func (d *CodaDocument) MapOfExpenses(ctx context.Context, extraParams ...codaapi.ListRowsParam) (m map[RowID]Expenses, maporder []RowID, err error) {
+func (d *CodaDocument) MapOfExpenses(ctx context.Context, extraParams ...codaapi.ListRowsParam) (m map[RowID]*Expenses, maporder []RowID, err error) {
     rows, err := d.ListAllRows(ctx, ID.Table.Expenses.ID, extraParams...)
     if err != nil {
         return
     }
 
-    m = make(map[RowID]Expenses, len(rows))
+    m = make(map[RowID]*Expenses, len(rows))
     maporder = make([]RowID, 0, len(rows))
 
     for idx, row := range rows {
@@ -3627,7 +3936,7 @@ func (d *CodaDocument) MapOfExpenses(ctx context.Context, extraParams ...codaapi
             return nil, nil, fmt.Errorf("failed to create Expenses from row %d (%v): %w", idx, row.BrowserLink, err)
         }
         maporder = append(maporder, RowID(row.Id))
-        m[RowID(row.Id)] = item
+        m[RowID(row.Id)] = &item
     }
 
     return
@@ -3650,13 +3959,13 @@ func (d *CodaDocument) ListInvoices(ctx context.Context, extraParams ...codaapi.
     return
 }
 
-func (d *CodaDocument) MapOfInvoices(ctx context.Context, extraParams ...codaapi.ListRowsParam) (m map[RowID]Invoices, maporder []RowID, err error) {
+func (d *CodaDocument) MapOfInvoices(ctx context.Context, extraParams ...codaapi.ListRowsParam) (m map[RowID]*Invoices, maporder []RowID, err error) {
     rows, err := d.ListAllRows(ctx, ID.Table.Invoices.ID, extraParams...)
     if err != nil {
         return
     }
 
-    m = make(map[RowID]Invoices, len(rows))
+    m = make(map[RowID]*Invoices, len(rows))
     maporder = make([]RowID, 0, len(rows))
 
     for idx, row := range rows {
@@ -3665,7 +3974,7 @@ func (d *CodaDocument) MapOfInvoices(ctx context.Context, extraParams ...codaapi
             return nil, nil, fmt.Errorf("failed to create Invoices from row %d (%v): %w", idx, row.BrowserLink, err)
         }
         maporder = append(maporder, RowID(row.Id))
-        m[RowID(row.Id)] = item
+        m[RowID(row.Id)] = &item
     }
 
     return
@@ -3688,13 +3997,13 @@ func (d *CodaDocument) ListAccounts(ctx context.Context, extraParams ...codaapi.
     return
 }
 
-func (d *CodaDocument) MapOfAccounts(ctx context.Context, extraParams ...codaapi.ListRowsParam) (m map[RowID]Accounts, maporder []RowID, err error) {
+func (d *CodaDocument) MapOfAccounts(ctx context.Context, extraParams ...codaapi.ListRowsParam) (m map[RowID]*Accounts, maporder []RowID, err error) {
     rows, err := d.ListAllRows(ctx, ID.Table.Accounts.ID, extraParams...)
     if err != nil {
         return
     }
 
-    m = make(map[RowID]Accounts, len(rows))
+    m = make(map[RowID]*Accounts, len(rows))
     maporder = make([]RowID, 0, len(rows))
 
     for idx, row := range rows {
@@ -3703,7 +4012,7 @@ func (d *CodaDocument) MapOfAccounts(ctx context.Context, extraParams ...codaapi
             return nil, nil, fmt.Errorf("failed to create Accounts from row %d (%v): %w", idx, row.BrowserLink, err)
         }
         maporder = append(maporder, RowID(row.Id))
-        m[RowID(row.Id)] = item
+        m[RowID(row.Id)] = &item
     }
 
     return
@@ -3726,13 +4035,13 @@ func (d *CodaDocument) ListUnplannedLast40d(ctx context.Context, extraParams ...
     return
 }
 
-func (d *CodaDocument) MapOfUnplannedLast40d(ctx context.Context, extraParams ...codaapi.ListRowsParam) (m map[RowID]UnplannedLast40d, maporder []RowID, err error) {
+func (d *CodaDocument) MapOfUnplannedLast40d(ctx context.Context, extraParams ...codaapi.ListRowsParam) (m map[RowID]*UnplannedLast40d, maporder []RowID, err error) {
     rows, err := d.ListAllRows(ctx, ID.Table.UnplannedLast40d.ID, extraParams...)
     if err != nil {
         return
     }
 
-    m = make(map[RowID]UnplannedLast40d, len(rows))
+    m = make(map[RowID]*UnplannedLast40d, len(rows))
     maporder = make([]RowID, 0, len(rows))
 
     for idx, row := range rows {
@@ -3741,7 +4050,7 @@ func (d *CodaDocument) MapOfUnplannedLast40d(ctx context.Context, extraParams ..
             return nil, nil, fmt.Errorf("failed to create UnplannedLast40d from row %d (%v): %w", idx, row.BrowserLink, err)
         }
         maporder = append(maporder, RowID(row.Id))
-        m[RowID(row.Id)] = item
+        m[RowID(row.Id)] = &item
     }
 
     return
@@ -3764,13 +4073,13 @@ func (d *CodaDocument) ListPlannedSpendsAndCurrentInvoice(ctx context.Context, e
     return
 }
 
-func (d *CodaDocument) MapOfPlannedSpendsAndCurrentInvoice(ctx context.Context, extraParams ...codaapi.ListRowsParam) (m map[RowID]PlannedSpendsAndCurrentInvoice, maporder []RowID, err error) {
+func (d *CodaDocument) MapOfPlannedSpendsAndCurrentInvoice(ctx context.Context, extraParams ...codaapi.ListRowsParam) (m map[RowID]*PlannedSpendsAndCurrentInvoice, maporder []RowID, err error) {
     rows, err := d.ListAllRows(ctx, ID.Table.PlannedSpendsAndCurrentInvoice.ID, extraParams...)
     if err != nil {
         return
     }
 
-    m = make(map[RowID]PlannedSpendsAndCurrentInvoice, len(rows))
+    m = make(map[RowID]*PlannedSpendsAndCurrentInvoice, len(rows))
     maporder = make([]RowID, 0, len(rows))
 
     for idx, row := range rows {
@@ -3779,7 +4088,7 @@ func (d *CodaDocument) MapOfPlannedSpendsAndCurrentInvoice(ctx context.Context, 
             return nil, nil, fmt.Errorf("failed to create PlannedSpendsAndCurrentInvoice from row %d (%v): %w", idx, row.BrowserLink, err)
         }
         maporder = append(maporder, RowID(row.Id))
-        m[RowID(row.Id)] = item
+        m[RowID(row.Id)] = &item
     }
 
     return
@@ -3802,13 +4111,13 @@ func (d *CodaDocument) ListInventoryTypes(ctx context.Context, extraParams ...co
     return
 }
 
-func (d *CodaDocument) MapOfInventoryTypes(ctx context.Context, extraParams ...codaapi.ListRowsParam) (m map[RowID]InventoryTypes, maporder []RowID, err error) {
+func (d *CodaDocument) MapOfInventoryTypes(ctx context.Context, extraParams ...codaapi.ListRowsParam) (m map[RowID]*InventoryTypes, maporder []RowID, err error) {
     rows, err := d.ListAllRows(ctx, ID.Table.InventoryTypes.ID, extraParams...)
     if err != nil {
         return
     }
 
-    m = make(map[RowID]InventoryTypes, len(rows))
+    m = make(map[RowID]*InventoryTypes, len(rows))
     maporder = make([]RowID, 0, len(rows))
 
     for idx, row := range rows {
@@ -3817,7 +4126,7 @@ func (d *CodaDocument) MapOfInventoryTypes(ctx context.Context, extraParams ...c
             return nil, nil, fmt.Errorf("failed to create InventoryTypes from row %d (%v): %w", idx, row.BrowserLink, err)
         }
         maporder = append(maporder, RowID(row.Id))
-        m[RowID(row.Id)] = item
+        m[RowID(row.Id)] = &item
     }
 
     return
@@ -3840,13 +4149,13 @@ func (d *CodaDocument) ListInvoiceTemplate(ctx context.Context, extraParams ...c
     return
 }
 
-func (d *CodaDocument) MapOfInvoiceTemplate(ctx context.Context, extraParams ...codaapi.ListRowsParam) (m map[RowID]InvoiceTemplate, maporder []RowID, err error) {
+func (d *CodaDocument) MapOfInvoiceTemplate(ctx context.Context, extraParams ...codaapi.ListRowsParam) (m map[RowID]*InvoiceTemplate, maporder []RowID, err error) {
     rows, err := d.ListAllRows(ctx, ID.Table.InvoiceTemplate.ID, extraParams...)
     if err != nil {
         return
     }
 
-    m = make(map[RowID]InvoiceTemplate, len(rows))
+    m = make(map[RowID]*InvoiceTemplate, len(rows))
     maporder = make([]RowID, 0, len(rows))
 
     for idx, row := range rows {
@@ -3855,7 +4164,7 @@ func (d *CodaDocument) MapOfInvoiceTemplate(ctx context.Context, extraParams ...
             return nil, nil, fmt.Errorf("failed to create InvoiceTemplate from row %d (%v): %w", idx, row.BrowserLink, err)
         }
         maporder = append(maporder, RowID(row.Id))
-        m[RowID(row.Id)] = item
+        m[RowID(row.Id)] = &item
     }
 
     return
@@ -3878,13 +4187,13 @@ func (d *CodaDocument) ListPlannedAndPreviousInvoices(ctx context.Context, extra
     return
 }
 
-func (d *CodaDocument) MapOfPlannedAndPreviousInvoices(ctx context.Context, extraParams ...codaapi.ListRowsParam) (m map[RowID]PlannedAndPreviousInvoices, maporder []RowID, err error) {
+func (d *CodaDocument) MapOfPlannedAndPreviousInvoices(ctx context.Context, extraParams ...codaapi.ListRowsParam) (m map[RowID]*PlannedAndPreviousInvoices, maporder []RowID, err error) {
     rows, err := d.ListAllRows(ctx, ID.Table.PlannedAndPreviousInvoices.ID, extraParams...)
     if err != nil {
         return
     }
 
-    m = make(map[RowID]PlannedAndPreviousInvoices, len(rows))
+    m = make(map[RowID]*PlannedAndPreviousInvoices, len(rows))
     maporder = make([]RowID, 0, len(rows))
 
     for idx, row := range rows {
@@ -3893,7 +4202,7 @@ func (d *CodaDocument) MapOfPlannedAndPreviousInvoices(ctx context.Context, extr
             return nil, nil, fmt.Errorf("failed to create PlannedAndPreviousInvoices from row %d (%v): %w", idx, row.BrowserLink, err)
         }
         maporder = append(maporder, RowID(row.Id))
-        m[RowID(row.Id)] = item
+        m[RowID(row.Id)] = &item
     }
 
     return
@@ -3916,13 +4225,13 @@ func (d *CodaDocument) ListPlannedExpenses(ctx context.Context, extraParams ...c
     return
 }
 
-func (d *CodaDocument) MapOfPlannedExpenses(ctx context.Context, extraParams ...codaapi.ListRowsParam) (m map[RowID]PlannedExpenses, maporder []RowID, err error) {
+func (d *CodaDocument) MapOfPlannedExpenses(ctx context.Context, extraParams ...codaapi.ListRowsParam) (m map[RowID]*PlannedExpenses, maporder []RowID, err error) {
     rows, err := d.ListAllRows(ctx, ID.Table.PlannedExpenses.ID, extraParams...)
     if err != nil {
         return
     }
 
-    m = make(map[RowID]PlannedExpenses, len(rows))
+    m = make(map[RowID]*PlannedExpenses, len(rows))
     maporder = make([]RowID, 0, len(rows))
 
     for idx, row := range rows {
@@ -3931,7 +4240,7 @@ func (d *CodaDocument) MapOfPlannedExpenses(ctx context.Context, extraParams ...
             return nil, nil, fmt.Errorf("failed to create PlannedExpenses from row %d (%v): %w", idx, row.BrowserLink, err)
         }
         maporder = append(maporder, RowID(row.Id))
-        m[RowID(row.Id)] = item
+        m[RowID(row.Id)] = &item
     }
 
     return
@@ -3954,13 +4263,13 @@ func (d *CodaDocument) ListCashFlow2020(ctx context.Context, extraParams ...coda
     return
 }
 
-func (d *CodaDocument) MapOfCashFlow2020(ctx context.Context, extraParams ...codaapi.ListRowsParam) (m map[RowID]CashFlow2020, maporder []RowID, err error) {
+func (d *CodaDocument) MapOfCashFlow2020(ctx context.Context, extraParams ...codaapi.ListRowsParam) (m map[RowID]*CashFlow2020, maporder []RowID, err error) {
     rows, err := d.ListAllRows(ctx, ID.Table.CashFlow2020.ID, extraParams...)
     if err != nil {
         return
     }
 
-    m = make(map[RowID]CashFlow2020, len(rows))
+    m = make(map[RowID]*CashFlow2020, len(rows))
     maporder = make([]RowID, 0, len(rows))
 
     for idx, row := range rows {
@@ -3969,7 +4278,7 @@ func (d *CodaDocument) MapOfCashFlow2020(ctx context.Context, extraParams ...cod
             return nil, nil, fmt.Errorf("failed to create CashFlow2020 from row %d (%v): %w", idx, row.BrowserLink, err)
         }
         maporder = append(maporder, RowID(row.Id))
-        m[RowID(row.Id)] = item
+        m[RowID(row.Id)] = &item
     }
 
     return
@@ -3992,13 +4301,13 @@ func (d *CodaDocument) ListCashFlowOfPersonalAcc(ctx context.Context, extraParam
     return
 }
 
-func (d *CodaDocument) MapOfCashFlowOfPersonalAcc(ctx context.Context, extraParams ...codaapi.ListRowsParam) (m map[RowID]CashFlowOfPersonalAcc, maporder []RowID, err error) {
+func (d *CodaDocument) MapOfCashFlowOfPersonalAcc(ctx context.Context, extraParams ...codaapi.ListRowsParam) (m map[RowID]*CashFlowOfPersonalAcc, maporder []RowID, err error) {
     rows, err := d.ListAllRows(ctx, ID.Table.CashFlowOfPersonalAcc.ID, extraParams...)
     if err != nil {
         return
     }
 
-    m = make(map[RowID]CashFlowOfPersonalAcc, len(rows))
+    m = make(map[RowID]*CashFlowOfPersonalAcc, len(rows))
     maporder = make([]RowID, 0, len(rows))
 
     for idx, row := range rows {
@@ -4007,7 +4316,7 @@ func (d *CodaDocument) MapOfCashFlowOfPersonalAcc(ctx context.Context, extraPara
             return nil, nil, fmt.Errorf("failed to create CashFlowOfPersonalAcc from row %d (%v): %w", idx, row.BrowserLink, err)
         }
         maporder = append(maporder, RowID(row.Id))
-        m[RowID(row.Id)] = item
+        m[RowID(row.Id)] = &item
     }
 
     return
@@ -4030,13 +4339,13 @@ func (d *CodaDocument) ListCashFlow2021(ctx context.Context, extraParams ...coda
     return
 }
 
-func (d *CodaDocument) MapOfCashFlow2021(ctx context.Context, extraParams ...codaapi.ListRowsParam) (m map[RowID]CashFlow2021, maporder []RowID, err error) {
+func (d *CodaDocument) MapOfCashFlow2021(ctx context.Context, extraParams ...codaapi.ListRowsParam) (m map[RowID]*CashFlow2021, maporder []RowID, err error) {
     rows, err := d.ListAllRows(ctx, ID.Table.CashFlow2021.ID, extraParams...)
     if err != nil {
         return
     }
 
-    m = make(map[RowID]CashFlow2021, len(rows))
+    m = make(map[RowID]*CashFlow2021, len(rows))
     maporder = make([]RowID, 0, len(rows))
 
     for idx, row := range rows {
@@ -4045,7 +4354,7 @@ func (d *CodaDocument) MapOfCashFlow2021(ctx context.Context, extraParams ...cod
             return nil, nil, fmt.Errorf("failed to create CashFlow2021 from row %d (%v): %w", idx, row.BrowserLink, err)
         }
         maporder = append(maporder, RowID(row.Id))
-        m[RowID(row.Id)] = item
+        m[RowID(row.Id)] = &item
     }
 
     return
@@ -4068,13 +4377,13 @@ func (d *CodaDocument) ListAuditCategory(ctx context.Context, extraParams ...cod
     return
 }
 
-func (d *CodaDocument) MapOfAuditCategory(ctx context.Context, extraParams ...codaapi.ListRowsParam) (m map[RowID]AuditCategory, maporder []RowID, err error) {
+func (d *CodaDocument) MapOfAuditCategory(ctx context.Context, extraParams ...codaapi.ListRowsParam) (m map[RowID]*AuditCategory, maporder []RowID, err error) {
     rows, err := d.ListAllRows(ctx, ID.Table.AuditCategory.ID, extraParams...)
     if err != nil {
         return
     }
 
-    m = make(map[RowID]AuditCategory, len(rows))
+    m = make(map[RowID]*AuditCategory, len(rows))
     maporder = make([]RowID, 0, len(rows))
 
     for idx, row := range rows {
@@ -4083,7 +4392,7 @@ func (d *CodaDocument) MapOfAuditCategory(ctx context.Context, extraParams ...co
             return nil, nil, fmt.Errorf("failed to create AuditCategory from row %d (%v): %w", idx, row.BrowserLink, err)
         }
         maporder = append(maporder, RowID(row.Id))
-        m[RowID(row.Id)] = item
+        m[RowID(row.Id)] = &item
     }
 
     return
@@ -4106,13 +4415,13 @@ func (d *CodaDocument) ListExpensesByCategory(ctx context.Context, extraParams .
     return
 }
 
-func (d *CodaDocument) MapOfExpensesByCategory(ctx context.Context, extraParams ...codaapi.ListRowsParam) (m map[RowID]ExpensesByCategory, maporder []RowID, err error) {
+func (d *CodaDocument) MapOfExpensesByCategory(ctx context.Context, extraParams ...codaapi.ListRowsParam) (m map[RowID]*ExpensesByCategory, maporder []RowID, err error) {
     rows, err := d.ListAllRows(ctx, ID.Table.ExpensesByCategory.ID, extraParams...)
     if err != nil {
         return
     }
 
-    m = make(map[RowID]ExpensesByCategory, len(rows))
+    m = make(map[RowID]*ExpensesByCategory, len(rows))
     maporder = make([]RowID, 0, len(rows))
 
     for idx, row := range rows {
@@ -4121,7 +4430,7 @@ func (d *CodaDocument) MapOfExpensesByCategory(ctx context.Context, extraParams 
             return nil, nil, fmt.Errorf("failed to create ExpensesByCategory from row %d (%v): %w", idx, row.BrowserLink, err)
         }
         maporder = append(maporder, RowID(row.Id))
-        m[RowID(row.Id)] = item
+        m[RowID(row.Id)] = &item
     }
 
     return
@@ -4146,83 +4455,124 @@ type Tables struct {
 }
 
 // LoadRelationsCashFlow loads data into lookup fields of the CashFlow struct
-func (doc *CodaDocument) LoadRelationsCashFlow(ctx context.Context, shallow map[RowID]CashFlow, rels Tables) (err error) {
-	var ok bool
-	var _accountsMap map[RowID]Accounts
-	if _accountsMap, ok = doc.relationsCache["Accounts"].(map[RowID]Accounts); rels.Accounts && !ok {
-		_accountsMap, _, err = doc.MapOfAccounts(ctx)
-		if err != nil {
-			return err
+func (doc *CodaDocument) LoadRelationsCashFlow(ctx context.Context, shallow map[RowID]*CashFlow, rels Tables) (err error) {
+	var wg sync.WaitGroup
+	var _accountsMap map[RowID]*Accounts
+	var _expensesMap map[RowID]*Expenses
+	var _invoicePaymentMap map[RowID]*InvoicePayment
+	func(){
+		if !rels.Accounts {
+			return
 		}
-		doc.relationsCache["Accounts"] = _accountsMap
-	}
-	var _expensesMap map[RowID]Expenses
-	if _expensesMap, ok = doc.relationsCache["Expenses"].(map[RowID]Expenses); rels.Expenses && !ok {
-		_expensesMap, _, err = doc.MapOfExpenses(ctx)
-		if err != nil {
-			return err
-		}
-		doc.relationsCache["Expenses"] = _expensesMap
-	}
-	var _invoicePaymentMap map[RowID]InvoicePayment
-	if _invoicePaymentMap, ok = doc.relationsCache["InvoicePayment"].(map[RowID]InvoicePayment); rels.InvoicePayment && !ok {
-		_invoicePaymentMap, _, err = doc.MapOfInvoicePayment(ctx)
-		if err != nil {
-			return err
-		}
-		doc.relationsCache["InvoicePayment"] = _invoicePaymentMap
-	}
 
-	for ii, item := range shallow {
-		if rels.InvoicePayment {
-			for vi, v := range item.CashIn.Values {
-				if v.Data != nil {
-					continue
-				}
-
-				data, ok := _invoicePaymentMap[RowID(v.RowID)]
-
-				if ok {
-					shallow[ii].CashIn.Values[vi].Data = &data
-				}
+		if _accountsInter, ok := doc.relationsCache.Load("Accounts"); ok {
+			if _accountsMap, ok = _accountsInter.(map[RowID]*Accounts); ok {
+				return
 			}
 		}
+
+		wg.Add(1)
+		go func(){
+			defer wg.Done()
+
+			_accountsMap, _, err = doc.MapOfAccounts(ctx)
+			doc.relationsCache.Store("Accounts", _accountsMap)
+		}()
+	}()
+	func(){
+		if !rels.Expenses {
+			return
+		}
+
+		if _expensesInter, ok := doc.relationsCache.Load("Expenses"); ok {
+			if _expensesMap, ok = _expensesInter.(map[RowID]*Expenses); ok {
+				return
+			}
+		}
+
+		wg.Add(1)
+		go func(){
+			defer wg.Done()
+
+			_expensesMap, _, err = doc.MapOfExpenses(ctx)
+			doc.relationsCache.Store("Expenses", _expensesMap)
+		}()
+	}()
+	func(){
+		if !rels.InvoicePayment {
+			return
+		}
+
+		if _invoicePaymentInter, ok := doc.relationsCache.Load("InvoicePayment"); ok {
+			if _invoicePaymentMap, ok = _invoicePaymentInter.(map[RowID]*InvoicePayment); ok {
+				return
+			}
+		}
+
+		wg.Add(1)
+		go func(){
+			defer wg.Done()
+
+			_invoicePaymentMap, _, err = doc.MapOfInvoicePayment(ctx)
+			doc.relationsCache.Store("InvoicePayment", _invoicePaymentMap)
+		}()
+	}()
+
+	wg.Wait()
+
+	if err != nil {
+		return err
+	}
+
+	for ii, _ := range shallow {
 		if rels.Accounts {
-			for vi, v := range item.Account.Values {
-				if v.Data != nil {
-					continue
-				}
-
-				data, ok := _accountsMap[RowID(v.RowID)]
-
-				if ok {
-					shallow[ii].Account.Values[vi].Data = &data
-				}
-			}
+			shallow[ii].Account.Hydrate(_accountsMap)
 		}
 		if rels.Expenses {
-			for vi, v := range item.CashOutPurpose.Values {
-				if v.Data != nil {
-					continue
-				}
+			shallow[ii].CashOutPurpose.Hydrate(_expensesMap)
+			shallow[ii].PersonalPaidIn.Hydrate(_expensesMap)
+		}
+		if rels.InvoicePayment {
+			shallow[ii].CashIn.Hydrate(_invoicePaymentMap)
+		}
+	}
 
-				data, ok := _expensesMap[RowID(v.RowID)]
+	return nil
+}
 
-				if ok {
-					shallow[ii].CashOutPurpose.Values[vi].Data = &data
-				}
+// LoadRelationsInvoicePayment loads data into lookup fields of the InvoicePayment struct
+func (doc *CodaDocument) LoadRelationsInvoicePayment(ctx context.Context, shallow map[RowID]*InvoicePayment, rels Tables) (err error) {
+	var wg sync.WaitGroup
+	var _invoicesMap map[RowID]*Invoices
+	func(){
+		if !rels.Invoices {
+			return
+		}
+
+		if _invoicesInter, ok := doc.relationsCache.Load("Invoices"); ok {
+			if _invoicesMap, ok = _invoicesInter.(map[RowID]*Invoices); ok {
+				return
 			}
-			for vi, v := range item.PersonalPaidIn.Values {
-				if v.Data != nil {
-					continue
-				}
+		}
 
-				data, ok := _expensesMap[RowID(v.RowID)]
+		wg.Add(1)
+		go func(){
+			defer wg.Done()
 
-				if ok {
-					shallow[ii].PersonalPaidIn.Values[vi].Data = &data
-				}
-			}
+			_invoicesMap, _, err = doc.MapOfInvoices(ctx)
+			doc.relationsCache.Store("Invoices", _invoicesMap)
+		}()
+	}()
+
+	wg.Wait()
+
+	if err != nil {
+		return err
+	}
+
+	for ii, _ := range shallow {
+		if rels.Invoices {
+			shallow[ii].Invoice.Hydrate(_invoicesMap)
 		}
 	}
 
@@ -4230,72 +4580,107 @@ func (doc *CodaDocument) LoadRelationsCashFlow(ctx context.Context, shallow map[
 }
 
 // LoadRelationsExpenses loads data into lookup fields of the Expenses struct
-func (doc *CodaDocument) LoadRelationsExpenses(ctx context.Context, shallow map[RowID]Expenses, rels Tables) (err error) {
-	var ok bool
-	var _invoicesMap map[RowID]Invoices
-	if _invoicesMap, ok = doc.relationsCache["Invoices"].(map[RowID]Invoices); rels.Invoices && !ok {
-		_invoicesMap, _, err = doc.MapOfInvoices(ctx)
-		if err != nil {
-			return err
+func (doc *CodaDocument) LoadRelationsExpenses(ctx context.Context, shallow map[RowID]*Expenses, rels Tables) (err error) {
+	var wg sync.WaitGroup
+	var _invoicesMap map[RowID]*Invoices
+	var _cashFlowMap map[RowID]*CashFlow
+	var _inventoryTypesMap map[RowID]*InventoryTypes
+	var _auditCategoryMap map[RowID]*AuditCategory
+	func(){
+		if !rels.Invoices {
+			return
 		}
-		doc.relationsCache["Invoices"] = _invoicesMap
-	}
-	var _inventoryTypesMap map[RowID]InventoryTypes
-	if _inventoryTypesMap, ok = doc.relationsCache["InventoryTypes"].(map[RowID]InventoryTypes); rels.InventoryTypes && !ok {
-		_inventoryTypesMap, _, err = doc.MapOfInventoryTypes(ctx)
-		if err != nil {
-			return err
-		}
-		doc.relationsCache["InventoryTypes"] = _inventoryTypesMap
-	}
-	var _auditCategoryMap map[RowID]AuditCategory
-	if _auditCategoryMap, ok = doc.relationsCache["AuditCategory"].(map[RowID]AuditCategory); rels.AuditCategory && !ok {
-		_auditCategoryMap, _, err = doc.MapOfAuditCategory(ctx)
-		if err != nil {
-			return err
-		}
-		doc.relationsCache["AuditCategory"] = _auditCategoryMap
-	}
 
-	for ii, item := range shallow {
-		if rels.Invoices {
-			for vi, v := range item.Invoice.Values {
-				if v.Data != nil {
-					continue
-				}
-
-				data, ok := _invoicesMap[RowID(v.RowID)]
-
-				if ok {
-					shallow[ii].Invoice.Values[vi].Data = &data
-				}
+		if _invoicesInter, ok := doc.relationsCache.Load("Invoices"); ok {
+			if _invoicesMap, ok = _invoicesInter.(map[RowID]*Invoices); ok {
+				return
 			}
+		}
+
+		wg.Add(1)
+		go func(){
+			defer wg.Done()
+
+			_invoicesMap, _, err = doc.MapOfInvoices(ctx)
+			doc.relationsCache.Store("Invoices", _invoicesMap)
+		}()
+	}()
+	func(){
+		if !rels.CashFlow {
+			return
+		}
+
+		if _cashFlowInter, ok := doc.relationsCache.Load("CashFlow"); ok {
+			if _cashFlowMap, ok = _cashFlowInter.(map[RowID]*CashFlow); ok {
+				return
+			}
+		}
+
+		wg.Add(1)
+		go func(){
+			defer wg.Done()
+
+			_cashFlowMap, _, err = doc.MapOfCashFlow(ctx)
+			doc.relationsCache.Store("CashFlow", _cashFlowMap)
+		}()
+	}()
+	func(){
+		if !rels.InventoryTypes {
+			return
+		}
+
+		if _inventoryTypesInter, ok := doc.relationsCache.Load("InventoryTypes"); ok {
+			if _inventoryTypesMap, ok = _inventoryTypesInter.(map[RowID]*InventoryTypes); ok {
+				return
+			}
+		}
+
+		wg.Add(1)
+		go func(){
+			defer wg.Done()
+
+			_inventoryTypesMap, _, err = doc.MapOfInventoryTypes(ctx)
+			doc.relationsCache.Store("InventoryTypes", _inventoryTypesMap)
+		}()
+	}()
+	func(){
+		if !rels.AuditCategory {
+			return
+		}
+
+		if _auditCategoryInter, ok := doc.relationsCache.Load("AuditCategory"); ok {
+			if _auditCategoryMap, ok = _auditCategoryInter.(map[RowID]*AuditCategory); ok {
+				return
+			}
+		}
+
+		wg.Add(1)
+		go func(){
+			defer wg.Done()
+
+			_auditCategoryMap, _, err = doc.MapOfAuditCategory(ctx)
+			doc.relationsCache.Store("AuditCategory", _auditCategoryMap)
+		}()
+	}()
+
+	wg.Wait()
+
+	if err != nil {
+		return err
+	}
+
+	for ii, _ := range shallow {
+		if rels.Invoices {
+			shallow[ii].Invoice.Hydrate(_invoicesMap)
+		}
+		if rels.CashFlow {
+			shallow[ii].CashOutRefs.Hydrate(_cashFlowMap)
 		}
 		if rels.InventoryTypes {
-			for vi, v := range item.InventoryRef.Values {
-				if v.Data != nil {
-					continue
-				}
-
-				data, ok := _inventoryTypesMap[RowID(v.RowID)]
-
-				if ok {
-					shallow[ii].InventoryRef.Values[vi].Data = &data
-				}
-			}
+			shallow[ii].InventoryRef.Hydrate(_inventoryTypesMap)
 		}
 		if rels.AuditCategory {
-			for vi, v := range item.AuditCategory.Values {
-				if v.Data != nil {
-					continue
-				}
-
-				data, ok := _auditCategoryMap[RowID(v.RowID)]
-
-				if ok {
-					shallow[ii].AuditCategory.Values[vi].Data = &data
-				}
-			}
+			shallow[ii].AuditCategory.Hydrate(_auditCategoryMap)
 		}
 	}
 
@@ -4303,30 +4688,84 @@ func (doc *CodaDocument) LoadRelationsExpenses(ctx context.Context, shallow map[
 }
 
 // LoadRelationsInvoices loads data into lookup fields of the Invoices struct
-func (doc *CodaDocument) LoadRelationsInvoices(ctx context.Context, shallow map[RowID]Invoices, rels Tables) (err error) {
-	var ok bool
-	var _invoicePaymentMap map[RowID]InvoicePayment
-	if _invoicePaymentMap, ok = doc.relationsCache["InvoicePayment"].(map[RowID]InvoicePayment); rels.InvoicePayment && !ok {
-		_invoicePaymentMap, _, err = doc.MapOfInvoicePayment(ctx)
-		if err != nil {
-			return err
+func (doc *CodaDocument) LoadRelationsInvoices(ctx context.Context, shallow map[RowID]*Invoices, rels Tables) (err error) {
+	var wg sync.WaitGroup
+	var _invoicePaymentMap map[RowID]*InvoicePayment
+	var _invoicesMap map[RowID]*Invoices
+	var _expensesMap map[RowID]*Expenses
+	func(){
+		if !rels.InvoicePayment {
+			return
 		}
-		doc.relationsCache["InvoicePayment"] = _invoicePaymentMap
+
+		if _invoicePaymentInter, ok := doc.relationsCache.Load("InvoicePayment"); ok {
+			if _invoicePaymentMap, ok = _invoicePaymentInter.(map[RowID]*InvoicePayment); ok {
+				return
+			}
+		}
+
+		wg.Add(1)
+		go func(){
+			defer wg.Done()
+
+			_invoicePaymentMap, _, err = doc.MapOfInvoicePayment(ctx)
+			doc.relationsCache.Store("InvoicePayment", _invoicePaymentMap)
+		}()
+	}()
+	func(){
+		if !rels.Invoices {
+			return
+		}
+
+		if _invoicesInter, ok := doc.relationsCache.Load("Invoices"); ok {
+			if _invoicesMap, ok = _invoicesInter.(map[RowID]*Invoices); ok {
+				return
+			}
+		}
+
+		wg.Add(1)
+		go func(){
+			defer wg.Done()
+
+			_invoicesMap, _, err = doc.MapOfInvoices(ctx)
+			doc.relationsCache.Store("Invoices", _invoicesMap)
+		}()
+	}()
+	func(){
+		if !rels.Expenses {
+			return
+		}
+
+		if _expensesInter, ok := doc.relationsCache.Load("Expenses"); ok {
+			if _expensesMap, ok = _expensesInter.(map[RowID]*Expenses); ok {
+				return
+			}
+		}
+
+		wg.Add(1)
+		go func(){
+			defer wg.Done()
+
+			_expensesMap, _, err = doc.MapOfExpenses(ctx)
+			doc.relationsCache.Store("Expenses", _expensesMap)
+		}()
+	}()
+
+	wg.Wait()
+
+	if err != nil {
+		return err
 	}
 
-	for ii, item := range shallow {
+	for ii, _ := range shallow {
 		if rels.InvoicePayment {
-			for vi, v := range item.InvoicePayment.Values {
-				if v.Data != nil {
-					continue
-				}
-
-				data, ok := _invoicePaymentMap[RowID(v.RowID)]
-
-				if ok {
-					shallow[ii].InvoicePayment.Values[vi].Data = &data
-				}
-			}
+			shallow[ii].InvoicePayment.Hydrate(_invoicePaymentMap)
+		}
+		if rels.Invoices {
+			shallow[ii].PrevInvoice.Hydrate(_invoicesMap)
+		}
+		if rels.Expenses {
+			shallow[ii].PlannedExpenses.Hydrate(_expensesMap)
 		}
 	}
 

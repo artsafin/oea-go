@@ -4,6 +4,7 @@ import (
 	"embed"
 	"fmt"
 	"html/template"
+	"io"
 )
 
 //go:embed assets
@@ -17,6 +18,10 @@ func TestReadFile() {
 
 func MustParseTemplate(tmpl *template.Template, patterns ...string) *template.Template {
 	return template.Must(tmpl.ParseFS(assets, patterns...))
+}
+
+func Open(file string) (io.ReadCloser, error) {
+	return assets.Open(file)
 }
 
 func MustReadBytes(file string) []byte {

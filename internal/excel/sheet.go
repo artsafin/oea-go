@@ -6,20 +6,10 @@ import (
 	x "github.com/360EntSecGroup-Skylar/excelize/v2"
 )
 
-func rowColZeroIndexesToCellAddr(col, row int) string {
-	if col > 25 {
-		panic("too much columns in payroll report")
-	}
-	return fmt.Sprintf("%c%d", 65+col, row+1)
-}
-
 type rowCol struct {
 	row, col int
 }
 
-//type styler interface {
-//	StyleID() int
-//}
 type commenter interface {
 	Comment() string
 }
@@ -33,28 +23,6 @@ func newSheetRef(file *x.File, name string) sheetRef {
 	return sheetRef{
 		file: file,
 		name: name,
-	}
-}
-
-func (sheet *sheetRef) writeRowAndIncr(rowZeroIndexed *int, values ...interface{}) {
-	sheet.writeRow(*rowZeroIndexed, values...)
-	*rowZeroIndexed++
-}
-
-func (sheet *sheetRef) writeRow(rowZeroIndexed int, values ...interface{}) {
-	for idx, value := range values {
-		addr := rowColZeroIndexesToCellAddr(idx, rowZeroIndexed)
-
-		sheet.file.SetCellValue(sheet.name, addr, value)
-
-		//if val, ok := value.(styler); ok {
-		//	sheet.file.SetCellStyle(sheet.name, addr, addr, val.StyleID())
-		//}
-		if val, ok := value.(commenter); ok && len(val.Comment()) > 0 {
-			jsonComment, _ := json.Marshal(val.Comment())
-			// jsonComment will be a safe json-string: special chars quoted and wrapped with double-quotes
-			sheet.file.AddComment(sheet.name, addr, fmt.Sprintf(`{"author":"Comment: ","text":%s}`, jsonComment))
-		}
 	}
 }
 
