@@ -1,7 +1,10 @@
 package main
 
 import (
+	"bytes"
+	"context"
 	"flag"
+	"github.com/artsafin/coda-go-client/codaapi"
 	"go.uber.org/zap"
 	"net/http"
 	"oea-go/internal/auth"
@@ -13,10 +16,30 @@ import (
 	officeweb "oea-go/internal/office/web"
 	"oea-go/internal/web"
 	"os"
+	"regexp"
+	"runtime/debug"
+	"strings"
 )
 
 // AppVersion Populated by -ldflags "-X main.AppVersion=..."
 var AppVersion string
+
+func parseStackTrace(stackBs []byte) interface{} {
+	parsRem := regexp.MustCompile(`\([^)]+\)$`)
+	fileRem := regexp.MustCompile(` \+0x.+$`)
+
+	stackBsLines := bytes.Split(stackBs, []byte{'\n'})
+	var reltrace []string
+	for _, lineBs := range stackBsLines {
+		if bytes.Contains(lineBs, []byte("office")) || bytes.Contains(lineBs, []byte("employee")) {
+			lineBs = parsRem.ReplaceAll(lineBs, []byte{})
+			lineBs = fileRem.ReplaceAll(lineBs, []byte{})
+			reltrace = append(reltrace, string(lineBs))
+		}
+	}
+
+	return strings.ReplaceAll(strings.Join(reltrace, "\n"), "\n\t", " ")
+}
 
 func main() {
 	verbose := flag.Bool("v", false, "Be more verbose")
@@ -44,13 +67,22 @@ func main() {
 		logger.Debugf("storage is alive (%v keys)", len(storageKeys))
 	}
 
-	officeCoda, err := officeschema.NewCodaDocument(cfg.BaseUri, cfg.ApiTokenOf, cfg.DocIdOf)
+	loggingMiddleware := codaapi.WithRequestEditorFn(func(ctx context.Context, req *http.Request) error {
+		if cfg.IsDebug {
+			stack := parseStackTrace(debug.Stack())
+
+			logger.Infof("CODA %v %v\n%v\n", req.Method, req.URL, stack)
+		}
+		return nil
+	})
+
+	officeCoda, err := officeschema.NewCodaDocument(cfg.BaseUri, cfg.ApiTokenOf, cfg.DocIdOf, loggingMiddleware)
 	if err != nil {
 		logger.Fatalf("could not create a coda client (office): %v", err)
 	}
 	officeHandler := officeweb.NewHandlers(cfg.FilesDir, officeCoda, logger)
 
-	employeesCoda, err := emplschema.NewCodaDocument(cfg.BaseUri, cfg.ApiTokenEm, cfg.DocIdEm)
+	employeesCoda, err := emplschema.NewCodaDocument(cfg.BaseUri, cfg.ApiTokenEm, cfg.DocIdEm, loggingMiddleware)
 	if err != nil {
 		logger.Fatalf("could not create a coda client (empl): %v", err)
 	}

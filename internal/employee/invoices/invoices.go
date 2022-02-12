@@ -34,7 +34,7 @@ func FindByMonthID(doc *codaschema.CodaDocument, monthID string, with codaschema
 
 	for _, rowid := range order {
 		if m := invs[rowid].Month.First(); m != nil && m.ID == monthID {
-			list = append(list, invs[rowid])
+			list = append(list, *invs[rowid])
 		}
 	}
 
@@ -66,7 +66,7 @@ func FindByEmployeeAndMonthID(doc *codaschema.CodaDocument, employeeName, monthI
 		e := invoice.Employee.First()
 
 		if m != nil && e != nil && m.ID == monthID && e.Name == employeeName {
-			return invoice, nil
+			return *invoice, nil
 		}
 	}
 

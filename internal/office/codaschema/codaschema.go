@@ -1352,6 +1352,10 @@ type Person struct {
 	Email string
 }
 
+type WebPage struct {
+	Url string
+}
+
 type MonetaryAmount struct {
 	Currency string
 	Amount   float64
@@ -1423,6 +1427,18 @@ func ToString(colID string, row Valuer) (string, error) {
 	}
 	if value, ok := rawv.(string); ok {
 		return strings.Trim(value, "`"), nil
+	}
+
+	// If whole cell looks like an URL Coda may parse it so and return column value as a WebPage structure
+	webpage, err := ToWebPage(colID, row)
+	if err == nil {
+		return fmt.Sprintf("[%v](%v)", webpage.Url, webpage.Url), nil
+	}
+
+	// If whole cell looks like a money amount Coda may parse it so and return column value as a MonetaryAmount structure
+	money, err := ToMonetaryAmount(colID, row)
+	if err == nil {
+		return fmt.Sprintf("%.2f %v", money.Amount, money.Currency), nil
 	}
 
 	bs, _ := json.Marshal(rawv)
@@ -1566,6 +1582,25 @@ func toStructuredValue(rawv interface{}) (sv structuredValue, err error) {
 	}
 
 	return
+}
+
+//ToWebPage parses Valuer value(s) of the following structure:
+//{
+//    "@context": "http://schema.org/",
+//    "@type": "WebPage",
+//    "url": "https://example.org"
+//}
+func ToWebPage(colID string, row Valuer) (p WebPage, err error) {
+	v, ok := row.GetValue(colID)
+	if !ok {
+		return WebPage{}, nil
+	}
+
+	if mapVal, ok := v.(map[string]interface{}); ok && mapVal["@type"] == "WebPage" {
+		return WebPage{Url: mapVal["url"].(string)}, nil
+	}
+
+	return WebPage{}, fmt.Errorf("unexpected value type %T (value %#v)", v, v)
 }
 
 //ToPersons parses Valuer value(s) of the following structure:
@@ -3717,10 +3752,14 @@ var tokenMiddleware = func(token string) codaapi.RequestEditorFn {
 	}
 }
 
-func NewCodaDocument(server, token, docID string, clientOpts ...codaapi.ClientOption) (*CodaDocument, error) {
+func NewDefaultClient(server, token string, clientOpts ...codaapi.ClientOption) (codaapi.ClientWithResponsesInterface, error) {
 	clientOpts = append(clientOpts, codaapi.WithRequestEditorFn(tokenMiddleware(token)))
 
-	client, err := codaapi.NewClientWithResponses(server, clientOpts...)
+	return codaapi.NewClientWithResponses(server, clientOpts...)
+}
+
+func NewCodaDocument(server, token, docID string, clientOpts ...codaapi.ClientOption) (*CodaDocument, error) {
+	client, err := NewDefaultClient(server, token, clientOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -3734,7 +3773,7 @@ func NewCodaDocument(server, token, docID string, clientOpts ...codaapi.ClientOp
 
 type CodaDocument struct {
 	docID          string
-	client         *codaapi.ClientWithResponses
+	client         codaapi.ClientWithResponsesInterface
 	relationsCache *sync.Map // Used for deep loading to share loaded sub-entities
 }
 
@@ -4452,25 +4491,6 @@ func (doc *CodaDocument) LoadRelationsCashFlow(ctx context.Context, shallow map[
 	var _expensesMap map[RowID]*Expenses
 	var _invoicePaymentMap map[RowID]*InvoicePayment
 	func() {
-		if !rels.Accounts {
-			return
-		}
-
-		if _accountsInter, ok := doc.relationsCache.Load("Accounts"); ok {
-			if _accountsMap, ok = _accountsInter.(map[RowID]*Accounts); ok {
-				return
-			}
-		}
-
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-
-			_accountsMap, _, err = doc.MapOfAccounts(ctx)
-			doc.relationsCache.Store("Accounts", _accountsMap)
-		}()
-	}()
-	func() {
 		if !rels.Expenses {
 			return
 		}
@@ -4508,6 +4528,25 @@ func (doc *CodaDocument) LoadRelationsCashFlow(ctx context.Context, shallow map[
 			doc.relationsCache.Store("InvoicePayment", _invoicePaymentMap)
 		}()
 	}()
+	func() {
+		if !rels.Accounts {
+			return
+		}
+
+		if _accountsInter, ok := doc.relationsCache.Load("Accounts"); ok {
+			if _accountsMap, ok = _accountsInter.(map[RowID]*Accounts); ok {
+				return
+			}
+		}
+
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+
+			_accountsMap, _, err = doc.MapOfAccounts(ctx)
+			doc.relationsCache.Store("Accounts", _accountsMap)
+		}()
+	}()
 
 	wg.Wait()
 
@@ -4516,15 +4555,15 @@ func (doc *CodaDocument) LoadRelationsCashFlow(ctx context.Context, shallow map[
 	}
 
 	for ii, _ := range shallow {
+		if rels.InvoicePayment {
+			shallow[ii].CashIn.Hydrate(_invoicePaymentMap)
+		}
 		if rels.Accounts {
 			shallow[ii].Account.Hydrate(_accountsMap)
 		}
 		if rels.Expenses {
 			shallow[ii].CashOutPurpose.Hydrate(_expensesMap)
 			shallow[ii].PersonalPaidIn.Hydrate(_expensesMap)
-		}
-		if rels.InvoicePayment {
-			shallow[ii].CashIn.Hydrate(_invoicePaymentMap)
 		}
 	}
 
@@ -4573,10 +4612,29 @@ func (doc *CodaDocument) LoadRelationsInvoicePayment(ctx context.Context, shallo
 // LoadRelationsExpenses loads data into lookup fields of the Expenses struct
 func (doc *CodaDocument) LoadRelationsExpenses(ctx context.Context, shallow map[RowID]*Expenses, rels Tables) (err error) {
 	var wg sync.WaitGroup
+	var _auditCategoryMap map[RowID]*AuditCategory
 	var _invoicesMap map[RowID]*Invoices
 	var _cashFlowMap map[RowID]*CashFlow
 	var _inventoryTypesMap map[RowID]*InventoryTypes
-	var _auditCategoryMap map[RowID]*AuditCategory
+	func() {
+		if !rels.AuditCategory {
+			return
+		}
+
+		if _auditCategoryInter, ok := doc.relationsCache.Load("AuditCategory"); ok {
+			if _auditCategoryMap, ok = _auditCategoryInter.(map[RowID]*AuditCategory); ok {
+				return
+			}
+		}
+
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+
+			_auditCategoryMap, _, err = doc.MapOfAuditCategory(ctx)
+			doc.relationsCache.Store("AuditCategory", _auditCategoryMap)
+		}()
+	}()
 	func() {
 		if !rels.Invoices {
 			return
@@ -4634,25 +4692,6 @@ func (doc *CodaDocument) LoadRelationsExpenses(ctx context.Context, shallow map[
 			doc.relationsCache.Store("InventoryTypes", _inventoryTypesMap)
 		}()
 	}()
-	func() {
-		if !rels.AuditCategory {
-			return
-		}
-
-		if _auditCategoryInter, ok := doc.relationsCache.Load("AuditCategory"); ok {
-			if _auditCategoryMap, ok = _auditCategoryInter.(map[RowID]*AuditCategory); ok {
-				return
-			}
-		}
-
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-
-			_auditCategoryMap, _, err = doc.MapOfAuditCategory(ctx)
-			doc.relationsCache.Store("AuditCategory", _auditCategoryMap)
-		}()
-	}()
 
 	wg.Wait()
 
@@ -4661,6 +4700,9 @@ func (doc *CodaDocument) LoadRelationsExpenses(ctx context.Context, shallow map[
 	}
 
 	for ii, _ := range shallow {
+		if rels.Invoices {
+			shallow[ii].Invoice.Hydrate(_invoicesMap)
+		}
 		if rels.CashFlow {
 			shallow[ii].CashOutRefs.Hydrate(_cashFlowMap)
 		}
@@ -4669,9 +4711,6 @@ func (doc *CodaDocument) LoadRelationsExpenses(ctx context.Context, shallow map[
 		}
 		if rels.AuditCategory {
 			shallow[ii].AuditCategory.Hydrate(_auditCategoryMap)
-		}
-		if rels.Invoices {
-			shallow[ii].Invoice.Hydrate(_invoicesMap)
 		}
 	}
 
@@ -4684,6 +4723,25 @@ func (doc *CodaDocument) LoadRelationsInvoices(ctx context.Context, shallow map[
 	var _invoicePaymentMap map[RowID]*InvoicePayment
 	var _invoicesMap map[RowID]*Invoices
 	var _expensesMap map[RowID]*Expenses
+	func() {
+		if !rels.InvoicePayment {
+			return
+		}
+
+		if _invoicePaymentInter, ok := doc.relationsCache.Load("InvoicePayment"); ok {
+			if _invoicePaymentMap, ok = _invoicePaymentInter.(map[RowID]*InvoicePayment); ok {
+				return
+			}
+		}
+
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+
+			_invoicePaymentMap, _, err = doc.MapOfInvoicePayment(ctx)
+			doc.relationsCache.Store("InvoicePayment", _invoicePaymentMap)
+		}()
+	}()
 	func() {
 		if !rels.Invoices {
 			return
@@ -4720,25 +4778,6 @@ func (doc *CodaDocument) LoadRelationsInvoices(ctx context.Context, shallow map[
 
 			_expensesMap, _, err = doc.MapOfExpenses(ctx)
 			doc.relationsCache.Store("Expenses", _expensesMap)
-		}()
-	}()
-	func() {
-		if !rels.InvoicePayment {
-			return
-		}
-
-		if _invoicePaymentInter, ok := doc.relationsCache.Load("InvoicePayment"); ok {
-			if _invoicePaymentMap, ok = _invoicePaymentInter.(map[RowID]*InvoicePayment); ok {
-				return
-			}
-		}
-
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-
-			_invoicePaymentMap, _, err = doc.MapOfInvoicePayment(ctx)
-			doc.relationsCache.Store("InvoicePayment", _invoicePaymentMap)
 		}()
 	}()
 

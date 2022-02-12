@@ -10,7 +10,6 @@ import (
 	"oea-go/internal/office/codaschema"
 	"oea-go/internal/office/invoices"
 	"os"
-	"sync"
 	"time"
 )
 
@@ -45,25 +44,13 @@ func (h handlers) ShowInvoiceData(vars map[string]string, req *http.Request) int
 
 	invoiceID := vars["invoice"]
 
-	var wg sync.WaitGroup
 	var err error
 	var invoice codaschema.Invoices
 	var hist invoices.History
 
-	wg.Add(2)
-
-	go func(){
-		defer wg.Done()
-
-		invoice, err = invoices.FindByName(h.doc, invoiceID, codaschema.Tables{Invoices: true, Expenses: true})
-	}()
-	go func() {
-		defer wg.Done()
-
-		hist, err = invoices.GetHistory(h.doc)
-	}()
-
-	wg.Wait()
+	// Order of methods calls affects performance - all is cached in GetHistory
+	hist, err = invoices.GetHistory(h.doc)
+	invoice, err = invoices.FindByName(h.doc, invoiceID, codaschema.Tables{Invoices: true, Expenses: true})
 
 	if err != nil {
 		return page{Error: err}.Now()

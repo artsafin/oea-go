@@ -35,11 +35,7 @@ func GetRecent(doc *codaschema.CodaDocument) (list []codaschema.Invoices, err er
 }
 
 func FindByName(doc *codaschema.CodaDocument, name string, with codaschema.Tables) (codaschema.Invoices, error) {
-	invs, _, err := doc.MapOfInvoices(
-		context.Background(),
-		codaapi.ListRows.Query(codaschema.ID.Table.Invoices.Cols.No.ID, name),
-	)
-
+	invs, err := doc.MapOfInvoicesWithCache(context.Background())
 	if err != nil {
 		return codaschema.Invoices{}, err
 	}
@@ -50,7 +46,9 @@ func FindByName(doc *codaschema.CodaDocument, name string, with codaschema.Table
 	}
 
 	for _, inv := range invs {
-		return *inv, nil
+		if inv.No == name {
+			return *inv, nil
+		}
 	}
 
 	return codaschema.Invoices{}, fmt.Errorf("could not find invoice %v", name)
@@ -60,19 +58,20 @@ func GetHistory(doc *codaschema.CodaDocument) (History, error) {
 	sentInvoices := make([]codaschema.Invoices, 0)
 	total := grandTotal{}
 
-	invoices, err := doc.ListInvoices(context.Background())
+	invoices, _, err := doc.MapOfInvoices(context.Background())
 	if err != nil {
 		return History{}, err
 	}
+	doc.AddInvoicesToCache(invoices)
 
 	for _, inv := range invoices {
 		if inv.Status != "" {
-			sentInvoices = append(sentInvoices, inv)
-			total.AddInvoice(inv)
+			sentInvoices = append(sentInvoices, *inv)
+			total.AddInvoice(*inv)
 		}
 	}
 
-	sortInvoices(invoices)
+	sortInvoices(sentInvoices)
 
 	if len(sentInvoices) == 0 {
 		return History{}, nil
@@ -84,6 +83,7 @@ func GetHistory(doc *codaschema.CodaDocument) (History, error) {
 	if err != nil {
 		return History{}, err
 	}
+	doc.AddExpensesToCache(expMap)
 	lastInvoice.PlannedExpenses.Hydrate(expMap)
 
 	return History{
