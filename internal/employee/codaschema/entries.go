@@ -4,11 +4,14 @@ import (
 	"fmt"
 	"html/template"
 	"oea-go/internal/codatypes"
+	"oea-go/internal/common"
 	"strings"
 )
 
 func (e Entries) LongComment() template.HTML {
-	htmlComment := strings.Replace(e.Comment, "\n", "<br>", -1)
+	htmlComment := strings.ReplaceAll(e.Comment, "\n", "<br>")
+	htmlComment = common.MarkdownToHTML(htmlComment)
+
 	return template.HTML(fmt.Sprintf("<code>%s</code><br>%s", e.Type.FirstRefName(), htmlComment))
 }
 

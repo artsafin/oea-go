@@ -3,7 +3,7 @@
     <ul class="sticky-top">
         <li><a href="#bulk-operations">Bulk operations</a></li>
         {{ range .Page.Invoices }}
-        <li><a href="#{{ .EmployeeNameSlug }}">{{ .EmployeeName }}</a></li>
+        <li><a href="#{{ .EmployeeNameSlug }}">{{ .Employee }}</a></li>
         {{ end }}
     </ul>
 {{ end}}
@@ -71,19 +71,19 @@
                             {{ if not .PaymentChecksPassed }}
                                 <span title="Suspicious amount - needs manual approval">❌</span>
                             {{ end}}
-                            {{ if .Employee.GeneralSdLink }}<a class="btn btn-outline-info btn-sm"
+                            {{ if .Employee.FirstMaybe.GeneralSD }}<a class="btn btn-outline-info btn-sm"
                                                                role="button"
-                                                               href="{{ .Employee.GeneralSdLink }}"
+                                                               href="{{ .Employee.FirstMaybe.GeneralSD }}"
                                                                target="_blank"
                             >General SD</a>{{ end }}
-                            {{ if .Employee.FinanceSdLink }}<a class="btn btn-outline-info btn-sm"
+                            {{ if .Employee.FirstMaybe.FinanceSD }}<a class="btn btn-outline-info btn-sm"
                                                                role="button"
-                                                               href="{{ .Employee.FinanceSdLink }}"
+                                                               href="{{ .Employee.FirstMaybe.FinanceSD }}"
                                                                target="_blank"
                             >Finance SD</a>{{ end }}
                             <a type="button"
                                class="btn btn-outline-info btn-sm"
-                               href="{{ link "EmployeesDownloadInvoice" "month" $month "employee" .EmployeeName }}"
+                               href="{{ link "EmployeesDownloadInvoice" "month" $month "employee" .Employee.String }}"
                             >Invoice</a>
 
                             <input class="btn btn-outline-info btn-sm"
@@ -101,7 +101,7 @@
                     <td>
                         <div id="{{ .EmployeeNameSlug }}">
                             <h3 style="display: inline-block">
-                                {{ .EmployeeName }} {{ $month }}
+                                {{ .Employee }} {{ $month }}
                             </h3>
                             <table border="1" cellspacing="0" cellpadding="2" width="800" valign="top" class="standart">
                                 <thead style="font-weight: bold; background-color: #cacaca">
@@ -112,50 +112,50 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {{ range .Entries }}
+                                    {{ range .EntriesSorted }}
                                         <tr>
-                                            <td title="{{ .LongComment }}">{{ .LongComment }}</td>
+                                            <td title="{{ .LongComment }}" style="vertical-align: top">{{ .LongComment }}</td>
                                             {{ if .RUBAmount }}
-                                                <td style="text-align: right">{{ .RUBAmount }}</td>
+                                                <td style="text-align: right; vertical-align: top">{{ .RUBAmountMoney }}</td>
                                             {{ else }}
                                                 <td style="background-color: #cacaca"></td>
                                             {{ end }}
 
                                             {{ if .EURAmount }}
-                                                <td style="text-align: right">{{ .EURAmount }}</td>
+                                                <td style="text-align: right; vertical-align: top">{{ .EURAmountMoney }}</td>
                                             {{ else }}
                                                 <td style="background-color: #cacaca"></td>
                                             {{ end }}
                                         </tr>
                                     {{ end }}
                                     <tr style="border-top: 2px solid #ccc;"></tr>
-                                    {{ if .EUREntriesSum }}
+                                    {{ if .EUREntriesMoney }}
                                         <tr>
                                             <td>EUR Subtotal</td>
                                             <td></td>
-                                            <td style="text-align: right">{{ .EUREntriesSum }}</td>
+                                            <td style="text-align: right">{{ .EUREntriesMoney }}</td>
                                         </tr>
                                     {{ end }}
                                     <tr>
-                                        <td>RUB Subtotal and conversion (EURRUB {{ .EURRUBExpected }})</td>
-                                        <td style="text-align: right">{{ .RUBEntriesSum }}</td>
-                                        <td style="text-align: right">{{ .RUBEntriesInEUR }}</td>
+                                        <td>RUB Subtotal and conversion (EURRUB {{ .EURRUBExpectedMoney }})</td>
+                                        <td style="text-align: right">{{ .RUBEntriesMoney }}</td>
+                                        <td style="text-align: right">{{ .RUBEntriesInEURMoney }}</td>
                                     </tr>
                                     <tr>
                                         <td>EUR Total</td>
                                         <td></td>
-                                        <td style="text-align: right">{{ .EURSubtotal }}</td>
+                                        <td style="text-align: right">{{ .EURSubtotalMoney }}</td>
                                     </tr>
                                     <tr>
                                         <td>Rounding</td>
                                         <td></td>
-                                        <td style="text-align: right">{{ .EURRounding }}</td>
+                                        <td style="text-align: right">{{ .EURRoundingMoney }}</td>
                                     </tr>
                                     <tr style="border-top: 2px solid #ccc;"></tr>
                                     <tr>
                                         <td><b>Grand Total</b></td>
                                         <td></td>
-                                        <td style="text-align: right"><b>{{ .EURTotal }}</b></td>
+                                        <td style="text-align: right"><b>{{ .EURTotalMoney }}</b></td>
                                     </tr>
                                 </tbody>
                             </table>

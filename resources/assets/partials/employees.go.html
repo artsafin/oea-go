@@ -3,7 +3,7 @@
 {{ define "sidebar"}}
     {{ $page := .Page }}
     {{ range .Page.Months }}
-        <a class="nav-link {{ if $page.IsMonthSelected . }}active{{ end }}" href="{{ link "EmployeesMonth" "month" .ID }}">{{ .ID }}{{ if .IsCurrent }}<span title="Current month"> (today)</span>{{end}}</a>
+        <a class="nav-link {{ if $page.IsMonthSelected . }}active{{ end }}" href="{{ link "EmployeesMonth" "month" .ID }}">{{ .ID }}{{ if .Current }}<span title="Current month"> (today)</span>{{end}}</a>
     {{ end }}
 {{end}}
 

@@ -91,7 +91,7 @@ func (h handlers) DownloadInvoice(resp http.ResponseWriter, request *http.Reques
 		return
 	}
 
-	invoice, err := invoices.FindByEmployeeAndMonthID(h.doc, month, employee)
+	invoice, err := invoices.FindByEmployeeAndMonthID(h.doc, employee, month)
 	if err != nil {
 		h.writeErr(resp, err)
 		return

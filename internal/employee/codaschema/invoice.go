@@ -3,6 +3,7 @@ package codaschema
 import (
 	"oea-go/internal/codatypes"
 	"sort"
+	"strings"
 )
 
 func (inv Invoice) EntriesSorted() (data []Entries) {
@@ -13,7 +14,7 @@ func (inv Invoice) EntriesSorted() (data []Entries) {
 	return
 }
 
-func (inv Invoice) RUBEntriesInEUR() codatypes.MoneyEur {
+func (inv Invoice) RUBEntriesInEURMoney() codatypes.MoneyEur {
 	return codatypes.MoneyEur(100 * (inv.EURSubtotal - inv.EUREntries))
 }
 
@@ -59,4 +60,8 @@ func (inv Invoice) RUBRateErrorMoney() codatypes.MoneyRub {
 
 func (inv Invoice) HourRateMoney() codatypes.MoneyEur {
 	return codatypes.MoneyEur(inv.HourRate * 100)
+}
+
+func (inv Invoice) EmployeeNameSlug() string {
+	return strings.ReplaceAll(strings.ToLower(strings.TrimSpace(inv.Employee.String())), " ", "-")
 }
