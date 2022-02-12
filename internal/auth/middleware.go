@@ -8,7 +8,7 @@ import (
 	"net/url"
 	"oea-go/internal/auth/authtoken"
 	"oea-go/internal/common"
-	"oea-go/internal/common/config"
+	"oea-go/internal/config"
 	"oea-go/internal/web"
 )
 

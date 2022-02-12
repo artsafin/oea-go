@@ -7,7 +7,7 @@ import (
 	"go.uber.org/zap"
 	"oea-go/internal/auth/twofa"
 	"oea-go/internal/common"
-	"oea-go/internal/common/config"
+	"oea-go/internal/config"
 	"oea-go/internal/db"
 	"time"
 )

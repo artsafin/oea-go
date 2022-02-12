@@ -8,7 +8,7 @@ import (
 	"net/smtp"
 	"net/url"
 	"oea-go/internal/common"
-	"oea-go/internal/common/config"
+	"oea-go/internal/config"
 	"oea-go/resources"
 	"time"
 )

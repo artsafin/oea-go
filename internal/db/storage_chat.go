@@ -3,7 +3,7 @@ package db
 import (
 	"fmt"
 	"github.com/gomodule/redigo/redis"
-	"oea-go/internal/common/config"
+	"oea-go/internal/config"
 	"time"
 )
 

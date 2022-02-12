@@ -5,7 +5,7 @@ import (
 	"go.uber.org/zap"
 	"net/http"
 	"oea-go/internal/auth"
-	"oea-go/internal/common/config"
+	"oea-go/internal/config"
 	"oea-go/internal/db"
 	emplschema "oea-go/internal/employee/codaschema"
 	employeeweb "oea-go/internal/employee/web"

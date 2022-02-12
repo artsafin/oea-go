@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"net/url"
 	"oea-go/internal/auth/authtoken"
-	"oea-go/internal/common/config"
+	"oea-go/internal/config"
 	"oea-go/resources"
 	"time"
 )

@@ -7,7 +7,7 @@ import (
 	"github.com/cristalhq/jwt"
 	"github.com/pkg/errors"
 	"oea-go/internal/auth/enc"
-	"oea-go/internal/common/config"
+	"oea-go/internal/config"
 	"strconv"
 	"strings"
 	"time"

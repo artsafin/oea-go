@@ -13,7 +13,7 @@ import (
 	"oea-go/internal/auth/authtoken"
 	"oea-go/internal/auth/twofa/tg2fa"
 	"oea-go/internal/common"
-	"oea-go/internal/common/config"
+	"oea-go/internal/config"
 	"oea-go/internal/web"
 	"strings"
 	"time"

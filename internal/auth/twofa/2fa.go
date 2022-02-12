@@ -2,7 +2,7 @@ package twofa
 
 import (
 	"oea-go/internal/common"
-	"oea-go/internal/common/config"
+	"oea-go/internal/config"
 	"time"
 )
 

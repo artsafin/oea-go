@@ -4,7 +4,7 @@ import (
 	"github.com/go-telegram-bot-api/telegram-bot-api"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
-	"oea-go/internal/common/config"
+	"oea-go/internal/config"
 	"strings"
 	"sync"
 )

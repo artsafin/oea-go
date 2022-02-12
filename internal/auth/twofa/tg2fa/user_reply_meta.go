@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/pkg/errors"
 	"oea-go/internal/auth/enc"
-	"oea-go/internal/common/config"
+	"oea-go/internal/config"
 	"time"
 )
 
