@@ -76,13 +76,13 @@ func main() {
 		return nil
 	})
 
-	officeCoda, err := officeschema.NewCodaDocument(cfg.BaseUri, cfg.ApiTokenOf, cfg.DocIdOf, loggingMiddleware)
+	officeCoda, err := officeschema.NewCodaFactoryWithSharedClient(cfg.BaseUri, cfg.ApiTokenOf, cfg.DocIdOf, loggingMiddleware)
 	if err != nil {
 		logger.Fatalf("could not create a coda client (office): %v", err)
 	}
 	officeHandler := officeweb.NewHandlers(cfg.FilesDir, officeCoda, logger)
 
-	employeesCoda, err := emplschema.NewCodaDocument(cfg.BaseUri, cfg.ApiTokenEm, cfg.DocIdEm, loggingMiddleware)
+	employeesCoda, err := emplschema.NewCodaFactoryWithSharedClient(cfg.BaseUri, cfg.ApiTokenEm, cfg.DocIdEm, loggingMiddleware)
 	if err != nil {
 		logger.Fatalf("could not create a coda client (empl): %v", err)
 	}

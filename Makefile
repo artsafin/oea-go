@@ -27,6 +27,7 @@ run-dev: build
 
 generate-coda:
 	@docker pull $(GENERATOR_IMAGE)
+	@echo "Using image $(shell docker inspect -f "{{.ContainerConfig.Image}}" $(GENERATOR_IMAGE))"
 	@docker run --rm $(GENERATOR_IMAGE) $(CODA_TOKEN) Oz23vO7xol > internal/employee/codaschema/codaschema.go
 	@docker run --rm $(GENERATOR_IMAGE) $(CODA_TOKEN) TAC1aAH5mf > internal/office/codaschema/codaschema.go
 	@go fmt internal/employee/codaschema/codaschema.go

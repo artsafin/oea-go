@@ -1,11 +1,10 @@
 module oea-go
 
-go 1.16
+go 1.17
 
 require (
 	github.com/360EntSecGroup-Skylar/excelize/v2 v2.3.2
 	github.com/artsafin/coda-go-client v1.0.4
-	github.com/artsafin/go-coda v1.0.1
 	github.com/badoux/checkmail v1.2.1
 	github.com/cristalhq/jwt v1.2.0
 	github.com/divan/num2words v0.0.0-20170904212200-57dba452f942

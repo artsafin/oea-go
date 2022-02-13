@@ -40,6 +40,8 @@ func FindByName(doc *codaschema.CodaDocument, name string, with codaschema.Table
 		return codaschema.Invoices{}, err
 	}
 
+	// TODO find out why LoadRelationsInvoices doesn't use invoices from cache. Races?
+
 	err = doc.LoadRelationsInvoices(context.Background(), invs, with)
 	if err != nil {
 		return codaschema.Invoices{}, err

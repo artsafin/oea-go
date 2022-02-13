@@ -10,12 +10,12 @@ import (
 
 func sortInvoices(invs []codaschema.Invoice) {
 	sort.Slice(invs, func(i, j int) bool {
-		monthCmp := strings.Compare(invs[i].Month.FirstRefName(), invs[j].Month.FirstRefName())
+		monthCmp := strings.Compare(invs[i].Month.String(), invs[j].Month.String())
 		if monthCmp != 0 {
 			return monthCmp < 0
 		}
 
-		return strings.Compare(invs[i].Employee.FirstRefName(), invs[j].Employee.FirstRefName()) < 0
+		return strings.Compare(invs[i].Employee.String(), invs[j].Employee.String()) < 0
 	})
 }
 
@@ -27,6 +27,9 @@ func FindByMonthID(doc *codaschema.CodaDocument, monthID string, with codaschema
 		return nil, err
 	}
 
+	doc.AddInvoicesToCache(invs)
+
+	with.Months = true
 	err = doc.LoadRelationsInvoice(ctx, invs, with)
 	if err != nil {
 		return nil, err

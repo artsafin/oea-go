@@ -2789,414 +2789,6 @@ func NewExpensesByCategory(row Valuer) (dto ExpensesByCategory, errs error) {
 	return
 }
 
-type CashFlowLookup struct {
-	Values []CashFlowRowRef
-}
-
-// FirstRef returns a first referenced row metadata
-func (l CashFlowLookup) FirstRef() (first CashFlowRowRef, found bool) {
-	if len(l.Values) > 0 {
-		return l.Values[0], true
-	}
-
-	return CashFlowRowRef{}, false
-}
-
-// FirstRefName returns a first referenced row's Display Column value
-func (l CashFlowLookup) FirstRefName() string {
-	if len(l.Values) > 0 {
-		return l.Values[0].Name
-	}
-
-	return ""
-}
-
-// RefNames returns a slice of referenced rows' Display Columns values
-func (l CashFlowLookup) RefNames() (names []string) {
-	for _, v := range l.Values {
-		names = append(names, v.Name)
-	}
-
-	return
-}
-
-// String returns a comma-separated Display Columns of referenced rows.
-// This representation is similar to what is shown in the browser.
-func (l CashFlowLookup) String() string {
-	return strings.Join(l.RefNames(), ", ")
-}
-
-// First returns a pointer to a CashFlow struct containing data of the first referenced row.
-// It will return nil unless the lookup contains references and container of this CashFlowLookup was preloaded by the LoadRelations<Original Table> method
-func (l CashFlowLookup) First() *CashFlow {
-	if len(l.Values) > 0 {
-		return l.Values[0].Data
-	}
-
-	return nil
-}
-
-// FirstMaybe returns a CashFlow struct containing data of the first referenced row.
-// If the lookup doesn't contain any references or if reference data was not preloaded by the LoadRelations<Original Table> method it will return an empty structure with nil-values of it's fields
-func (l CashFlowLookup) FirstMaybe() CashFlow {
-	if len(l.Values) > 0 {
-		return *l.Values[0].Data
-	}
-
-	return CashFlow{}
-}
-
-// MustFirst returns a CashFlow struct containing data of the first referenced row.
-// It will panic if the lookup doesn't contain any references or if reference data was not preloaded by the LoadRelations<Original Table> method
-func (l CashFlowLookup) MustFirst() CashFlow {
-	if len(l.Values) > 0 && l.Values[0].Data != nil {
-		return *l.Values[0].Data
-	}
-
-	panic("required CashFlow value is not present in data row of CashFlowLookup, table [Cash flow]")
-}
-
-// All returns all loaded data of the referenced rows if any
-func (l CashFlowLookup) All() (data []CashFlow) {
-	for _, i := range l.Values {
-		if i.Data != nil {
-			data = append(data, *i.Data)
-		}
-	}
-
-	return
-}
-
-// Hydrate fills this lookup values with the corresponding rows from the map[RowID]CashFlow
-func (l *CashFlowLookup) Hydrate(mapOf map[RowID]*CashFlow) {
-	for vi, v := range l.Values {
-		if v.Data != nil {
-			continue
-		}
-		if data, ok := mapOf[RowID(v.RowID)]; ok {
-			l.Values[vi].Data = data
-		}
-	}
-}
-
-type CashFlowRowRef struct {
-	Name  string
-	RowID string
-	Data  *CashFlow
-}
-
-func ToCashFlowLookup(colID string, row Valuer) (values CashFlowLookup, err error) {
-	rawv, ok := row.GetValue(colID)
-	if !ok {
-		return CashFlowLookup{}, fmt.Errorf("missing column %v in Cash flow row", colID)
-	}
-
-	if strv, ok := rawv.(string); ok && strv == "" {
-		return CashFlowLookup{}, nil
-	}
-
-	if slicev, ok := rawv.([]interface{}); ok {
-		for i, interv := range slicev {
-			sv, err := toStructuredValue(interv)
-			if err != nil {
-				return CashFlowLookup{}, fmt.Errorf("slice value #%v: %w", i, err)
-			}
-			values.Values = append(values.Values, CashFlowRowRef{
-				Name:  sv.Name,
-				RowID: sv.RowId,
-			})
-		}
-
-		return
-	}
-
-	sv, err := toStructuredValue(rawv)
-	if err != nil {
-		return CashFlowLookup{}, err
-	}
-
-	values.Values = []CashFlowRowRef{
-		{
-			Name:  sv.Name,
-			RowID: sv.RowId,
-		},
-	}
-
-	return
-}
-
-type InventoryTypesLookup struct {
-	Values []InventoryTypesRowRef
-}
-
-// FirstRef returns a first referenced row metadata
-func (l InventoryTypesLookup) FirstRef() (first InventoryTypesRowRef, found bool) {
-	if len(l.Values) > 0 {
-		return l.Values[0], true
-	}
-
-	return InventoryTypesRowRef{}, false
-}
-
-// FirstRefName returns a first referenced row's Display Column value
-func (l InventoryTypesLookup) FirstRefName() string {
-	if len(l.Values) > 0 {
-		return l.Values[0].Name
-	}
-
-	return ""
-}
-
-// RefNames returns a slice of referenced rows' Display Columns values
-func (l InventoryTypesLookup) RefNames() (names []string) {
-	for _, v := range l.Values {
-		names = append(names, v.Name)
-	}
-
-	return
-}
-
-// String returns a comma-separated Display Columns of referenced rows.
-// This representation is similar to what is shown in the browser.
-func (l InventoryTypesLookup) String() string {
-	return strings.Join(l.RefNames(), ", ")
-}
-
-// First returns a pointer to a InventoryTypes struct containing data of the first referenced row.
-// It will return nil unless the lookup contains references and container of this InventoryTypesLookup was preloaded by the LoadRelations<Original Table> method
-func (l InventoryTypesLookup) First() *InventoryTypes {
-	if len(l.Values) > 0 {
-		return l.Values[0].Data
-	}
-
-	return nil
-}
-
-// FirstMaybe returns a InventoryTypes struct containing data of the first referenced row.
-// If the lookup doesn't contain any references or if reference data was not preloaded by the LoadRelations<Original Table> method it will return an empty structure with nil-values of it's fields
-func (l InventoryTypesLookup) FirstMaybe() InventoryTypes {
-	if len(l.Values) > 0 {
-		return *l.Values[0].Data
-	}
-
-	return InventoryTypes{}
-}
-
-// MustFirst returns a InventoryTypes struct containing data of the first referenced row.
-// It will panic if the lookup doesn't contain any references or if reference data was not preloaded by the LoadRelations<Original Table> method
-func (l InventoryTypesLookup) MustFirst() InventoryTypes {
-	if len(l.Values) > 0 && l.Values[0].Data != nil {
-		return *l.Values[0].Data
-	}
-
-	panic("required InventoryTypes value is not present in data row of InventoryTypesLookup, table [Inventory Types]")
-}
-
-// All returns all loaded data of the referenced rows if any
-func (l InventoryTypesLookup) All() (data []InventoryTypes) {
-	for _, i := range l.Values {
-		if i.Data != nil {
-			data = append(data, *i.Data)
-		}
-	}
-
-	return
-}
-
-// Hydrate fills this lookup values with the corresponding rows from the map[RowID]InventoryTypes
-func (l *InventoryTypesLookup) Hydrate(mapOf map[RowID]*InventoryTypes) {
-	for vi, v := range l.Values {
-		if v.Data != nil {
-			continue
-		}
-		if data, ok := mapOf[RowID(v.RowID)]; ok {
-			l.Values[vi].Data = data
-		}
-	}
-}
-
-type InventoryTypesRowRef struct {
-	Name  string
-	RowID string
-	Data  *InventoryTypes
-}
-
-func ToInventoryTypesLookup(colID string, row Valuer) (values InventoryTypesLookup, err error) {
-	rawv, ok := row.GetValue(colID)
-	if !ok {
-		return InventoryTypesLookup{}, fmt.Errorf("missing column %v in Inventory Types row", colID)
-	}
-
-	if strv, ok := rawv.(string); ok && strv == "" {
-		return InventoryTypesLookup{}, nil
-	}
-
-	if slicev, ok := rawv.([]interface{}); ok {
-		for i, interv := range slicev {
-			sv, err := toStructuredValue(interv)
-			if err != nil {
-				return InventoryTypesLookup{}, fmt.Errorf("slice value #%v: %w", i, err)
-			}
-			values.Values = append(values.Values, InventoryTypesRowRef{
-				Name:  sv.Name,
-				RowID: sv.RowId,
-			})
-		}
-
-		return
-	}
-
-	sv, err := toStructuredValue(rawv)
-	if err != nil {
-		return InventoryTypesLookup{}, err
-	}
-
-	values.Values = []InventoryTypesRowRef{
-		{
-			Name:  sv.Name,
-			RowID: sv.RowId,
-		},
-	}
-
-	return
-}
-
-type AuditCategoryLookup struct {
-	Values []AuditCategoryRowRef
-}
-
-// FirstRef returns a first referenced row metadata
-func (l AuditCategoryLookup) FirstRef() (first AuditCategoryRowRef, found bool) {
-	if len(l.Values) > 0 {
-		return l.Values[0], true
-	}
-
-	return AuditCategoryRowRef{}, false
-}
-
-// FirstRefName returns a first referenced row's Display Column value
-func (l AuditCategoryLookup) FirstRefName() string {
-	if len(l.Values) > 0 {
-		return l.Values[0].Name
-	}
-
-	return ""
-}
-
-// RefNames returns a slice of referenced rows' Display Columns values
-func (l AuditCategoryLookup) RefNames() (names []string) {
-	for _, v := range l.Values {
-		names = append(names, v.Name)
-	}
-
-	return
-}
-
-// String returns a comma-separated Display Columns of referenced rows.
-// This representation is similar to what is shown in the browser.
-func (l AuditCategoryLookup) String() string {
-	return strings.Join(l.RefNames(), ", ")
-}
-
-// First returns a pointer to a AuditCategory struct containing data of the first referenced row.
-// It will return nil unless the lookup contains references and container of this AuditCategoryLookup was preloaded by the LoadRelations<Original Table> method
-func (l AuditCategoryLookup) First() *AuditCategory {
-	if len(l.Values) > 0 {
-		return l.Values[0].Data
-	}
-
-	return nil
-}
-
-// FirstMaybe returns a AuditCategory struct containing data of the first referenced row.
-// If the lookup doesn't contain any references or if reference data was not preloaded by the LoadRelations<Original Table> method it will return an empty structure with nil-values of it's fields
-func (l AuditCategoryLookup) FirstMaybe() AuditCategory {
-	if len(l.Values) > 0 {
-		return *l.Values[0].Data
-	}
-
-	return AuditCategory{}
-}
-
-// MustFirst returns a AuditCategory struct containing data of the first referenced row.
-// It will panic if the lookup doesn't contain any references or if reference data was not preloaded by the LoadRelations<Original Table> method
-func (l AuditCategoryLookup) MustFirst() AuditCategory {
-	if len(l.Values) > 0 && l.Values[0].Data != nil {
-		return *l.Values[0].Data
-	}
-
-	panic("required AuditCategory value is not present in data row of AuditCategoryLookup, table [Audit Category]")
-}
-
-// All returns all loaded data of the referenced rows if any
-func (l AuditCategoryLookup) All() (data []AuditCategory) {
-	for _, i := range l.Values {
-		if i.Data != nil {
-			data = append(data, *i.Data)
-		}
-	}
-
-	return
-}
-
-// Hydrate fills this lookup values with the corresponding rows from the map[RowID]AuditCategory
-func (l *AuditCategoryLookup) Hydrate(mapOf map[RowID]*AuditCategory) {
-	for vi, v := range l.Values {
-		if v.Data != nil {
-			continue
-		}
-		if data, ok := mapOf[RowID(v.RowID)]; ok {
-			l.Values[vi].Data = data
-		}
-	}
-}
-
-type AuditCategoryRowRef struct {
-	Name  string
-	RowID string
-	Data  *AuditCategory
-}
-
-func ToAuditCategoryLookup(colID string, row Valuer) (values AuditCategoryLookup, err error) {
-	rawv, ok := row.GetValue(colID)
-	if !ok {
-		return AuditCategoryLookup{}, fmt.Errorf("missing column %v in Audit Category row", colID)
-	}
-
-	if strv, ok := rawv.(string); ok && strv == "" {
-		return AuditCategoryLookup{}, nil
-	}
-
-	if slicev, ok := rawv.([]interface{}); ok {
-		for i, interv := range slicev {
-			sv, err := toStructuredValue(interv)
-			if err != nil {
-				return AuditCategoryLookup{}, fmt.Errorf("slice value #%v: %w", i, err)
-			}
-			values.Values = append(values.Values, AuditCategoryRowRef{
-				Name:  sv.Name,
-				RowID: sv.RowId,
-			})
-		}
-
-		return
-	}
-
-	sv, err := toStructuredValue(rawv)
-	if err != nil {
-		return AuditCategoryLookup{}, err
-	}
-
-	values.Values = []AuditCategoryRowRef{
-		{
-			Name:  sv.Name,
-			RowID: sv.RowId,
-		},
-	}
-
-	return
-}
-
 type AccountsLookup struct {
 	Values []AccountsRowRef
 }
@@ -3732,6 +3324,414 @@ func ToInvoicesLookup(colID string, row Valuer) (values InvoicesLookup, err erro
 	}
 
 	values.Values = []InvoicesRowRef{
+		{
+			Name:  sv.Name,
+			RowID: sv.RowId,
+		},
+	}
+
+	return
+}
+
+type CashFlowLookup struct {
+	Values []CashFlowRowRef
+}
+
+// FirstRef returns a first referenced row metadata
+func (l CashFlowLookup) FirstRef() (first CashFlowRowRef, found bool) {
+	if len(l.Values) > 0 {
+		return l.Values[0], true
+	}
+
+	return CashFlowRowRef{}, false
+}
+
+// FirstRefName returns a first referenced row's Display Column value
+func (l CashFlowLookup) FirstRefName() string {
+	if len(l.Values) > 0 {
+		return l.Values[0].Name
+	}
+
+	return ""
+}
+
+// RefNames returns a slice of referenced rows' Display Columns values
+func (l CashFlowLookup) RefNames() (names []string) {
+	for _, v := range l.Values {
+		names = append(names, v.Name)
+	}
+
+	return
+}
+
+// String returns a comma-separated Display Columns of referenced rows.
+// This representation is similar to what is shown in the browser.
+func (l CashFlowLookup) String() string {
+	return strings.Join(l.RefNames(), ", ")
+}
+
+// First returns a pointer to a CashFlow struct containing data of the first referenced row.
+// It will return nil unless the lookup contains references and container of this CashFlowLookup was preloaded by the LoadRelations<Original Table> method
+func (l CashFlowLookup) First() *CashFlow {
+	if len(l.Values) > 0 {
+		return l.Values[0].Data
+	}
+
+	return nil
+}
+
+// FirstMaybe returns a CashFlow struct containing data of the first referenced row.
+// If the lookup doesn't contain any references or if reference data was not preloaded by the LoadRelations<Original Table> method it will return an empty structure with nil-values of it's fields
+func (l CashFlowLookup) FirstMaybe() CashFlow {
+	if len(l.Values) > 0 {
+		return *l.Values[0].Data
+	}
+
+	return CashFlow{}
+}
+
+// MustFirst returns a CashFlow struct containing data of the first referenced row.
+// It will panic if the lookup doesn't contain any references or if reference data was not preloaded by the LoadRelations<Original Table> method
+func (l CashFlowLookup) MustFirst() CashFlow {
+	if len(l.Values) > 0 && l.Values[0].Data != nil {
+		return *l.Values[0].Data
+	}
+
+	panic("required CashFlow value is not present in data row of CashFlowLookup, table [Cash flow]")
+}
+
+// All returns all loaded data of the referenced rows if any
+func (l CashFlowLookup) All() (data []CashFlow) {
+	for _, i := range l.Values {
+		if i.Data != nil {
+			data = append(data, *i.Data)
+		}
+	}
+
+	return
+}
+
+// Hydrate fills this lookup values with the corresponding rows from the map[RowID]CashFlow
+func (l *CashFlowLookup) Hydrate(mapOf map[RowID]*CashFlow) {
+	for vi, v := range l.Values {
+		if v.Data != nil {
+			continue
+		}
+		if data, ok := mapOf[RowID(v.RowID)]; ok {
+			l.Values[vi].Data = data
+		}
+	}
+}
+
+type CashFlowRowRef struct {
+	Name  string
+	RowID string
+	Data  *CashFlow
+}
+
+func ToCashFlowLookup(colID string, row Valuer) (values CashFlowLookup, err error) {
+	rawv, ok := row.GetValue(colID)
+	if !ok {
+		return CashFlowLookup{}, fmt.Errorf("missing column %v in Cash flow row", colID)
+	}
+
+	if strv, ok := rawv.(string); ok && strv == "" {
+		return CashFlowLookup{}, nil
+	}
+
+	if slicev, ok := rawv.([]interface{}); ok {
+		for i, interv := range slicev {
+			sv, err := toStructuredValue(interv)
+			if err != nil {
+				return CashFlowLookup{}, fmt.Errorf("slice value #%v: %w", i, err)
+			}
+			values.Values = append(values.Values, CashFlowRowRef{
+				Name:  sv.Name,
+				RowID: sv.RowId,
+			})
+		}
+
+		return
+	}
+
+	sv, err := toStructuredValue(rawv)
+	if err != nil {
+		return CashFlowLookup{}, err
+	}
+
+	values.Values = []CashFlowRowRef{
+		{
+			Name:  sv.Name,
+			RowID: sv.RowId,
+		},
+	}
+
+	return
+}
+
+type InventoryTypesLookup struct {
+	Values []InventoryTypesRowRef
+}
+
+// FirstRef returns a first referenced row metadata
+func (l InventoryTypesLookup) FirstRef() (first InventoryTypesRowRef, found bool) {
+	if len(l.Values) > 0 {
+		return l.Values[0], true
+	}
+
+	return InventoryTypesRowRef{}, false
+}
+
+// FirstRefName returns a first referenced row's Display Column value
+func (l InventoryTypesLookup) FirstRefName() string {
+	if len(l.Values) > 0 {
+		return l.Values[0].Name
+	}
+
+	return ""
+}
+
+// RefNames returns a slice of referenced rows' Display Columns values
+func (l InventoryTypesLookup) RefNames() (names []string) {
+	for _, v := range l.Values {
+		names = append(names, v.Name)
+	}
+
+	return
+}
+
+// String returns a comma-separated Display Columns of referenced rows.
+// This representation is similar to what is shown in the browser.
+func (l InventoryTypesLookup) String() string {
+	return strings.Join(l.RefNames(), ", ")
+}
+
+// First returns a pointer to a InventoryTypes struct containing data of the first referenced row.
+// It will return nil unless the lookup contains references and container of this InventoryTypesLookup was preloaded by the LoadRelations<Original Table> method
+func (l InventoryTypesLookup) First() *InventoryTypes {
+	if len(l.Values) > 0 {
+		return l.Values[0].Data
+	}
+
+	return nil
+}
+
+// FirstMaybe returns a InventoryTypes struct containing data of the first referenced row.
+// If the lookup doesn't contain any references or if reference data was not preloaded by the LoadRelations<Original Table> method it will return an empty structure with nil-values of it's fields
+func (l InventoryTypesLookup) FirstMaybe() InventoryTypes {
+	if len(l.Values) > 0 {
+		return *l.Values[0].Data
+	}
+
+	return InventoryTypes{}
+}
+
+// MustFirst returns a InventoryTypes struct containing data of the first referenced row.
+// It will panic if the lookup doesn't contain any references or if reference data was not preloaded by the LoadRelations<Original Table> method
+func (l InventoryTypesLookup) MustFirst() InventoryTypes {
+	if len(l.Values) > 0 && l.Values[0].Data != nil {
+		return *l.Values[0].Data
+	}
+
+	panic("required InventoryTypes value is not present in data row of InventoryTypesLookup, table [Inventory Types]")
+}
+
+// All returns all loaded data of the referenced rows if any
+func (l InventoryTypesLookup) All() (data []InventoryTypes) {
+	for _, i := range l.Values {
+		if i.Data != nil {
+			data = append(data, *i.Data)
+		}
+	}
+
+	return
+}
+
+// Hydrate fills this lookup values with the corresponding rows from the map[RowID]InventoryTypes
+func (l *InventoryTypesLookup) Hydrate(mapOf map[RowID]*InventoryTypes) {
+	for vi, v := range l.Values {
+		if v.Data != nil {
+			continue
+		}
+		if data, ok := mapOf[RowID(v.RowID)]; ok {
+			l.Values[vi].Data = data
+		}
+	}
+}
+
+type InventoryTypesRowRef struct {
+	Name  string
+	RowID string
+	Data  *InventoryTypes
+}
+
+func ToInventoryTypesLookup(colID string, row Valuer) (values InventoryTypesLookup, err error) {
+	rawv, ok := row.GetValue(colID)
+	if !ok {
+		return InventoryTypesLookup{}, fmt.Errorf("missing column %v in Inventory Types row", colID)
+	}
+
+	if strv, ok := rawv.(string); ok && strv == "" {
+		return InventoryTypesLookup{}, nil
+	}
+
+	if slicev, ok := rawv.([]interface{}); ok {
+		for i, interv := range slicev {
+			sv, err := toStructuredValue(interv)
+			if err != nil {
+				return InventoryTypesLookup{}, fmt.Errorf("slice value #%v: %w", i, err)
+			}
+			values.Values = append(values.Values, InventoryTypesRowRef{
+				Name:  sv.Name,
+				RowID: sv.RowId,
+			})
+		}
+
+		return
+	}
+
+	sv, err := toStructuredValue(rawv)
+	if err != nil {
+		return InventoryTypesLookup{}, err
+	}
+
+	values.Values = []InventoryTypesRowRef{
+		{
+			Name:  sv.Name,
+			RowID: sv.RowId,
+		},
+	}
+
+	return
+}
+
+type AuditCategoryLookup struct {
+	Values []AuditCategoryRowRef
+}
+
+// FirstRef returns a first referenced row metadata
+func (l AuditCategoryLookup) FirstRef() (first AuditCategoryRowRef, found bool) {
+	if len(l.Values) > 0 {
+		return l.Values[0], true
+	}
+
+	return AuditCategoryRowRef{}, false
+}
+
+// FirstRefName returns a first referenced row's Display Column value
+func (l AuditCategoryLookup) FirstRefName() string {
+	if len(l.Values) > 0 {
+		return l.Values[0].Name
+	}
+
+	return ""
+}
+
+// RefNames returns a slice of referenced rows' Display Columns values
+func (l AuditCategoryLookup) RefNames() (names []string) {
+	for _, v := range l.Values {
+		names = append(names, v.Name)
+	}
+
+	return
+}
+
+// String returns a comma-separated Display Columns of referenced rows.
+// This representation is similar to what is shown in the browser.
+func (l AuditCategoryLookup) String() string {
+	return strings.Join(l.RefNames(), ", ")
+}
+
+// First returns a pointer to a AuditCategory struct containing data of the first referenced row.
+// It will return nil unless the lookup contains references and container of this AuditCategoryLookup was preloaded by the LoadRelations<Original Table> method
+func (l AuditCategoryLookup) First() *AuditCategory {
+	if len(l.Values) > 0 {
+		return l.Values[0].Data
+	}
+
+	return nil
+}
+
+// FirstMaybe returns a AuditCategory struct containing data of the first referenced row.
+// If the lookup doesn't contain any references or if reference data was not preloaded by the LoadRelations<Original Table> method it will return an empty structure with nil-values of it's fields
+func (l AuditCategoryLookup) FirstMaybe() AuditCategory {
+	if len(l.Values) > 0 {
+		return *l.Values[0].Data
+	}
+
+	return AuditCategory{}
+}
+
+// MustFirst returns a AuditCategory struct containing data of the first referenced row.
+// It will panic if the lookup doesn't contain any references or if reference data was not preloaded by the LoadRelations<Original Table> method
+func (l AuditCategoryLookup) MustFirst() AuditCategory {
+	if len(l.Values) > 0 && l.Values[0].Data != nil {
+		return *l.Values[0].Data
+	}
+
+	panic("required AuditCategory value is not present in data row of AuditCategoryLookup, table [Audit Category]")
+}
+
+// All returns all loaded data of the referenced rows if any
+func (l AuditCategoryLookup) All() (data []AuditCategory) {
+	for _, i := range l.Values {
+		if i.Data != nil {
+			data = append(data, *i.Data)
+		}
+	}
+
+	return
+}
+
+// Hydrate fills this lookup values with the corresponding rows from the map[RowID]AuditCategory
+func (l *AuditCategoryLookup) Hydrate(mapOf map[RowID]*AuditCategory) {
+	for vi, v := range l.Values {
+		if v.Data != nil {
+			continue
+		}
+		if data, ok := mapOf[RowID(v.RowID)]; ok {
+			l.Values[vi].Data = data
+		}
+	}
+}
+
+type AuditCategoryRowRef struct {
+	Name  string
+	RowID string
+	Data  *AuditCategory
+}
+
+func ToAuditCategoryLookup(colID string, row Valuer) (values AuditCategoryLookup, err error) {
+	rawv, ok := row.GetValue(colID)
+	if !ok {
+		return AuditCategoryLookup{}, fmt.Errorf("missing column %v in Audit Category row", colID)
+	}
+
+	if strv, ok := rawv.(string); ok && strv == "" {
+		return AuditCategoryLookup{}, nil
+	}
+
+	if slicev, ok := rawv.([]interface{}); ok {
+		for i, interv := range slicev {
+			sv, err := toStructuredValue(interv)
+			if err != nil {
+				return AuditCategoryLookup{}, fmt.Errorf("slice value #%v: %w", i, err)
+			}
+			values.Values = append(values.Values, AuditCategoryRowRef{
+				Name:  sv.Name,
+				RowID: sv.RowId,
+			})
+		}
+
+		return
+	}
+
+	sv, err := toStructuredValue(rawv)
+	if err != nil {
+		return AuditCategoryLookup{}, err
+	}
+
+	values.Values = []AuditCategoryRowRef{
 		{
 			Name:  sv.Name,
 			RowID: sv.RowId,
@@ -4473,61 +4473,32 @@ func (d *CodaDocument) MapOfExpensesByCategory(ctx context.Context, extraParams 
 
 // Tables enumeration is used for specification of the tables to deep load
 type Tables struct {
-	Months          bool // Months
-	CashFlow        bool // Cash flow
-	InvoicePayment  bool // Invoice payment
-	Expenses        bool // Expenses
-	Invoices        bool // Invoices
-	Accounts        bool // Accounts
-	InventoryTypes  bool // Inventory Types
-	InvoiceTemplate bool // Invoice template
-	AuditCategory   bool // Audit Category
+	LoadRelationsRecursive bool // Special flag denoting that LoadRelations must load call LoadRelations on relations recursively
+	Months                 bool // Months
+	CashFlow               bool // Cash flow
+	InvoicePayment         bool // Invoice payment
+	Expenses               bool // Expenses
+	Invoices               bool // Invoices
+	Accounts               bool // Accounts
+	InventoryTypes         bool // Inventory Types
+	InvoiceTemplate        bool // Invoice template
+	AuditCategory          bool // Audit Category
 }
 
 // LoadRelationsCashFlow loads data into lookup fields of the CashFlow struct
 func (doc *CodaDocument) LoadRelationsCashFlow(ctx context.Context, shallow map[RowID]*CashFlow, rels Tables) (err error) {
 	var wg sync.WaitGroup
+
+	// In recursive mode we put self to the cache to avoid nested calls to LoadRelationsCashFlow
+	// Unfortunately no guarantee that `shallow` won't spoil the cache unless it contains all possible rows
+	if rels.LoadRelationsRecursive {
+		doc.relationsCache.Store("CashFlow", shallow)
+	}
+
 	var _accountsMap map[RowID]*Accounts
 	var _expensesMap map[RowID]*Expenses
 	var _invoicePaymentMap map[RowID]*InvoicePayment
-	func() {
-		if !rels.Expenses {
-			return
-		}
 
-		if _expensesInter, ok := doc.relationsCache.Load("Expenses"); ok {
-			if _expensesMap, ok = _expensesInter.(map[RowID]*Expenses); ok {
-				return
-			}
-		}
-
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-
-			_expensesMap, _, err = doc.MapOfExpenses(ctx)
-			doc.relationsCache.Store("Expenses", _expensesMap)
-		}()
-	}()
-	func() {
-		if !rels.InvoicePayment {
-			return
-		}
-
-		if _invoicePaymentInter, ok := doc.relationsCache.Load("InvoicePayment"); ok {
-			if _invoicePaymentMap, ok = _invoicePaymentInter.(map[RowID]*InvoicePayment); ok {
-				return
-			}
-		}
-
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-
-			_invoicePaymentMap, _, err = doc.MapOfInvoicePayment(ctx)
-			doc.relationsCache.Store("InvoicePayment", _invoicePaymentMap)
-		}()
-	}()
 	func() {
 		if !rels.Accounts {
 			return
@@ -4547,6 +4518,50 @@ func (doc *CodaDocument) LoadRelationsCashFlow(ctx context.Context, shallow map[
 			doc.relationsCache.Store("Accounts", _accountsMap)
 		}()
 	}()
+	func() {
+		if !rels.Expenses {
+			return
+		}
+
+		if _expensesInter, ok := doc.relationsCache.Load("Expenses"); ok {
+			if _expensesMap, ok = _expensesInter.(map[RowID]*Expenses); ok {
+				return
+			}
+		}
+
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+
+			_expensesMap, _, err = doc.MapOfExpenses(ctx)
+			doc.relationsCache.Store("Expenses", _expensesMap)
+			if rels.LoadRelationsRecursive {
+				doc.LoadRelationsExpenses(ctx, _expensesMap, rels)
+			}
+		}()
+	}()
+	func() {
+		if !rels.InvoicePayment {
+			return
+		}
+
+		if _invoicePaymentInter, ok := doc.relationsCache.Load("InvoicePayment"); ok {
+			if _invoicePaymentMap, ok = _invoicePaymentInter.(map[RowID]*InvoicePayment); ok {
+				return
+			}
+		}
+
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+
+			_invoicePaymentMap, _, err = doc.MapOfInvoicePayment(ctx)
+			doc.relationsCache.Store("InvoicePayment", _invoicePaymentMap)
+			if rels.LoadRelationsRecursive {
+				doc.LoadRelationsInvoicePayment(ctx, _invoicePaymentMap, rels)
+			}
+		}()
+	}()
 
 	wg.Wait()
 
@@ -4555,15 +4570,15 @@ func (doc *CodaDocument) LoadRelationsCashFlow(ctx context.Context, shallow map[
 	}
 
 	for ii, _ := range shallow {
-		if rels.InvoicePayment {
-			shallow[ii].CashIn.Hydrate(_invoicePaymentMap)
-		}
 		if rels.Accounts {
 			shallow[ii].Account.Hydrate(_accountsMap)
 		}
 		if rels.Expenses {
 			shallow[ii].CashOutPurpose.Hydrate(_expensesMap)
 			shallow[ii].PersonalPaidIn.Hydrate(_expensesMap)
+		}
+		if rels.InvoicePayment {
+			shallow[ii].CashIn.Hydrate(_invoicePaymentMap)
 		}
 	}
 
@@ -4573,7 +4588,15 @@ func (doc *CodaDocument) LoadRelationsCashFlow(ctx context.Context, shallow map[
 // LoadRelationsInvoicePayment loads data into lookup fields of the InvoicePayment struct
 func (doc *CodaDocument) LoadRelationsInvoicePayment(ctx context.Context, shallow map[RowID]*InvoicePayment, rels Tables) (err error) {
 	var wg sync.WaitGroup
+
+	// In recursive mode we put self to the cache to avoid nested calls to LoadRelationsInvoicePayment
+	// Unfortunately no guarantee that `shallow` won't spoil the cache unless it contains all possible rows
+	if rels.LoadRelationsRecursive {
+		doc.relationsCache.Store("InvoicePayment", shallow)
+	}
+
 	var _invoicesMap map[RowID]*Invoices
+
 	func() {
 		if !rels.Invoices {
 			return
@@ -4591,6 +4614,9 @@ func (doc *CodaDocument) LoadRelationsInvoicePayment(ctx context.Context, shallo
 
 			_invoicesMap, _, err = doc.MapOfInvoices(ctx)
 			doc.relationsCache.Store("Invoices", _invoicesMap)
+			if rels.LoadRelationsRecursive {
+				doc.LoadRelationsInvoices(ctx, _invoicesMap, rels)
+			}
 		}()
 	}()
 
@@ -4612,29 +4638,18 @@ func (doc *CodaDocument) LoadRelationsInvoicePayment(ctx context.Context, shallo
 // LoadRelationsExpenses loads data into lookup fields of the Expenses struct
 func (doc *CodaDocument) LoadRelationsExpenses(ctx context.Context, shallow map[RowID]*Expenses, rels Tables) (err error) {
 	var wg sync.WaitGroup
-	var _auditCategoryMap map[RowID]*AuditCategory
+
+	// In recursive mode we put self to the cache to avoid nested calls to LoadRelationsExpenses
+	// Unfortunately no guarantee that `shallow` won't spoil the cache unless it contains all possible rows
+	if rels.LoadRelationsRecursive {
+		doc.relationsCache.Store("Expenses", shallow)
+	}
+
 	var _invoicesMap map[RowID]*Invoices
 	var _cashFlowMap map[RowID]*CashFlow
 	var _inventoryTypesMap map[RowID]*InventoryTypes
-	func() {
-		if !rels.AuditCategory {
-			return
-		}
+	var _auditCategoryMap map[RowID]*AuditCategory
 
-		if _auditCategoryInter, ok := doc.relationsCache.Load("AuditCategory"); ok {
-			if _auditCategoryMap, ok = _auditCategoryInter.(map[RowID]*AuditCategory); ok {
-				return
-			}
-		}
-
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-
-			_auditCategoryMap, _, err = doc.MapOfAuditCategory(ctx)
-			doc.relationsCache.Store("AuditCategory", _auditCategoryMap)
-		}()
-	}()
 	func() {
 		if !rels.Invoices {
 			return
@@ -4652,6 +4667,9 @@ func (doc *CodaDocument) LoadRelationsExpenses(ctx context.Context, shallow map[
 
 			_invoicesMap, _, err = doc.MapOfInvoices(ctx)
 			doc.relationsCache.Store("Invoices", _invoicesMap)
+			if rels.LoadRelationsRecursive {
+				doc.LoadRelationsInvoices(ctx, _invoicesMap, rels)
+			}
 		}()
 	}()
 	func() {
@@ -4671,6 +4689,9 @@ func (doc *CodaDocument) LoadRelationsExpenses(ctx context.Context, shallow map[
 
 			_cashFlowMap, _, err = doc.MapOfCashFlow(ctx)
 			doc.relationsCache.Store("CashFlow", _cashFlowMap)
+			if rels.LoadRelationsRecursive {
+				doc.LoadRelationsCashFlow(ctx, _cashFlowMap, rels)
+			}
 		}()
 	}()
 	func() {
@@ -4692,6 +4713,25 @@ func (doc *CodaDocument) LoadRelationsExpenses(ctx context.Context, shallow map[
 			doc.relationsCache.Store("InventoryTypes", _inventoryTypesMap)
 		}()
 	}()
+	func() {
+		if !rels.AuditCategory {
+			return
+		}
+
+		if _auditCategoryInter, ok := doc.relationsCache.Load("AuditCategory"); ok {
+			if _auditCategoryMap, ok = _auditCategoryInter.(map[RowID]*AuditCategory); ok {
+				return
+			}
+		}
+
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+
+			_auditCategoryMap, _, err = doc.MapOfAuditCategory(ctx)
+			doc.relationsCache.Store("AuditCategory", _auditCategoryMap)
+		}()
+	}()
 
 	wg.Wait()
 
@@ -4700,9 +4740,6 @@ func (doc *CodaDocument) LoadRelationsExpenses(ctx context.Context, shallow map[
 	}
 
 	for ii, _ := range shallow {
-		if rels.Invoices {
-			shallow[ii].Invoice.Hydrate(_invoicesMap)
-		}
 		if rels.CashFlow {
 			shallow[ii].CashOutRefs.Hydrate(_cashFlowMap)
 		}
@@ -4712,6 +4749,9 @@ func (doc *CodaDocument) LoadRelationsExpenses(ctx context.Context, shallow map[
 		if rels.AuditCategory {
 			shallow[ii].AuditCategory.Hydrate(_auditCategoryMap)
 		}
+		if rels.Invoices {
+			shallow[ii].Invoice.Hydrate(_invoicesMap)
+		}
 	}
 
 	return nil
@@ -4720,9 +4760,39 @@ func (doc *CodaDocument) LoadRelationsExpenses(ctx context.Context, shallow map[
 // LoadRelationsInvoices loads data into lookup fields of the Invoices struct
 func (doc *CodaDocument) LoadRelationsInvoices(ctx context.Context, shallow map[RowID]*Invoices, rels Tables) (err error) {
 	var wg sync.WaitGroup
+
+	// In recursive mode we put self to the cache to avoid nested calls to LoadRelationsInvoices
+	// Unfortunately no guarantee that `shallow` won't spoil the cache unless it contains all possible rows
+	if rels.LoadRelationsRecursive {
+		doc.relationsCache.Store("Invoices", shallow)
+	}
+
+	var _expensesMap map[RowID]*Expenses
 	var _invoicePaymentMap map[RowID]*InvoicePayment
 	var _invoicesMap map[RowID]*Invoices
-	var _expensesMap map[RowID]*Expenses
+
+	func() {
+		if !rels.Expenses {
+			return
+		}
+
+		if _expensesInter, ok := doc.relationsCache.Load("Expenses"); ok {
+			if _expensesMap, ok = _expensesInter.(map[RowID]*Expenses); ok {
+				return
+			}
+		}
+
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+
+			_expensesMap, _, err = doc.MapOfExpenses(ctx)
+			doc.relationsCache.Store("Expenses", _expensesMap)
+			if rels.LoadRelationsRecursive {
+				doc.LoadRelationsExpenses(ctx, _expensesMap, rels)
+			}
+		}()
+	}()
 	func() {
 		if !rels.InvoicePayment {
 			return
@@ -4740,6 +4810,9 @@ func (doc *CodaDocument) LoadRelationsInvoices(ctx context.Context, shallow map[
 
 			_invoicePaymentMap, _, err = doc.MapOfInvoicePayment(ctx)
 			doc.relationsCache.Store("InvoicePayment", _invoicePaymentMap)
+			if rels.LoadRelationsRecursive {
+				doc.LoadRelationsInvoicePayment(ctx, _invoicePaymentMap, rels)
+			}
 		}()
 	}()
 	func() {
@@ -4759,25 +4832,9 @@ func (doc *CodaDocument) LoadRelationsInvoices(ctx context.Context, shallow map[
 
 			_invoicesMap, _, err = doc.MapOfInvoices(ctx)
 			doc.relationsCache.Store("Invoices", _invoicesMap)
-		}()
-	}()
-	func() {
-		if !rels.Expenses {
-			return
-		}
-
-		if _expensesInter, ok := doc.relationsCache.Load("Expenses"); ok {
-			if _expensesMap, ok = _expensesInter.(map[RowID]*Expenses); ok {
-				return
+			if rels.LoadRelationsRecursive {
+				doc.LoadRelationsInvoices(ctx, _invoicesMap, rels)
 			}
-		}
-
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-
-			_expensesMap, _, err = doc.MapOfExpenses(ctx)
-			doc.relationsCache.Store("Expenses", _expensesMap)
 		}()
 	}()
 

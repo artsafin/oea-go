@@ -13,13 +13,17 @@ import (
 	"time"
 )
 
+type CodaDocFactory interface {
+	New() *codaschema.CodaDocument
+}
+
 type handlers struct {
 	filesDir string
-	doc      *codaschema.CodaDocument
+	doc      CodaDocFactory
 	logger   *zap.SugaredLogger
 }
 
-func NewHandlers(filesDir string, doc *codaschema.CodaDocument, logger *zap.SugaredLogger) *handlers {
+func NewHandlers(filesDir string, doc CodaDocFactory, logger *zap.SugaredLogger) *handlers {
 	return &handlers{
 		filesDir: filesDir,
 		doc:      doc,
@@ -32,7 +36,8 @@ func (h handlers) writeErr(resp http.ResponseWriter, err interface{}, status ...
 }
 
 func (h handlers) Home(vars map[string]string, req *http.Request) interface{} {
-	invs, err := invoices.GetRecent(h.doc)
+	doc := h.doc.New()
+	invs, err := invoices.GetRecent(doc)
 
 	return page{SidebarInvoices: invs, Error: err}.Now()
 }
@@ -49,8 +54,9 @@ func (h handlers) ShowInvoiceData(vars map[string]string, req *http.Request) int
 	var hist invoices.History
 
 	// Order of methods calls affects performance - all is cached in GetHistory
-	hist, err = invoices.GetHistory(h.doc)
-	invoice, err = invoices.FindByName(h.doc, invoiceID, codaschema.Tables{Invoices: true, Expenses: true})
+	doc := h.doc.New()
+	hist, err = invoices.GetHistory(doc)
+	invoice, err = invoices.FindByName(doc, invoiceID, codaschema.Tables{Invoices: true, Expenses: true})
 
 	if err != nil {
 		return page{Error: err}.Now()
@@ -78,7 +84,8 @@ func (h handlers) DownloadInvoice(resp http.ResponseWriter, req *http.Request) {
 
 	invoiceID := vars["invoice"]
 
-	invoice, err := invoices.FindByName(h.doc, invoiceID, codaschema.Tables{Invoices: true, Expenses: true})
+	doc := h.doc.New()
+	invoice, err := invoices.FindByName(doc, invoiceID, codaschema.Tables{Invoices: true, Expenses: true})
 
 	if err != nil {
 		h.writeErr(resp, err, http.StatusInternalServerError)

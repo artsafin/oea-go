@@ -3,8 +3,7 @@ FROM golang:1.17-alpine as deps
 ADD go.mod /app/go.mod
 WORKDIR /app
 
-RUN ["go", "mod", "download"]
-RUN apk add alpine-sdk
+RUN go mod download
 
 
 

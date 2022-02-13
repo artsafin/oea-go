@@ -18,12 +18,16 @@ import (
 	"time"
 )
 
+type CodaDocFactory interface {
+	New() *codaschema.CodaDocument
+}
+
 type handlers struct {
-	doc    *codaschema.CodaDocument
+	doc    CodaDocFactory
 	logger *zap.SugaredLogger
 }
 
-func NewHandlers(doc *codaschema.CodaDocument, logger *zap.SugaredLogger) *handlers {
+func NewHandlers(doc CodaDocFactory, logger *zap.SugaredLogger) *handlers {
 	return &handlers{
 		doc:    doc,
 		logger: logger,
@@ -35,7 +39,8 @@ func (h handlers) writeErr(resp http.ResponseWriter, err interface{}, status ...
 }
 
 func (h handlers) Home(vars map[string]string, req *http.Request) interface{} {
-	ms, err := months.GetNearest(h.doc)
+	doc := h.doc.New()
+	ms, err := months.GetNearest(doc)
 	return page{
 		Months: ms,
 		Error:  err,
@@ -49,6 +54,8 @@ func (h handlers) Month(vars map[string]string, req *http.Request) interface{} {
 		return h.Home(vars, req)
 	}
 
+	doc := h.doc.New()
+
 	var err error
 	pg := page{SelectedMonth: month}
 	var wg sync.WaitGroup
@@ -56,7 +63,7 @@ func (h handlers) Month(vars map[string]string, req *http.Request) interface{} {
 	wg.Add(2)
 	go func() {
 		defer wg.Done()
-		pg.Invoices, err = invoices.FindByMonthID(h.doc, month, codaschema.Tables{
+		pg.Invoices, err = invoices.FindByMonthID(doc, month, codaschema.Tables{
 			Months:       true,
 			Entries:      true,
 			Invoice:      true,
@@ -67,7 +74,7 @@ func (h handlers) Month(vars map[string]string, req *http.Request) interface{} {
 	}()
 	go func() {
 		defer wg.Done()
-		pg.Months, err = months.GetNearest(h.doc)
+		pg.Months, err = months.GetNearest(doc)
 	}()
 	wg.Wait()
 
@@ -91,7 +98,8 @@ func (h handlers) DownloadInvoice(resp http.ResponseWriter, request *http.Reques
 		return
 	}
 
-	invoice, err := invoices.FindByEmployeeAndMonthID(h.doc, employee, month)
+	doc := h.doc.New()
+	invoice, err := invoices.FindByEmployeeAndMonthID(doc, employee, month)
 	if err != nil {
 		h.writeErr(resp, err)
 		return
@@ -123,7 +131,8 @@ func (h handlers) DownloadPayrollReport(resp http.ResponseWriter, request *http.
 		h.writeErr(resp, "no month provided")
 		return
 	}
-	invs, err := invoices.FindByMonthID(h.doc, month, codaschema.Tables{AllEmployees: true, Entries: true})
+	doc := h.doc.New()
+	invs, err := invoices.FindByMonthID(doc, month, codaschema.Tables{AllEmployees: true, Entries: true})
 	if err != nil {
 		h.writeErr(resp, err, http.StatusInternalServerError)
 		return
@@ -148,14 +157,25 @@ func (h handlers) DownloadHellenicPayroll(resp http.ResponseWriter, request *htt
 		return
 	}
 
-	payableInvoices, err := invoices.FindPayableByMonthID(h.doc, month, codaschema.Tables{AllEmployees: true, BankDetails: true, LegalEntity: true})
+	doc := h.doc.New()
+	payableInvoices, err := invoices.FindPayableByMonthID(
+		doc,
+		month,
+		codaschema.Tables{
+			LoadRelationsRecursive: true,
+			AllEmployees: true,
+			BankDetails: true,
+			LegalEntity: true,
+			BeneficiaryBank: true,
+		},
+	)
 
 	if err != nil {
 		h.writeErr(resp, err, http.StatusInternalServerError)
 		return
 	}
 
-	executionDate, err := payroll.GetScheduleByMonth(h.doc, month)
+	executionDate, err := payroll.GetScheduleByMonth(doc, month)
 	if err != nil || executionDate == nil {
 		h.writeErr(resp, err, http.StatusInternalServerError)
 		return
@@ -182,7 +202,8 @@ func (h handlers) DownloadAllInvoices(resp http.ResponseWriter, request *http.Re
 
 	common.WriteMemProfile("before_getinvoices")
 
-	invs, err := invoices.FindByMonthID(h.doc, month, codaschema.Tables{AllEmployees: true, BankDetails: true, LegalEntity: true})
+	doc := h.doc.New()
+	invs, err := invoices.FindByMonthID(doc, month, codaschema.Tables{AllEmployees: true, BankDetails: true, LegalEntity: true})
 	if err != nil {
 		h.writeErr(resp, err, http.StatusInternalServerError)
 		return
