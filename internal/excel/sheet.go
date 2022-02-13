@@ -3,7 +3,7 @@ package excel
 import (
 	"encoding/json"
 	"fmt"
-	x "github.com/360EntSecGroup-Skylar/excelize/v2"
+	x "github.com/xuri/excelize/v2"
 )
 
 type rowCol struct {

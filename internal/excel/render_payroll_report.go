@@ -2,7 +2,7 @@ package excel
 
 import (
 	"fmt"
-	x "github.com/360EntSecGroup-Skylar/excelize/v2"
+	x "github.com/xuri/excelize/v2"
 	"io"
 	"log"
 	"oea-go/internal/employee/codaschema"

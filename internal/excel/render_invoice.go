@@ -6,8 +6,8 @@ import (
 	"oea-go/internal/codatypes"
 	"strings"
 
-	"github.com/360EntSecGroup-Skylar/excelize/v2"
 	"github.com/divan/num2words"
+	"github.com/xuri/excelize/v2"
 )
 
 const invoiceSheetName = "Sheet1"
