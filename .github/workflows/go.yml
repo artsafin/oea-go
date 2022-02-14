@@ -21,7 +21,7 @@ jobs:
       uses: actions/checkout@v2
 
     - name: Build for publishing
-      run: make "BUILD_ARGS=-t ghcr.io/artsafin/oea-go:$CI_ACTION_REF_NAME"
+      run: make "BUILD_ARGS=-t ghcr.io/$CI_REPOSITORY:$CI_ACTION_REF_NAME"
 
     - name: Log in to the Container registry
       uses: docker/login-action@v1
@@ -32,7 +32,7 @@ jobs:
 
     - name: Push to GitHub Packages
       run: |
-        docker image push ghcr.io/artsafin/oea-go:$CI_ACTION_REF_NAME
+        docker image push ghcr.io/$CI_REPOSITORY:$CI_ACTION_REF_NAME
 
     - name: Notify in telegram
       run: |
