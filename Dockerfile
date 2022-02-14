@@ -1,7 +1,7 @@
 FROM golang:1.17-alpine as deps
 
 RUN mkdir -pv /app
-COPY go.mod go.sum /app
+COPY go.mod go.sum /app/
 WORKDIR /app
 
 RUN go mod download
