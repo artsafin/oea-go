@@ -8,5 +8,9 @@
 {{end}}
 
 {{ define "content"}}
-    Select the date of invoices in the sidebar
+    {{ if .Page.Error }}
+        <div class="alert alert-danger" role="alert">{{ .Page.Error }}</div>
+    {{ else }}
+        Select the date of invoices in the sidebar
+    {{ end }}
 {{end}}

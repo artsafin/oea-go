@@ -1,4 +1,4 @@
-VERSION = $(shell git rev-parse --short HEAD)
+VERSION = $(shell echo "`git rev-parse --abbrev-ref HEAD`-`git rev-parse --short HEAD`")
 DEV_ENV_FILE=dev-docker/.env
 DEV_COMPOSE_FILE=dev-docker/docker-compose.yml
 DEV_COMPOSE_PROJ=oea-go-dev

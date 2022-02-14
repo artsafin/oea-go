@@ -14,7 +14,7 @@ func GetScheduleByMonth(doc *codaschema.CodaDocument, month string) (*time.Time,
 	}
 
 	for _, s := range schedule {
-		if s.Month.FirstRefName() == month {
+		if s.Month.String() == month {
 			return &s.ExecutionDate, nil
 		}
 	}

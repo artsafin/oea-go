@@ -2,6 +2,7 @@ package web
 
 import (
 	"archive/zip"
+	"bytes"
 	"fmt"
 	"github.com/gorilla/mux"
 	"go.uber.org/zap"
@@ -56,14 +57,14 @@ func (h handlers) Month(vars map[string]string, req *http.Request) interface{} {
 
 	doc := h.doc.New()
 
-	var err error
+	var errMonths, errInvoices error
 	pg := page{SelectedMonth: month}
 	var wg sync.WaitGroup
 
 	wg.Add(2)
 	go func() {
 		defer wg.Done()
-		pg.Invoices, err = invoices.FindByMonthID(doc, month, codaschema.Tables{
+		pg.Invoices, errInvoices = invoices.FindByMonthID(doc, month, codaschema.Tables{
 			Months:       true,
 			Entries:      true,
 			Invoice:      true,
@@ -74,12 +75,15 @@ func (h handlers) Month(vars map[string]string, req *http.Request) interface{} {
 	}()
 	go func() {
 		defer wg.Done()
-		pg.Months, err = months.GetNearest(doc)
+		pg.Months, errMonths = months.GetNearest(doc)
 	}()
 	wg.Wait()
 
-	if err != nil {
-		return newErrorPage(err)
+	if errInvoices != nil {
+		return newErrorPage(errInvoices)
+	}
+	if errMonths != nil {
+		return newErrorPage(errMonths)
 	}
 
 	return pg
@@ -107,16 +111,11 @@ func (h handlers) DownloadInvoice(resp http.ResponseWriter, request *http.Reques
 
 	reportInv := invoices.NewReportingInvoice(&invoice)
 
-	tpl, err := resources.Open("assets/invoice_template_empl.xlsx")
-	if err != nil {
-		h.writeErr(resp, err)
-		return
-	}
-	defer tpl.Close()
+	tpl := resources.MustReadBytes("assets/invoice_template_empl.xlsx")
 
 	resp.Header().Add("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
 	resp.Header().Add("Content-Disposition", fmt.Sprintf(`attachment; filename="%s"`, reportInv.Filename()))
-	err = excel.RenderInvoice(resp, tpl, reportInv)
+	err = excel.RenderInvoice(resp, bytes.NewReader(tpl), reportInv)
 	if err != nil {
 		resp.Header().Del("Content-Type")
 		resp.Header().Del("Content-Disposition")
@@ -216,12 +215,7 @@ func (h handlers) DownloadAllInvoices(resp http.ResponseWriter, request *http.Re
 	zipWriter := zip.NewWriter(resp)
 	defer zipWriter.Close()
 
-	invoiceTpl, err := resources.Open("assets/invoice_template_empl.xlsx")
-	if err != nil {
-		h.writeErr(resp, err)
-		return
-	}
-	defer invoiceTpl.Close()
+	invoiceTplBs := resources.MustReadBytes("assets/invoice_template_empl.xlsx")
 
 	for _, invoice := range invs {
 		repInv := invoices.NewReportingInvoice(&invoice)
@@ -229,15 +223,15 @@ func (h handlers) DownloadAllInvoices(resp http.ResponseWriter, request *http.Re
 
 		zipFileWriter, zipErr := zipWriter.Create(name)
 		if zipErr != nil {
-			h.logger.Warnf("skipping %s: %v", name, zipErr)
-			return
+			h.logger.Warnf("zipWriter.Create: skipping %s: %v", name, zipErr)
+			continue
 		}
 
-		renderErr := excel.RenderInvoice(zipFileWriter, invoiceTpl, repInv)
+		renderErr := excel.RenderInvoice(zipFileWriter, bytes.NewReader(invoiceTplBs), repInv)
 
 		if renderErr != nil {
-			h.logger.Warnf("skipping %s: %v", name, renderErr)
-			return
+			h.logger.Warnf("RenderInvoice: skipping %s: %v", name, renderErr)
+			continue
 		}
 	}
 

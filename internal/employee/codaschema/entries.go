@@ -12,7 +12,7 @@ func (e Entries) LongComment() template.HTML {
 	htmlComment := strings.ReplaceAll(e.Comment, "\n", "<br>")
 	htmlComment = common.MarkdownToHTML(htmlComment)
 
-	return template.HTML(fmt.Sprintf("<code>%s</code><br>%s", e.Type.FirstRefName(), htmlComment))
+	return template.HTML(fmt.Sprintf("<code>%s</code><br>%s", e.Type.String(), htmlComment))
 }
 
 func (e Entries) EURTotal() float64 {

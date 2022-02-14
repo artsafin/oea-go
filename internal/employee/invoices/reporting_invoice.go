@@ -17,10 +17,10 @@ type reportingInvoice struct {
 }
 
 func (r reportingInvoice) Filename() string {
-	nameWithoutSpaces := strings.Replace(r.inv.Employee.FirstRefName(), " ", "_", -1)
+	nameWithoutSpaces := strings.Replace(r.inv.Employee.String(), " ", "_", -1)
 	nameLower := strings.ToLower(nameWithoutSpaces)
 
-	return fmt.Sprintf("%s_%s.xlsx", r.inv.Month.FirstRefName(), nameLower)
+	return fmt.Sprintf("%s_%s.xlsx", r.inv.Month.String(), nameLower)
 }
 
 func (r reportingInvoice) BeneficiaryRequisites() string {

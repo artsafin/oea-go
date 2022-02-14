@@ -3,7 +3,9 @@
     <ul class="sticky-top">
         <li><a href="#bulk-operations">Bulk operations</a></li>
         {{ range .Page.Invoices }}
-        <li><a href="#{{ .EmployeeNameSlug }}">{{ .Employee }}</a></li>
+        <li>
+            {{ if not .PaymentChecksPassed }}❌{{ end }}
+            <a href="#{{ .EmployeeNameSlug }}">{{ .Employee }}</a></li>
         {{ end }}
     </ul>
 {{ end}}

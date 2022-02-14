@@ -70,7 +70,7 @@ func RenderInvoice(wr io.Writer, template io.Reader, data InvoiceDataProvider) e
 	// Signs
 	invoiceCell(f, "U39", "%SSSS%", data.BeneficiaryName())
 
-	if err := f.Write(wr); err != nil {
+	if err = f.Write(wr); err != nil {
 		return err
 	}
 
