@@ -3247,7 +3247,7 @@ func ToString(colID string, row Valuer) (string, error) {
 	// If whole cell looks like an URL Coda may parse it so and return column value as a WebPage structure
 	webpage, err := ToWebPage(colID, row)
 	if err == nil {
-		return fmt.Sprintf("[%v](%v)", webpage.Url, webpage.Url), nil
+		return webpage.Url, nil
 	}
 
 	// If whole cell looks like a money amount Coda may parse it so and return column value as a MonetaryAmount structure
@@ -5979,1094 +5979,6 @@ func NewTESTTABLE(row Valuer) (dto TESTTABLE, errs error) {
 	return
 }
 
-type BankTariffsLookup struct {
-	Values []BankTariffsRowRef
-}
-
-// FirstRef returns a first referenced row metadata
-func (l BankTariffsLookup) FirstRef() (first BankTariffsRowRef, found bool) {
-	if len(l.Values) > 0 {
-		return l.Values[0], true
-	}
-
-	return BankTariffsRowRef{}, false
-}
-
-// FirstRefName returns a first referenced row's Display Column value
-func (l BankTariffsLookup) FirstRefName() string {
-	if len(l.Values) > 0 {
-		return l.Values[0].Name
-	}
-
-	return ""
-}
-
-// RefNames returns a slice of referenced rows' Display Columns values
-func (l BankTariffsLookup) RefNames() (names []string) {
-	for _, v := range l.Values {
-		names = append(names, v.Name)
-	}
-
-	return
-}
-
-// String returns a comma-separated Display Columns of referenced rows.
-// This representation is similar to what is shown in the browser.
-func (l BankTariffsLookup) String() string {
-	return strings.Join(l.RefNames(), ", ")
-}
-
-// First returns a pointer to a BankTariffs struct containing data of the first referenced row.
-// It will return nil unless the lookup contains references and container of this BankTariffsLookup was preloaded by the LoadRelations<Original Table> method
-func (l BankTariffsLookup) First() *BankTariffs {
-	if len(l.Values) > 0 {
-		return l.Values[0].Data
-	}
-
-	return nil
-}
-
-// FirstMaybe returns a BankTariffs struct containing data of the first referenced row.
-// If the lookup doesn't contain any references or if reference data was not preloaded by the LoadRelations<Original Table> method it will return an empty structure with nil-values of it's fields
-func (l BankTariffsLookup) FirstMaybe() BankTariffs {
-	if len(l.Values) > 0 {
-		return *l.Values[0].Data
-	}
-
-	return BankTariffs{}
-}
-
-// MustFirst returns a BankTariffs struct containing data of the first referenced row.
-// It will panic if the lookup doesn't contain any references or if reference data was not preloaded by the LoadRelations<Original Table> method
-func (l BankTariffsLookup) MustFirst() BankTariffs {
-	if len(l.Values) > 0 && l.Values[0].Data != nil {
-		return *l.Values[0].Data
-	}
-
-	panic("required BankTariffs value is not present in data row of BankTariffsLookup, table [Bank tariffs]")
-}
-
-// All returns all loaded data of the referenced rows if any
-func (l BankTariffsLookup) All() (data []BankTariffs) {
-	for _, i := range l.Values {
-		if i.Data != nil {
-			data = append(data, *i.Data)
-		}
-	}
-
-	return
-}
-
-// Hydrate fills this lookup values with the corresponding rows from the map[RowID]BankTariffs
-func (l *BankTariffsLookup) Hydrate(mapOf map[RowID]*BankTariffs) {
-	for vi, v := range l.Values {
-		if v.Data != nil {
-			continue
-		}
-		if data, ok := mapOf[RowID(v.RowID)]; ok {
-			l.Values[vi].Data = data
-		}
-	}
-}
-
-type BankTariffsRowRef struct {
-	Name  string
-	RowID string
-	Data  *BankTariffs
-}
-
-func ToBankTariffsLookup(colID string, row Valuer) (values BankTariffsLookup, err error) {
-	rawv, ok := row.GetValue(colID)
-	if !ok {
-		return BankTariffsLookup{}, fmt.Errorf("missing column %v in Bank tariffs row", colID)
-	}
-
-	if strv, ok := rawv.(string); ok && strv == "" {
-		return BankTariffsLookup{}, nil
-	}
-
-	if slicev, ok := rawv.([]interface{}); ok {
-		for i, interv := range slicev {
-			sv, err := toStructuredValue(interv)
-			if err != nil {
-				return BankTariffsLookup{}, fmt.Errorf("slice value #%v: %w", i, err)
-			}
-			values.Values = append(values.Values, BankTariffsRowRef{
-				Name:  sv.Name,
-				RowID: sv.RowId,
-			})
-		}
-
-		return
-	}
-
-	sv, err := toStructuredValue(rawv)
-	if err != nil {
-		return BankTariffsLookup{}, err
-	}
-
-	values.Values = []BankTariffsRowRef{
-		{
-			Name:  sv.Name,
-			RowID: sv.RowId,
-		},
-	}
-
-	return
-}
-
-type BankDetailsLookup struct {
-	Values []BankDetailsRowRef
-}
-
-// FirstRef returns a first referenced row metadata
-func (l BankDetailsLookup) FirstRef() (first BankDetailsRowRef, found bool) {
-	if len(l.Values) > 0 {
-		return l.Values[0], true
-	}
-
-	return BankDetailsRowRef{}, false
-}
-
-// FirstRefName returns a first referenced row's Display Column value
-func (l BankDetailsLookup) FirstRefName() string {
-	if len(l.Values) > 0 {
-		return l.Values[0].Name
-	}
-
-	return ""
-}
-
-// RefNames returns a slice of referenced rows' Display Columns values
-func (l BankDetailsLookup) RefNames() (names []string) {
-	for _, v := range l.Values {
-		names = append(names, v.Name)
-	}
-
-	return
-}
-
-// String returns a comma-separated Display Columns of referenced rows.
-// This representation is similar to what is shown in the browser.
-func (l BankDetailsLookup) String() string {
-	return strings.Join(l.RefNames(), ", ")
-}
-
-// First returns a pointer to a BankDetails struct containing data of the first referenced row.
-// It will return nil unless the lookup contains references and container of this BankDetailsLookup was preloaded by the LoadRelations<Original Table> method
-func (l BankDetailsLookup) First() *BankDetails {
-	if len(l.Values) > 0 {
-		return l.Values[0].Data
-	}
-
-	return nil
-}
-
-// FirstMaybe returns a BankDetails struct containing data of the first referenced row.
-// If the lookup doesn't contain any references or if reference data was not preloaded by the LoadRelations<Original Table> method it will return an empty structure with nil-values of it's fields
-func (l BankDetailsLookup) FirstMaybe() BankDetails {
-	if len(l.Values) > 0 {
-		return *l.Values[0].Data
-	}
-
-	return BankDetails{}
-}
-
-// MustFirst returns a BankDetails struct containing data of the first referenced row.
-// It will panic if the lookup doesn't contain any references or if reference data was not preloaded by the LoadRelations<Original Table> method
-func (l BankDetailsLookup) MustFirst() BankDetails {
-	if len(l.Values) > 0 && l.Values[0].Data != nil {
-		return *l.Values[0].Data
-	}
-
-	panic("required BankDetails value is not present in data row of BankDetailsLookup, table [Bank details]")
-}
-
-// All returns all loaded data of the referenced rows if any
-func (l BankDetailsLookup) All() (data []BankDetails) {
-	for _, i := range l.Values {
-		if i.Data != nil {
-			data = append(data, *i.Data)
-		}
-	}
-
-	return
-}
-
-// Hydrate fills this lookup values with the corresponding rows from the map[RowID]BankDetails
-func (l *BankDetailsLookup) Hydrate(mapOf map[RowID]*BankDetails) {
-	for vi, v := range l.Values {
-		if v.Data != nil {
-			continue
-		}
-		if data, ok := mapOf[RowID(v.RowID)]; ok {
-			l.Values[vi].Data = data
-		}
-	}
-}
-
-type BankDetailsRowRef struct {
-	Name  string
-	RowID string
-	Data  *BankDetails
-}
-
-func ToBankDetailsLookup(colID string, row Valuer) (values BankDetailsLookup, err error) {
-	rawv, ok := row.GetValue(colID)
-	if !ok {
-		return BankDetailsLookup{}, fmt.Errorf("missing column %v in Bank details row", colID)
-	}
-
-	if strv, ok := rawv.(string); ok && strv == "" {
-		return BankDetailsLookup{}, nil
-	}
-
-	if slicev, ok := rawv.([]interface{}); ok {
-		for i, interv := range slicev {
-			sv, err := toStructuredValue(interv)
-			if err != nil {
-				return BankDetailsLookup{}, fmt.Errorf("slice value #%v: %w", i, err)
-			}
-			values.Values = append(values.Values, BankDetailsRowRef{
-				Name:  sv.Name,
-				RowID: sv.RowId,
-			})
-		}
-
-		return
-	}
-
-	sv, err := toStructuredValue(rawv)
-	if err != nil {
-		return BankDetailsLookup{}, err
-	}
-
-	values.Values = []BankDetailsRowRef{
-		{
-			Name:  sv.Name,
-			RowID: sv.RowId,
-		},
-	}
-
-	return
-}
-
-type MonthsLookup struct {
-	Values []MonthsRowRef
-}
-
-// FirstRef returns a first referenced row metadata
-func (l MonthsLookup) FirstRef() (first MonthsRowRef, found bool) {
-	if len(l.Values) > 0 {
-		return l.Values[0], true
-	}
-
-	return MonthsRowRef{}, false
-}
-
-// FirstRefName returns a first referenced row's Display Column value
-func (l MonthsLookup) FirstRefName() string {
-	if len(l.Values) > 0 {
-		return l.Values[0].Name
-	}
-
-	return ""
-}
-
-// RefNames returns a slice of referenced rows' Display Columns values
-func (l MonthsLookup) RefNames() (names []string) {
-	for _, v := range l.Values {
-		names = append(names, v.Name)
-	}
-
-	return
-}
-
-// String returns a comma-separated Display Columns of referenced rows.
-// This representation is similar to what is shown in the browser.
-func (l MonthsLookup) String() string {
-	return strings.Join(l.RefNames(), ", ")
-}
-
-// First returns a pointer to a Months struct containing data of the first referenced row.
-// It will return nil unless the lookup contains references and container of this MonthsLookup was preloaded by the LoadRelations<Original Table> method
-func (l MonthsLookup) First() *Months {
-	if len(l.Values) > 0 {
-		return l.Values[0].Data
-	}
-
-	return nil
-}
-
-// FirstMaybe returns a Months struct containing data of the first referenced row.
-// If the lookup doesn't contain any references or if reference data was not preloaded by the LoadRelations<Original Table> method it will return an empty structure with nil-values of it's fields
-func (l MonthsLookup) FirstMaybe() Months {
-	if len(l.Values) > 0 {
-		return *l.Values[0].Data
-	}
-
-	return Months{}
-}
-
-// MustFirst returns a Months struct containing data of the first referenced row.
-// It will panic if the lookup doesn't contain any references or if reference data was not preloaded by the LoadRelations<Original Table> method
-func (l MonthsLookup) MustFirst() Months {
-	if len(l.Values) > 0 && l.Values[0].Data != nil {
-		return *l.Values[0].Data
-	}
-
-	panic("required Months value is not present in data row of MonthsLookup, table [Months]")
-}
-
-// All returns all loaded data of the referenced rows if any
-func (l MonthsLookup) All() (data []Months) {
-	for _, i := range l.Values {
-		if i.Data != nil {
-			data = append(data, *i.Data)
-		}
-	}
-
-	return
-}
-
-// Hydrate fills this lookup values with the corresponding rows from the map[RowID]Months
-func (l *MonthsLookup) Hydrate(mapOf map[RowID]*Months) {
-	for vi, v := range l.Values {
-		if v.Data != nil {
-			continue
-		}
-		if data, ok := mapOf[RowID(v.RowID)]; ok {
-			l.Values[vi].Data = data
-		}
-	}
-}
-
-type MonthsRowRef struct {
-	Name  string
-	RowID string
-	Data  *Months
-}
-
-func ToMonthsLookup(colID string, row Valuer) (values MonthsLookup, err error) {
-	rawv, ok := row.GetValue(colID)
-	if !ok {
-		return MonthsLookup{}, fmt.Errorf("missing column %v in Months row", colID)
-	}
-
-	if strv, ok := rawv.(string); ok && strv == "" {
-		return MonthsLookup{}, nil
-	}
-
-	if slicev, ok := rawv.([]interface{}); ok {
-		for i, interv := range slicev {
-			sv, err := toStructuredValue(interv)
-			if err != nil {
-				return MonthsLookup{}, fmt.Errorf("slice value #%v: %w", i, err)
-			}
-			values.Values = append(values.Values, MonthsRowRef{
-				Name:  sv.Name,
-				RowID: sv.RowId,
-			})
-		}
-
-		return
-	}
-
-	sv, err := toStructuredValue(rawv)
-	if err != nil {
-		return MonthsLookup{}, err
-	}
-
-	values.Values = []MonthsRowRef{
-		{
-			Name:  sv.Name,
-			RowID: sv.RowId,
-		},
-	}
-
-	return
-}
-
-type TaxYearsLookup struct {
-	Values []TaxYearsRowRef
-}
-
-// FirstRef returns a first referenced row metadata
-func (l TaxYearsLookup) FirstRef() (first TaxYearsRowRef, found bool) {
-	if len(l.Values) > 0 {
-		return l.Values[0], true
-	}
-
-	return TaxYearsRowRef{}, false
-}
-
-// FirstRefName returns a first referenced row's Display Column value
-func (l TaxYearsLookup) FirstRefName() string {
-	if len(l.Values) > 0 {
-		return l.Values[0].Name
-	}
-
-	return ""
-}
-
-// RefNames returns a slice of referenced rows' Display Columns values
-func (l TaxYearsLookup) RefNames() (names []string) {
-	for _, v := range l.Values {
-		names = append(names, v.Name)
-	}
-
-	return
-}
-
-// String returns a comma-separated Display Columns of referenced rows.
-// This representation is similar to what is shown in the browser.
-func (l TaxYearsLookup) String() string {
-	return strings.Join(l.RefNames(), ", ")
-}
-
-// First returns a pointer to a TaxYears struct containing data of the first referenced row.
-// It will return nil unless the lookup contains references and container of this TaxYearsLookup was preloaded by the LoadRelations<Original Table> method
-func (l TaxYearsLookup) First() *TaxYears {
-	if len(l.Values) > 0 {
-		return l.Values[0].Data
-	}
-
-	return nil
-}
-
-// FirstMaybe returns a TaxYears struct containing data of the first referenced row.
-// If the lookup doesn't contain any references or if reference data was not preloaded by the LoadRelations<Original Table> method it will return an empty structure with nil-values of it's fields
-func (l TaxYearsLookup) FirstMaybe() TaxYears {
-	if len(l.Values) > 0 {
-		return *l.Values[0].Data
-	}
-
-	return TaxYears{}
-}
-
-// MustFirst returns a TaxYears struct containing data of the first referenced row.
-// It will panic if the lookup doesn't contain any references or if reference data was not preloaded by the LoadRelations<Original Table> method
-func (l TaxYearsLookup) MustFirst() TaxYears {
-	if len(l.Values) > 0 && l.Values[0].Data != nil {
-		return *l.Values[0].Data
-	}
-
-	panic("required TaxYears value is not present in data row of TaxYearsLookup, table [Tax years]")
-}
-
-// All returns all loaded data of the referenced rows if any
-func (l TaxYearsLookup) All() (data []TaxYears) {
-	for _, i := range l.Values {
-		if i.Data != nil {
-			data = append(data, *i.Data)
-		}
-	}
-
-	return
-}
-
-// Hydrate fills this lookup values with the corresponding rows from the map[RowID]TaxYears
-func (l *TaxYearsLookup) Hydrate(mapOf map[RowID]*TaxYears) {
-	for vi, v := range l.Values {
-		if v.Data != nil {
-			continue
-		}
-		if data, ok := mapOf[RowID(v.RowID)]; ok {
-			l.Values[vi].Data = data
-		}
-	}
-}
-
-type TaxYearsRowRef struct {
-	Name  string
-	RowID string
-	Data  *TaxYears
-}
-
-func ToTaxYearsLookup(colID string, row Valuer) (values TaxYearsLookup, err error) {
-	rawv, ok := row.GetValue(colID)
-	if !ok {
-		return TaxYearsLookup{}, fmt.Errorf("missing column %v in Tax years row", colID)
-	}
-
-	if strv, ok := rawv.(string); ok && strv == "" {
-		return TaxYearsLookup{}, nil
-	}
-
-	if slicev, ok := rawv.([]interface{}); ok {
-		for i, interv := range slicev {
-			sv, err := toStructuredValue(interv)
-			if err != nil {
-				return TaxYearsLookup{}, fmt.Errorf("slice value #%v: %w", i, err)
-			}
-			values.Values = append(values.Values, TaxYearsRowRef{
-				Name:  sv.Name,
-				RowID: sv.RowId,
-			})
-		}
-
-		return
-	}
-
-	sv, err := toStructuredValue(rawv)
-	if err != nil {
-		return TaxYearsLookup{}, err
-	}
-
-	values.Values = []TaxYearsRowRef{
-		{
-			Name:  sv.Name,
-			RowID: sv.RowId,
-		},
-	}
-
-	return
-}
-
-type PerDayPoliciesLookup struct {
-	Values []PerDayPoliciesRowRef
-}
-
-// FirstRef returns a first referenced row metadata
-func (l PerDayPoliciesLookup) FirstRef() (first PerDayPoliciesRowRef, found bool) {
-	if len(l.Values) > 0 {
-		return l.Values[0], true
-	}
-
-	return PerDayPoliciesRowRef{}, false
-}
-
-// FirstRefName returns a first referenced row's Display Column value
-func (l PerDayPoliciesLookup) FirstRefName() string {
-	if len(l.Values) > 0 {
-		return l.Values[0].Name
-	}
-
-	return ""
-}
-
-// RefNames returns a slice of referenced rows' Display Columns values
-func (l PerDayPoliciesLookup) RefNames() (names []string) {
-	for _, v := range l.Values {
-		names = append(names, v.Name)
-	}
-
-	return
-}
-
-// String returns a comma-separated Display Columns of referenced rows.
-// This representation is similar to what is shown in the browser.
-func (l PerDayPoliciesLookup) String() string {
-	return strings.Join(l.RefNames(), ", ")
-}
-
-// First returns a pointer to a PerDayPolicies struct containing data of the first referenced row.
-// It will return nil unless the lookup contains references and container of this PerDayPoliciesLookup was preloaded by the LoadRelations<Original Table> method
-func (l PerDayPoliciesLookup) First() *PerDayPolicies {
-	if len(l.Values) > 0 {
-		return l.Values[0].Data
-	}
-
-	return nil
-}
-
-// FirstMaybe returns a PerDayPolicies struct containing data of the first referenced row.
-// If the lookup doesn't contain any references or if reference data was not preloaded by the LoadRelations<Original Table> method it will return an empty structure with nil-values of it's fields
-func (l PerDayPoliciesLookup) FirstMaybe() PerDayPolicies {
-	if len(l.Values) > 0 {
-		return *l.Values[0].Data
-	}
-
-	return PerDayPolicies{}
-}
-
-// MustFirst returns a PerDayPolicies struct containing data of the first referenced row.
-// It will panic if the lookup doesn't contain any references or if reference data was not preloaded by the LoadRelations<Original Table> method
-func (l PerDayPoliciesLookup) MustFirst() PerDayPolicies {
-	if len(l.Values) > 0 && l.Values[0].Data != nil {
-		return *l.Values[0].Data
-	}
-
-	panic("required PerDayPolicies value is not present in data row of PerDayPoliciesLookup, table [Per Day Policies]")
-}
-
-// All returns all loaded data of the referenced rows if any
-func (l PerDayPoliciesLookup) All() (data []PerDayPolicies) {
-	for _, i := range l.Values {
-		if i.Data != nil {
-			data = append(data, *i.Data)
-		}
-	}
-
-	return
-}
-
-// Hydrate fills this lookup values with the corresponding rows from the map[RowID]PerDayPolicies
-func (l *PerDayPoliciesLookup) Hydrate(mapOf map[RowID]*PerDayPolicies) {
-	for vi, v := range l.Values {
-		if v.Data != nil {
-			continue
-		}
-		if data, ok := mapOf[RowID(v.RowID)]; ok {
-			l.Values[vi].Data = data
-		}
-	}
-}
-
-type PerDayPoliciesRowRef struct {
-	Name  string
-	RowID string
-	Data  *PerDayPolicies
-}
-
-func ToPerDayPoliciesLookup(colID string, row Valuer) (values PerDayPoliciesLookup, err error) {
-	rawv, ok := row.GetValue(colID)
-	if !ok {
-		return PerDayPoliciesLookup{}, fmt.Errorf("missing column %v in Per Day Policies row", colID)
-	}
-
-	if strv, ok := rawv.(string); ok && strv == "" {
-		return PerDayPoliciesLookup{}, nil
-	}
-
-	if slicev, ok := rawv.([]interface{}); ok {
-		for i, interv := range slicev {
-			sv, err := toStructuredValue(interv)
-			if err != nil {
-				return PerDayPoliciesLookup{}, fmt.Errorf("slice value #%v: %w", i, err)
-			}
-			values.Values = append(values.Values, PerDayPoliciesRowRef{
-				Name:  sv.Name,
-				RowID: sv.RowId,
-			})
-		}
-
-		return
-	}
-
-	sv, err := toStructuredValue(rawv)
-	if err != nil {
-		return PerDayPoliciesLookup{}, err
-	}
-
-	values.Values = []PerDayPoliciesRowRef{
-		{
-			Name:  sv.Name,
-			RowID: sv.RowId,
-		},
-	}
-
-	return
-}
-
-type EntryTypeLookup struct {
-	Values []EntryTypeRowRef
-}
-
-// FirstRef returns a first referenced row metadata
-func (l EntryTypeLookup) FirstRef() (first EntryTypeRowRef, found bool) {
-	if len(l.Values) > 0 {
-		return l.Values[0], true
-	}
-
-	return EntryTypeRowRef{}, false
-}
-
-// FirstRefName returns a first referenced row's Display Column value
-func (l EntryTypeLookup) FirstRefName() string {
-	if len(l.Values) > 0 {
-		return l.Values[0].Name
-	}
-
-	return ""
-}
-
-// RefNames returns a slice of referenced rows' Display Columns values
-func (l EntryTypeLookup) RefNames() (names []string) {
-	for _, v := range l.Values {
-		names = append(names, v.Name)
-	}
-
-	return
-}
-
-// String returns a comma-separated Display Columns of referenced rows.
-// This representation is similar to what is shown in the browser.
-func (l EntryTypeLookup) String() string {
-	return strings.Join(l.RefNames(), ", ")
-}
-
-// First returns a pointer to a EntryType struct containing data of the first referenced row.
-// It will return nil unless the lookup contains references and container of this EntryTypeLookup was preloaded by the LoadRelations<Original Table> method
-func (l EntryTypeLookup) First() *EntryType {
-	if len(l.Values) > 0 {
-		return l.Values[0].Data
-	}
-
-	return nil
-}
-
-// FirstMaybe returns a EntryType struct containing data of the first referenced row.
-// If the lookup doesn't contain any references or if reference data was not preloaded by the LoadRelations<Original Table> method it will return an empty structure with nil-values of it's fields
-func (l EntryTypeLookup) FirstMaybe() EntryType {
-	if len(l.Values) > 0 {
-		return *l.Values[0].Data
-	}
-
-	return EntryType{}
-}
-
-// MustFirst returns a EntryType struct containing data of the first referenced row.
-// It will panic if the lookup doesn't contain any references or if reference data was not preloaded by the LoadRelations<Original Table> method
-func (l EntryTypeLookup) MustFirst() EntryType {
-	if len(l.Values) > 0 && l.Values[0].Data != nil {
-		return *l.Values[0].Data
-	}
-
-	panic("required EntryType value is not present in data row of EntryTypeLookup, table [Entry Type]")
-}
-
-// All returns all loaded data of the referenced rows if any
-func (l EntryTypeLookup) All() (data []EntryType) {
-	for _, i := range l.Values {
-		if i.Data != nil {
-			data = append(data, *i.Data)
-		}
-	}
-
-	return
-}
-
-// Hydrate fills this lookup values with the corresponding rows from the map[RowID]EntryType
-func (l *EntryTypeLookup) Hydrate(mapOf map[RowID]*EntryType) {
-	for vi, v := range l.Values {
-		if v.Data != nil {
-			continue
-		}
-		if data, ok := mapOf[RowID(v.RowID)]; ok {
-			l.Values[vi].Data = data
-		}
-	}
-}
-
-type EntryTypeRowRef struct {
-	Name  string
-	RowID string
-	Data  *EntryType
-}
-
-func ToEntryTypeLookup(colID string, row Valuer) (values EntryTypeLookup, err error) {
-	rawv, ok := row.GetValue(colID)
-	if !ok {
-		return EntryTypeLookup{}, fmt.Errorf("missing column %v in Entry Type row", colID)
-	}
-
-	if strv, ok := rawv.(string); ok && strv == "" {
-		return EntryTypeLookup{}, nil
-	}
-
-	if slicev, ok := rawv.([]interface{}); ok {
-		for i, interv := range slicev {
-			sv, err := toStructuredValue(interv)
-			if err != nil {
-				return EntryTypeLookup{}, fmt.Errorf("slice value #%v: %w", i, err)
-			}
-			values.Values = append(values.Values, EntryTypeRowRef{
-				Name:  sv.Name,
-				RowID: sv.RowId,
-			})
-		}
-
-		return
-	}
-
-	sv, err := toStructuredValue(rawv)
-	if err != nil {
-		return EntryTypeLookup{}, err
-	}
-
-	values.Values = []EntryTypeRowRef{
-		{
-			Name:  sv.Name,
-			RowID: sv.RowId,
-		},
-	}
-
-	return
-}
-
-type EmployeePatentsLookup struct {
-	Values []EmployeePatentsRowRef
-}
-
-// FirstRef returns a first referenced row metadata
-func (l EmployeePatentsLookup) FirstRef() (first EmployeePatentsRowRef, found bool) {
-	if len(l.Values) > 0 {
-		return l.Values[0], true
-	}
-
-	return EmployeePatentsRowRef{}, false
-}
-
-// FirstRefName returns a first referenced row's Display Column value
-func (l EmployeePatentsLookup) FirstRefName() string {
-	if len(l.Values) > 0 {
-		return l.Values[0].Name
-	}
-
-	return ""
-}
-
-// RefNames returns a slice of referenced rows' Display Columns values
-func (l EmployeePatentsLookup) RefNames() (names []string) {
-	for _, v := range l.Values {
-		names = append(names, v.Name)
-	}
-
-	return
-}
-
-// String returns a comma-separated Display Columns of referenced rows.
-// This representation is similar to what is shown in the browser.
-func (l EmployeePatentsLookup) String() string {
-	return strings.Join(l.RefNames(), ", ")
-}
-
-// First returns a pointer to a EmployeePatents struct containing data of the first referenced row.
-// It will return nil unless the lookup contains references and container of this EmployeePatentsLookup was preloaded by the LoadRelations<Original Table> method
-func (l EmployeePatentsLookup) First() *EmployeePatents {
-	if len(l.Values) > 0 {
-		return l.Values[0].Data
-	}
-
-	return nil
-}
-
-// FirstMaybe returns a EmployeePatents struct containing data of the first referenced row.
-// If the lookup doesn't contain any references or if reference data was not preloaded by the LoadRelations<Original Table> method it will return an empty structure with nil-values of it's fields
-func (l EmployeePatentsLookup) FirstMaybe() EmployeePatents {
-	if len(l.Values) > 0 {
-		return *l.Values[0].Data
-	}
-
-	return EmployeePatents{}
-}
-
-// MustFirst returns a EmployeePatents struct containing data of the first referenced row.
-// It will panic if the lookup doesn't contain any references or if reference data was not preloaded by the LoadRelations<Original Table> method
-func (l EmployeePatentsLookup) MustFirst() EmployeePatents {
-	if len(l.Values) > 0 && l.Values[0].Data != nil {
-		return *l.Values[0].Data
-	}
-
-	panic("required EmployeePatents value is not present in data row of EmployeePatentsLookup, table [Employee Patents]")
-}
-
-// All returns all loaded data of the referenced rows if any
-func (l EmployeePatentsLookup) All() (data []EmployeePatents) {
-	for _, i := range l.Values {
-		if i.Data != nil {
-			data = append(data, *i.Data)
-		}
-	}
-
-	return
-}
-
-// Hydrate fills this lookup values with the corresponding rows from the map[RowID]EmployeePatents
-func (l *EmployeePatentsLookup) Hydrate(mapOf map[RowID]*EmployeePatents) {
-	for vi, v := range l.Values {
-		if v.Data != nil {
-			continue
-		}
-		if data, ok := mapOf[RowID(v.RowID)]; ok {
-			l.Values[vi].Data = data
-		}
-	}
-}
-
-type EmployeePatentsRowRef struct {
-	Name  string
-	RowID string
-	Data  *EmployeePatents
-}
-
-func ToEmployeePatentsLookup(colID string, row Valuer) (values EmployeePatentsLookup, err error) {
-	rawv, ok := row.GetValue(colID)
-	if !ok {
-		return EmployeePatentsLookup{}, fmt.Errorf("missing column %v in Employee Patents row", colID)
-	}
-
-	if strv, ok := rawv.(string); ok && strv == "" {
-		return EmployeePatentsLookup{}, nil
-	}
-
-	if slicev, ok := rawv.([]interface{}); ok {
-		for i, interv := range slicev {
-			sv, err := toStructuredValue(interv)
-			if err != nil {
-				return EmployeePatentsLookup{}, fmt.Errorf("slice value #%v: %w", i, err)
-			}
-			values.Values = append(values.Values, EmployeePatentsRowRef{
-				Name:  sv.Name,
-				RowID: sv.RowId,
-			})
-		}
-
-		return
-	}
-
-	sv, err := toStructuredValue(rawv)
-	if err != nil {
-		return EmployeePatentsLookup{}, err
-	}
-
-	values.Values = []EmployeePatentsRowRef{
-		{
-			Name:  sv.Name,
-			RowID: sv.RowId,
-		},
-	}
-
-	return
-}
-
-type FullPayrollReportLookup struct {
-	Values []FullPayrollReportRowRef
-}
-
-// FirstRef returns a first referenced row metadata
-func (l FullPayrollReportLookup) FirstRef() (first FullPayrollReportRowRef, found bool) {
-	if len(l.Values) > 0 {
-		return l.Values[0], true
-	}
-
-	return FullPayrollReportRowRef{}, false
-}
-
-// FirstRefName returns a first referenced row's Display Column value
-func (l FullPayrollReportLookup) FirstRefName() string {
-	if len(l.Values) > 0 {
-		return l.Values[0].Name
-	}
-
-	return ""
-}
-
-// RefNames returns a slice of referenced rows' Display Columns values
-func (l FullPayrollReportLookup) RefNames() (names []string) {
-	for _, v := range l.Values {
-		names = append(names, v.Name)
-	}
-
-	return
-}
-
-// String returns a comma-separated Display Columns of referenced rows.
-// This representation is similar to what is shown in the browser.
-func (l FullPayrollReportLookup) String() string {
-	return strings.Join(l.RefNames(), ", ")
-}
-
-// First returns a pointer to a FullPayrollReport struct containing data of the first referenced row.
-// It will return nil unless the lookup contains references and container of this FullPayrollReportLookup was preloaded by the LoadRelations<Original Table> method
-func (l FullPayrollReportLookup) First() *FullPayrollReport {
-	if len(l.Values) > 0 {
-		return l.Values[0].Data
-	}
-
-	return nil
-}
-
-// FirstMaybe returns a FullPayrollReport struct containing data of the first referenced row.
-// If the lookup doesn't contain any references or if reference data was not preloaded by the LoadRelations<Original Table> method it will return an empty structure with nil-values of it's fields
-func (l FullPayrollReportLookup) FirstMaybe() FullPayrollReport {
-	if len(l.Values) > 0 {
-		return *l.Values[0].Data
-	}
-
-	return FullPayrollReport{}
-}
-
-// MustFirst returns a FullPayrollReport struct containing data of the first referenced row.
-// It will panic if the lookup doesn't contain any references or if reference data was not preloaded by the LoadRelations<Original Table> method
-func (l FullPayrollReportLookup) MustFirst() FullPayrollReport {
-	if len(l.Values) > 0 && l.Values[0].Data != nil {
-		return *l.Values[0].Data
-	}
-
-	panic("required FullPayrollReport value is not present in data row of FullPayrollReportLookup, table [Full payroll report]")
-}
-
-// All returns all loaded data of the referenced rows if any
-func (l FullPayrollReportLookup) All() (data []FullPayrollReport) {
-	for _, i := range l.Values {
-		if i.Data != nil {
-			data = append(data, *i.Data)
-		}
-	}
-
-	return
-}
-
-// Hydrate fills this lookup values with the corresponding rows from the map[RowID]FullPayrollReport
-func (l *FullPayrollReportLookup) Hydrate(mapOf map[RowID]*FullPayrollReport) {
-	for vi, v := range l.Values {
-		if v.Data != nil {
-			continue
-		}
-		if data, ok := mapOf[RowID(v.RowID)]; ok {
-			l.Values[vi].Data = data
-		}
-	}
-}
-
-type FullPayrollReportRowRef struct {
-	Name  string
-	RowID string
-	Data  *FullPayrollReport
-}
-
-func ToFullPayrollReportLookup(colID string, row Valuer) (values FullPayrollReportLookup, err error) {
-	rawv, ok := row.GetValue(colID)
-	if !ok {
-		return FullPayrollReportLookup{}, fmt.Errorf("missing column %v in Full payroll report row", colID)
-	}
-
-	if strv, ok := rawv.(string); ok && strv == "" {
-		return FullPayrollReportLookup{}, nil
-	}
-
-	if slicev, ok := rawv.([]interface{}); ok {
-		for i, interv := range slicev {
-			sv, err := toStructuredValue(interv)
-			if err != nil {
-				return FullPayrollReportLookup{}, fmt.Errorf("slice value #%v: %w", i, err)
-			}
-			values.Values = append(values.Values, FullPayrollReportRowRef{
-				Name:  sv.Name,
-				RowID: sv.RowId,
-			})
-		}
-
-		return
-	}
-
-	sv, err := toStructuredValue(rawv)
-	if err != nil {
-		return FullPayrollReportLookup{}, err
-	}
-
-	values.Values = []FullPayrollReportRowRef{
-		{
-			Name:  sv.Name,
-			RowID: sv.RowId,
-		},
-	}
-
-	return
-}
-
 type LocationLookup struct {
 	Values []LocationRowRef
 }
@@ -7203,21 +6115,21 @@ func ToLocationLookup(colID string, row Valuer) (values LocationLookup, err erro
 	return
 }
 
-type InvoiceLookup struct {
-	Values []InvoiceRowRef
+type BankDetailsLookup struct {
+	Values []BankDetailsRowRef
 }
 
 // FirstRef returns a first referenced row metadata
-func (l InvoiceLookup) FirstRef() (first InvoiceRowRef, found bool) {
+func (l BankDetailsLookup) FirstRef() (first BankDetailsRowRef, found bool) {
 	if len(l.Values) > 0 {
 		return l.Values[0], true
 	}
 
-	return InvoiceRowRef{}, false
+	return BankDetailsRowRef{}, false
 }
 
 // FirstRefName returns a first referenced row's Display Column value
-func (l InvoiceLookup) FirstRefName() string {
+func (l BankDetailsLookup) FirstRefName() string {
 	if len(l.Values) > 0 {
 		return l.Values[0].Name
 	}
@@ -7226,7 +6138,7 @@ func (l InvoiceLookup) FirstRefName() string {
 }
 
 // RefNames returns a slice of referenced rows' Display Columns values
-func (l InvoiceLookup) RefNames() (names []string) {
+func (l BankDetailsLookup) RefNames() (names []string) {
 	for _, v := range l.Values {
 		names = append(names, v.Name)
 	}
@@ -7236,13 +6148,13 @@ func (l InvoiceLookup) RefNames() (names []string) {
 
 // String returns a comma-separated Display Columns of referenced rows.
 // This representation is similar to what is shown in the browser.
-func (l InvoiceLookup) String() string {
+func (l BankDetailsLookup) String() string {
 	return strings.Join(l.RefNames(), ", ")
 }
 
-// First returns a pointer to a Invoice struct containing data of the first referenced row.
-// It will return nil unless the lookup contains references and container of this InvoiceLookup was preloaded by the LoadRelations<Original Table> method
-func (l InvoiceLookup) First() *Invoice {
+// First returns a pointer to a BankDetails struct containing data of the first referenced row.
+// It will return nil unless the lookup contains references and container of this BankDetailsLookup was preloaded by the LoadRelations<Original Table> method
+func (l BankDetailsLookup) First() *BankDetails {
 	if len(l.Values) > 0 {
 		return l.Values[0].Data
 	}
@@ -7250,28 +6162,28 @@ func (l InvoiceLookup) First() *Invoice {
 	return nil
 }
 
-// FirstMaybe returns a Invoice struct containing data of the first referenced row.
+// FirstMaybe returns a BankDetails struct containing data of the first referenced row.
 // If the lookup doesn't contain any references or if reference data was not preloaded by the LoadRelations<Original Table> method it will return an empty structure with nil-values of it's fields
-func (l InvoiceLookup) FirstMaybe() Invoice {
+func (l BankDetailsLookup) FirstMaybe() BankDetails {
 	if len(l.Values) > 0 {
 		return *l.Values[0].Data
 	}
 
-	return Invoice{}
+	return BankDetails{}
 }
 
-// MustFirst returns a Invoice struct containing data of the first referenced row.
+// MustFirst returns a BankDetails struct containing data of the first referenced row.
 // It will panic if the lookup doesn't contain any references or if reference data was not preloaded by the LoadRelations<Original Table> method
-func (l InvoiceLookup) MustFirst() Invoice {
+func (l BankDetailsLookup) MustFirst() BankDetails {
 	if len(l.Values) > 0 && l.Values[0].Data != nil {
 		return *l.Values[0].Data
 	}
 
-	panic("required Invoice value is not present in data row of InvoiceLookup, table [Invoice]")
+	panic("required BankDetails value is not present in data row of BankDetailsLookup, table [Bank details]")
 }
 
 // All returns all loaded data of the referenced rows if any
-func (l InvoiceLookup) All() (data []Invoice) {
+func (l BankDetailsLookup) All() (data []BankDetails) {
 	for _, i := range l.Values {
 		if i.Data != nil {
 			data = append(data, *i.Data)
@@ -7281,8 +6193,8 @@ func (l InvoiceLookup) All() (data []Invoice) {
 	return
 }
 
-// Hydrate fills this lookup values with the corresponding rows from the map[RowID]Invoice
-func (l *InvoiceLookup) Hydrate(mapOf map[RowID]*Invoice) {
+// Hydrate fills this lookup values with the corresponding rows from the map[RowID]BankDetails
+func (l *BankDetailsLookup) Hydrate(mapOf map[RowID]*BankDetails) {
 	for vi, v := range l.Values {
 		if v.Data != nil {
 			continue
@@ -7293,29 +6205,29 @@ func (l *InvoiceLookup) Hydrate(mapOf map[RowID]*Invoice) {
 	}
 }
 
-type InvoiceRowRef struct {
+type BankDetailsRowRef struct {
 	Name  string
 	RowID string
-	Data  *Invoice
+	Data  *BankDetails
 }
 
-func ToInvoiceLookup(colID string, row Valuer) (values InvoiceLookup, err error) {
+func ToBankDetailsLookup(colID string, row Valuer) (values BankDetailsLookup, err error) {
 	rawv, ok := row.GetValue(colID)
 	if !ok {
-		return InvoiceLookup{}, fmt.Errorf("missing column %v in Invoice row", colID)
+		return BankDetailsLookup{}, fmt.Errorf("missing column %v in Bank details row", colID)
 	}
 
 	if strv, ok := rawv.(string); ok && strv == "" {
-		return InvoiceLookup{}, nil
+		return BankDetailsLookup{}, nil
 	}
 
 	if slicev, ok := rawv.([]interface{}); ok {
 		for i, interv := range slicev {
 			sv, err := toStructuredValue(interv)
 			if err != nil {
-				return InvoiceLookup{}, fmt.Errorf("slice value #%v: %w", i, err)
+				return BankDetailsLookup{}, fmt.Errorf("slice value #%v: %w", i, err)
 			}
-			values.Values = append(values.Values, InvoiceRowRef{
+			values.Values = append(values.Values, BankDetailsRowRef{
 				Name:  sv.Name,
 				RowID: sv.RowId,
 			})
@@ -7326,282 +6238,10 @@ func ToInvoiceLookup(colID string, row Valuer) (values InvoiceLookup, err error)
 
 	sv, err := toStructuredValue(rawv)
 	if err != nil {
-		return InvoiceLookup{}, err
+		return BankDetailsLookup{}, err
 	}
 
-	values.Values = []InvoiceRowRef{
-		{
-			Name:  sv.Name,
-			RowID: sv.RowId,
-		},
-	}
-
-	return
-}
-
-type LegalEntityLookup struct {
-	Values []LegalEntityRowRef
-}
-
-// FirstRef returns a first referenced row metadata
-func (l LegalEntityLookup) FirstRef() (first LegalEntityRowRef, found bool) {
-	if len(l.Values) > 0 {
-		return l.Values[0], true
-	}
-
-	return LegalEntityRowRef{}, false
-}
-
-// FirstRefName returns a first referenced row's Display Column value
-func (l LegalEntityLookup) FirstRefName() string {
-	if len(l.Values) > 0 {
-		return l.Values[0].Name
-	}
-
-	return ""
-}
-
-// RefNames returns a slice of referenced rows' Display Columns values
-func (l LegalEntityLookup) RefNames() (names []string) {
-	for _, v := range l.Values {
-		names = append(names, v.Name)
-	}
-
-	return
-}
-
-// String returns a comma-separated Display Columns of referenced rows.
-// This representation is similar to what is shown in the browser.
-func (l LegalEntityLookup) String() string {
-	return strings.Join(l.RefNames(), ", ")
-}
-
-// First returns a pointer to a LegalEntity struct containing data of the first referenced row.
-// It will return nil unless the lookup contains references and container of this LegalEntityLookup was preloaded by the LoadRelations<Original Table> method
-func (l LegalEntityLookup) First() *LegalEntity {
-	if len(l.Values) > 0 {
-		return l.Values[0].Data
-	}
-
-	return nil
-}
-
-// FirstMaybe returns a LegalEntity struct containing data of the first referenced row.
-// If the lookup doesn't contain any references or if reference data was not preloaded by the LoadRelations<Original Table> method it will return an empty structure with nil-values of it's fields
-func (l LegalEntityLookup) FirstMaybe() LegalEntity {
-	if len(l.Values) > 0 {
-		return *l.Values[0].Data
-	}
-
-	return LegalEntity{}
-}
-
-// MustFirst returns a LegalEntity struct containing data of the first referenced row.
-// It will panic if the lookup doesn't contain any references or if reference data was not preloaded by the LoadRelations<Original Table> method
-func (l LegalEntityLookup) MustFirst() LegalEntity {
-	if len(l.Values) > 0 && l.Values[0].Data != nil {
-		return *l.Values[0].Data
-	}
-
-	panic("required LegalEntity value is not present in data row of LegalEntityLookup, table [Legal entity]")
-}
-
-// All returns all loaded data of the referenced rows if any
-func (l LegalEntityLookup) All() (data []LegalEntity) {
-	for _, i := range l.Values {
-		if i.Data != nil {
-			data = append(data, *i.Data)
-		}
-	}
-
-	return
-}
-
-// Hydrate fills this lookup values with the corresponding rows from the map[RowID]LegalEntity
-func (l *LegalEntityLookup) Hydrate(mapOf map[RowID]*LegalEntity) {
-	for vi, v := range l.Values {
-		if v.Data != nil {
-			continue
-		}
-		if data, ok := mapOf[RowID(v.RowID)]; ok {
-			l.Values[vi].Data = data
-		}
-	}
-}
-
-type LegalEntityRowRef struct {
-	Name  string
-	RowID string
-	Data  *LegalEntity
-}
-
-func ToLegalEntityLookup(colID string, row Valuer) (values LegalEntityLookup, err error) {
-	rawv, ok := row.GetValue(colID)
-	if !ok {
-		return LegalEntityLookup{}, fmt.Errorf("missing column %v in Legal entity row", colID)
-	}
-
-	if strv, ok := rawv.(string); ok && strv == "" {
-		return LegalEntityLookup{}, nil
-	}
-
-	if slicev, ok := rawv.([]interface{}); ok {
-		for i, interv := range slicev {
-			sv, err := toStructuredValue(interv)
-			if err != nil {
-				return LegalEntityLookup{}, fmt.Errorf("slice value #%v: %w", i, err)
-			}
-			values.Values = append(values.Values, LegalEntityRowRef{
-				Name:  sv.Name,
-				RowID: sv.RowId,
-			})
-		}
-
-		return
-	}
-
-	sv, err := toStructuredValue(rawv)
-	if err != nil {
-		return LegalEntityLookup{}, err
-	}
-
-	values.Values = []LegalEntityRowRef{
-		{
-			Name:  sv.Name,
-			RowID: sv.RowId,
-		},
-	}
-
-	return
-}
-
-type AllEmployeesLookup struct {
-	Values []AllEmployeesRowRef
-}
-
-// FirstRef returns a first referenced row metadata
-func (l AllEmployeesLookup) FirstRef() (first AllEmployeesRowRef, found bool) {
-	if len(l.Values) > 0 {
-		return l.Values[0], true
-	}
-
-	return AllEmployeesRowRef{}, false
-}
-
-// FirstRefName returns a first referenced row's Display Column value
-func (l AllEmployeesLookup) FirstRefName() string {
-	if len(l.Values) > 0 {
-		return l.Values[0].Name
-	}
-
-	return ""
-}
-
-// RefNames returns a slice of referenced rows' Display Columns values
-func (l AllEmployeesLookup) RefNames() (names []string) {
-	for _, v := range l.Values {
-		names = append(names, v.Name)
-	}
-
-	return
-}
-
-// String returns a comma-separated Display Columns of referenced rows.
-// This representation is similar to what is shown in the browser.
-func (l AllEmployeesLookup) String() string {
-	return strings.Join(l.RefNames(), ", ")
-}
-
-// First returns a pointer to a AllEmployees struct containing data of the first referenced row.
-// It will return nil unless the lookup contains references and container of this AllEmployeesLookup was preloaded by the LoadRelations<Original Table> method
-func (l AllEmployeesLookup) First() *AllEmployees {
-	if len(l.Values) > 0 {
-		return l.Values[0].Data
-	}
-
-	return nil
-}
-
-// FirstMaybe returns a AllEmployees struct containing data of the first referenced row.
-// If the lookup doesn't contain any references or if reference data was not preloaded by the LoadRelations<Original Table> method it will return an empty structure with nil-values of it's fields
-func (l AllEmployeesLookup) FirstMaybe() AllEmployees {
-	if len(l.Values) > 0 {
-		return *l.Values[0].Data
-	}
-
-	return AllEmployees{}
-}
-
-// MustFirst returns a AllEmployees struct containing data of the first referenced row.
-// It will panic if the lookup doesn't contain any references or if reference data was not preloaded by the LoadRelations<Original Table> method
-func (l AllEmployeesLookup) MustFirst() AllEmployees {
-	if len(l.Values) > 0 && l.Values[0].Data != nil {
-		return *l.Values[0].Data
-	}
-
-	panic("required AllEmployees value is not present in data row of AllEmployeesLookup, table [All employees]")
-}
-
-// All returns all loaded data of the referenced rows if any
-func (l AllEmployeesLookup) All() (data []AllEmployees) {
-	for _, i := range l.Values {
-		if i.Data != nil {
-			data = append(data, *i.Data)
-		}
-	}
-
-	return
-}
-
-// Hydrate fills this lookup values with the corresponding rows from the map[RowID]AllEmployees
-func (l *AllEmployeesLookup) Hydrate(mapOf map[RowID]*AllEmployees) {
-	for vi, v := range l.Values {
-		if v.Data != nil {
-			continue
-		}
-		if data, ok := mapOf[RowID(v.RowID)]; ok {
-			l.Values[vi].Data = data
-		}
-	}
-}
-
-type AllEmployeesRowRef struct {
-	Name  string
-	RowID string
-	Data  *AllEmployees
-}
-
-func ToAllEmployeesLookup(colID string, row Valuer) (values AllEmployeesLookup, err error) {
-	rawv, ok := row.GetValue(colID)
-	if !ok {
-		return AllEmployeesLookup{}, fmt.Errorf("missing column %v in All employees row", colID)
-	}
-
-	if strv, ok := rawv.(string); ok && strv == "" {
-		return AllEmployeesLookup{}, nil
-	}
-
-	if slicev, ok := rawv.([]interface{}); ok {
-		for i, interv := range slicev {
-			sv, err := toStructuredValue(interv)
-			if err != nil {
-				return AllEmployeesLookup{}, fmt.Errorf("slice value #%v: %w", i, err)
-			}
-			values.Values = append(values.Values, AllEmployeesRowRef{
-				Name:  sv.Name,
-				RowID: sv.RowId,
-			})
-		}
-
-		return
-	}
-
-	sv, err := toStructuredValue(rawv)
-	if err != nil {
-		return AllEmployeesLookup{}, err
-	}
-
-	values.Values = []AllEmployeesRowRef{
+	values.Values = []BankDetailsRowRef{
 		{
 			Name:  sv.Name,
 			RowID: sv.RowId,
@@ -8010,6 +6650,1366 @@ func ToBeneficiaryBankLookup(colID string, row Valuer) (values BeneficiaryBankLo
 	}
 
 	values.Values = []BeneficiaryBankRowRef{
+		{
+			Name:  sv.Name,
+			RowID: sv.RowId,
+		},
+	}
+
+	return
+}
+
+type LegalEntityLookup struct {
+	Values []LegalEntityRowRef
+}
+
+// FirstRef returns a first referenced row metadata
+func (l LegalEntityLookup) FirstRef() (first LegalEntityRowRef, found bool) {
+	if len(l.Values) > 0 {
+		return l.Values[0], true
+	}
+
+	return LegalEntityRowRef{}, false
+}
+
+// FirstRefName returns a first referenced row's Display Column value
+func (l LegalEntityLookup) FirstRefName() string {
+	if len(l.Values) > 0 {
+		return l.Values[0].Name
+	}
+
+	return ""
+}
+
+// RefNames returns a slice of referenced rows' Display Columns values
+func (l LegalEntityLookup) RefNames() (names []string) {
+	for _, v := range l.Values {
+		names = append(names, v.Name)
+	}
+
+	return
+}
+
+// String returns a comma-separated Display Columns of referenced rows.
+// This representation is similar to what is shown in the browser.
+func (l LegalEntityLookup) String() string {
+	return strings.Join(l.RefNames(), ", ")
+}
+
+// First returns a pointer to a LegalEntity struct containing data of the first referenced row.
+// It will return nil unless the lookup contains references and container of this LegalEntityLookup was preloaded by the LoadRelations<Original Table> method
+func (l LegalEntityLookup) First() *LegalEntity {
+	if len(l.Values) > 0 {
+		return l.Values[0].Data
+	}
+
+	return nil
+}
+
+// FirstMaybe returns a LegalEntity struct containing data of the first referenced row.
+// If the lookup doesn't contain any references or if reference data was not preloaded by the LoadRelations<Original Table> method it will return an empty structure with nil-values of it's fields
+func (l LegalEntityLookup) FirstMaybe() LegalEntity {
+	if len(l.Values) > 0 {
+		return *l.Values[0].Data
+	}
+
+	return LegalEntity{}
+}
+
+// MustFirst returns a LegalEntity struct containing data of the first referenced row.
+// It will panic if the lookup doesn't contain any references or if reference data was not preloaded by the LoadRelations<Original Table> method
+func (l LegalEntityLookup) MustFirst() LegalEntity {
+	if len(l.Values) > 0 && l.Values[0].Data != nil {
+		return *l.Values[0].Data
+	}
+
+	panic("required LegalEntity value is not present in data row of LegalEntityLookup, table [Legal entity]")
+}
+
+// All returns all loaded data of the referenced rows if any
+func (l LegalEntityLookup) All() (data []LegalEntity) {
+	for _, i := range l.Values {
+		if i.Data != nil {
+			data = append(data, *i.Data)
+		}
+	}
+
+	return
+}
+
+// Hydrate fills this lookup values with the corresponding rows from the map[RowID]LegalEntity
+func (l *LegalEntityLookup) Hydrate(mapOf map[RowID]*LegalEntity) {
+	for vi, v := range l.Values {
+		if v.Data != nil {
+			continue
+		}
+		if data, ok := mapOf[RowID(v.RowID)]; ok {
+			l.Values[vi].Data = data
+		}
+	}
+}
+
+type LegalEntityRowRef struct {
+	Name  string
+	RowID string
+	Data  *LegalEntity
+}
+
+func ToLegalEntityLookup(colID string, row Valuer) (values LegalEntityLookup, err error) {
+	rawv, ok := row.GetValue(colID)
+	if !ok {
+		return LegalEntityLookup{}, fmt.Errorf("missing column %v in Legal entity row", colID)
+	}
+
+	if strv, ok := rawv.(string); ok && strv == "" {
+		return LegalEntityLookup{}, nil
+	}
+
+	if slicev, ok := rawv.([]interface{}); ok {
+		for i, interv := range slicev {
+			sv, err := toStructuredValue(interv)
+			if err != nil {
+				return LegalEntityLookup{}, fmt.Errorf("slice value #%v: %w", i, err)
+			}
+			values.Values = append(values.Values, LegalEntityRowRef{
+				Name:  sv.Name,
+				RowID: sv.RowId,
+			})
+		}
+
+		return
+	}
+
+	sv, err := toStructuredValue(rawv)
+	if err != nil {
+		return LegalEntityLookup{}, err
+	}
+
+	values.Values = []LegalEntityRowRef{
+		{
+			Name:  sv.Name,
+			RowID: sv.RowId,
+		},
+	}
+
+	return
+}
+
+type MonthsLookup struct {
+	Values []MonthsRowRef
+}
+
+// FirstRef returns a first referenced row metadata
+func (l MonthsLookup) FirstRef() (first MonthsRowRef, found bool) {
+	if len(l.Values) > 0 {
+		return l.Values[0], true
+	}
+
+	return MonthsRowRef{}, false
+}
+
+// FirstRefName returns a first referenced row's Display Column value
+func (l MonthsLookup) FirstRefName() string {
+	if len(l.Values) > 0 {
+		return l.Values[0].Name
+	}
+
+	return ""
+}
+
+// RefNames returns a slice of referenced rows' Display Columns values
+func (l MonthsLookup) RefNames() (names []string) {
+	for _, v := range l.Values {
+		names = append(names, v.Name)
+	}
+
+	return
+}
+
+// String returns a comma-separated Display Columns of referenced rows.
+// This representation is similar to what is shown in the browser.
+func (l MonthsLookup) String() string {
+	return strings.Join(l.RefNames(), ", ")
+}
+
+// First returns a pointer to a Months struct containing data of the first referenced row.
+// It will return nil unless the lookup contains references and container of this MonthsLookup was preloaded by the LoadRelations<Original Table> method
+func (l MonthsLookup) First() *Months {
+	if len(l.Values) > 0 {
+		return l.Values[0].Data
+	}
+
+	return nil
+}
+
+// FirstMaybe returns a Months struct containing data of the first referenced row.
+// If the lookup doesn't contain any references or if reference data was not preloaded by the LoadRelations<Original Table> method it will return an empty structure with nil-values of it's fields
+func (l MonthsLookup) FirstMaybe() Months {
+	if len(l.Values) > 0 {
+		return *l.Values[0].Data
+	}
+
+	return Months{}
+}
+
+// MustFirst returns a Months struct containing data of the first referenced row.
+// It will panic if the lookup doesn't contain any references or if reference data was not preloaded by the LoadRelations<Original Table> method
+func (l MonthsLookup) MustFirst() Months {
+	if len(l.Values) > 0 && l.Values[0].Data != nil {
+		return *l.Values[0].Data
+	}
+
+	panic("required Months value is not present in data row of MonthsLookup, table [Months]")
+}
+
+// All returns all loaded data of the referenced rows if any
+func (l MonthsLookup) All() (data []Months) {
+	for _, i := range l.Values {
+		if i.Data != nil {
+			data = append(data, *i.Data)
+		}
+	}
+
+	return
+}
+
+// Hydrate fills this lookup values with the corresponding rows from the map[RowID]Months
+func (l *MonthsLookup) Hydrate(mapOf map[RowID]*Months) {
+	for vi, v := range l.Values {
+		if v.Data != nil {
+			continue
+		}
+		if data, ok := mapOf[RowID(v.RowID)]; ok {
+			l.Values[vi].Data = data
+		}
+	}
+}
+
+type MonthsRowRef struct {
+	Name  string
+	RowID string
+	Data  *Months
+}
+
+func ToMonthsLookup(colID string, row Valuer) (values MonthsLookup, err error) {
+	rawv, ok := row.GetValue(colID)
+	if !ok {
+		return MonthsLookup{}, fmt.Errorf("missing column %v in Months row", colID)
+	}
+
+	if strv, ok := rawv.(string); ok && strv == "" {
+		return MonthsLookup{}, nil
+	}
+
+	if slicev, ok := rawv.([]interface{}); ok {
+		for i, interv := range slicev {
+			sv, err := toStructuredValue(interv)
+			if err != nil {
+				return MonthsLookup{}, fmt.Errorf("slice value #%v: %w", i, err)
+			}
+			values.Values = append(values.Values, MonthsRowRef{
+				Name:  sv.Name,
+				RowID: sv.RowId,
+			})
+		}
+
+		return
+	}
+
+	sv, err := toStructuredValue(rawv)
+	if err != nil {
+		return MonthsLookup{}, err
+	}
+
+	values.Values = []MonthsRowRef{
+		{
+			Name:  sv.Name,
+			RowID: sv.RowId,
+		},
+	}
+
+	return
+}
+
+type AllEmployeesLookup struct {
+	Values []AllEmployeesRowRef
+}
+
+// FirstRef returns a first referenced row metadata
+func (l AllEmployeesLookup) FirstRef() (first AllEmployeesRowRef, found bool) {
+	if len(l.Values) > 0 {
+		return l.Values[0], true
+	}
+
+	return AllEmployeesRowRef{}, false
+}
+
+// FirstRefName returns a first referenced row's Display Column value
+func (l AllEmployeesLookup) FirstRefName() string {
+	if len(l.Values) > 0 {
+		return l.Values[0].Name
+	}
+
+	return ""
+}
+
+// RefNames returns a slice of referenced rows' Display Columns values
+func (l AllEmployeesLookup) RefNames() (names []string) {
+	for _, v := range l.Values {
+		names = append(names, v.Name)
+	}
+
+	return
+}
+
+// String returns a comma-separated Display Columns of referenced rows.
+// This representation is similar to what is shown in the browser.
+func (l AllEmployeesLookup) String() string {
+	return strings.Join(l.RefNames(), ", ")
+}
+
+// First returns a pointer to a AllEmployees struct containing data of the first referenced row.
+// It will return nil unless the lookup contains references and container of this AllEmployeesLookup was preloaded by the LoadRelations<Original Table> method
+func (l AllEmployeesLookup) First() *AllEmployees {
+	if len(l.Values) > 0 {
+		return l.Values[0].Data
+	}
+
+	return nil
+}
+
+// FirstMaybe returns a AllEmployees struct containing data of the first referenced row.
+// If the lookup doesn't contain any references or if reference data was not preloaded by the LoadRelations<Original Table> method it will return an empty structure with nil-values of it's fields
+func (l AllEmployeesLookup) FirstMaybe() AllEmployees {
+	if len(l.Values) > 0 {
+		return *l.Values[0].Data
+	}
+
+	return AllEmployees{}
+}
+
+// MustFirst returns a AllEmployees struct containing data of the first referenced row.
+// It will panic if the lookup doesn't contain any references or if reference data was not preloaded by the LoadRelations<Original Table> method
+func (l AllEmployeesLookup) MustFirst() AllEmployees {
+	if len(l.Values) > 0 && l.Values[0].Data != nil {
+		return *l.Values[0].Data
+	}
+
+	panic("required AllEmployees value is not present in data row of AllEmployeesLookup, table [All employees]")
+}
+
+// All returns all loaded data of the referenced rows if any
+func (l AllEmployeesLookup) All() (data []AllEmployees) {
+	for _, i := range l.Values {
+		if i.Data != nil {
+			data = append(data, *i.Data)
+		}
+	}
+
+	return
+}
+
+// Hydrate fills this lookup values with the corresponding rows from the map[RowID]AllEmployees
+func (l *AllEmployeesLookup) Hydrate(mapOf map[RowID]*AllEmployees) {
+	for vi, v := range l.Values {
+		if v.Data != nil {
+			continue
+		}
+		if data, ok := mapOf[RowID(v.RowID)]; ok {
+			l.Values[vi].Data = data
+		}
+	}
+}
+
+type AllEmployeesRowRef struct {
+	Name  string
+	RowID string
+	Data  *AllEmployees
+}
+
+func ToAllEmployeesLookup(colID string, row Valuer) (values AllEmployeesLookup, err error) {
+	rawv, ok := row.GetValue(colID)
+	if !ok {
+		return AllEmployeesLookup{}, fmt.Errorf("missing column %v in All employees row", colID)
+	}
+
+	if strv, ok := rawv.(string); ok && strv == "" {
+		return AllEmployeesLookup{}, nil
+	}
+
+	if slicev, ok := rawv.([]interface{}); ok {
+		for i, interv := range slicev {
+			sv, err := toStructuredValue(interv)
+			if err != nil {
+				return AllEmployeesLookup{}, fmt.Errorf("slice value #%v: %w", i, err)
+			}
+			values.Values = append(values.Values, AllEmployeesRowRef{
+				Name:  sv.Name,
+				RowID: sv.RowId,
+			})
+		}
+
+		return
+	}
+
+	sv, err := toStructuredValue(rawv)
+	if err != nil {
+		return AllEmployeesLookup{}, err
+	}
+
+	values.Values = []AllEmployeesRowRef{
+		{
+			Name:  sv.Name,
+			RowID: sv.RowId,
+		},
+	}
+
+	return
+}
+
+type EntryTypeLookup struct {
+	Values []EntryTypeRowRef
+}
+
+// FirstRef returns a first referenced row metadata
+func (l EntryTypeLookup) FirstRef() (first EntryTypeRowRef, found bool) {
+	if len(l.Values) > 0 {
+		return l.Values[0], true
+	}
+
+	return EntryTypeRowRef{}, false
+}
+
+// FirstRefName returns a first referenced row's Display Column value
+func (l EntryTypeLookup) FirstRefName() string {
+	if len(l.Values) > 0 {
+		return l.Values[0].Name
+	}
+
+	return ""
+}
+
+// RefNames returns a slice of referenced rows' Display Columns values
+func (l EntryTypeLookup) RefNames() (names []string) {
+	for _, v := range l.Values {
+		names = append(names, v.Name)
+	}
+
+	return
+}
+
+// String returns a comma-separated Display Columns of referenced rows.
+// This representation is similar to what is shown in the browser.
+func (l EntryTypeLookup) String() string {
+	return strings.Join(l.RefNames(), ", ")
+}
+
+// First returns a pointer to a EntryType struct containing data of the first referenced row.
+// It will return nil unless the lookup contains references and container of this EntryTypeLookup was preloaded by the LoadRelations<Original Table> method
+func (l EntryTypeLookup) First() *EntryType {
+	if len(l.Values) > 0 {
+		return l.Values[0].Data
+	}
+
+	return nil
+}
+
+// FirstMaybe returns a EntryType struct containing data of the first referenced row.
+// If the lookup doesn't contain any references or if reference data was not preloaded by the LoadRelations<Original Table> method it will return an empty structure with nil-values of it's fields
+func (l EntryTypeLookup) FirstMaybe() EntryType {
+	if len(l.Values) > 0 {
+		return *l.Values[0].Data
+	}
+
+	return EntryType{}
+}
+
+// MustFirst returns a EntryType struct containing data of the first referenced row.
+// It will panic if the lookup doesn't contain any references or if reference data was not preloaded by the LoadRelations<Original Table> method
+func (l EntryTypeLookup) MustFirst() EntryType {
+	if len(l.Values) > 0 && l.Values[0].Data != nil {
+		return *l.Values[0].Data
+	}
+
+	panic("required EntryType value is not present in data row of EntryTypeLookup, table [Entry Type]")
+}
+
+// All returns all loaded data of the referenced rows if any
+func (l EntryTypeLookup) All() (data []EntryType) {
+	for _, i := range l.Values {
+		if i.Data != nil {
+			data = append(data, *i.Data)
+		}
+	}
+
+	return
+}
+
+// Hydrate fills this lookup values with the corresponding rows from the map[RowID]EntryType
+func (l *EntryTypeLookup) Hydrate(mapOf map[RowID]*EntryType) {
+	for vi, v := range l.Values {
+		if v.Data != nil {
+			continue
+		}
+		if data, ok := mapOf[RowID(v.RowID)]; ok {
+			l.Values[vi].Data = data
+		}
+	}
+}
+
+type EntryTypeRowRef struct {
+	Name  string
+	RowID string
+	Data  *EntryType
+}
+
+func ToEntryTypeLookup(colID string, row Valuer) (values EntryTypeLookup, err error) {
+	rawv, ok := row.GetValue(colID)
+	if !ok {
+		return EntryTypeLookup{}, fmt.Errorf("missing column %v in Entry Type row", colID)
+	}
+
+	if strv, ok := rawv.(string); ok && strv == "" {
+		return EntryTypeLookup{}, nil
+	}
+
+	if slicev, ok := rawv.([]interface{}); ok {
+		for i, interv := range slicev {
+			sv, err := toStructuredValue(interv)
+			if err != nil {
+				return EntryTypeLookup{}, fmt.Errorf("slice value #%v: %w", i, err)
+			}
+			values.Values = append(values.Values, EntryTypeRowRef{
+				Name:  sv.Name,
+				RowID: sv.RowId,
+			})
+		}
+
+		return
+	}
+
+	sv, err := toStructuredValue(rawv)
+	if err != nil {
+		return EntryTypeLookup{}, err
+	}
+
+	values.Values = []EntryTypeRowRef{
+		{
+			Name:  sv.Name,
+			RowID: sv.RowId,
+		},
+	}
+
+	return
+}
+
+type FullPayrollReportLookup struct {
+	Values []FullPayrollReportRowRef
+}
+
+// FirstRef returns a first referenced row metadata
+func (l FullPayrollReportLookup) FirstRef() (first FullPayrollReportRowRef, found bool) {
+	if len(l.Values) > 0 {
+		return l.Values[0], true
+	}
+
+	return FullPayrollReportRowRef{}, false
+}
+
+// FirstRefName returns a first referenced row's Display Column value
+func (l FullPayrollReportLookup) FirstRefName() string {
+	if len(l.Values) > 0 {
+		return l.Values[0].Name
+	}
+
+	return ""
+}
+
+// RefNames returns a slice of referenced rows' Display Columns values
+func (l FullPayrollReportLookup) RefNames() (names []string) {
+	for _, v := range l.Values {
+		names = append(names, v.Name)
+	}
+
+	return
+}
+
+// String returns a comma-separated Display Columns of referenced rows.
+// This representation is similar to what is shown in the browser.
+func (l FullPayrollReportLookup) String() string {
+	return strings.Join(l.RefNames(), ", ")
+}
+
+// First returns a pointer to a FullPayrollReport struct containing data of the first referenced row.
+// It will return nil unless the lookup contains references and container of this FullPayrollReportLookup was preloaded by the LoadRelations<Original Table> method
+func (l FullPayrollReportLookup) First() *FullPayrollReport {
+	if len(l.Values) > 0 {
+		return l.Values[0].Data
+	}
+
+	return nil
+}
+
+// FirstMaybe returns a FullPayrollReport struct containing data of the first referenced row.
+// If the lookup doesn't contain any references or if reference data was not preloaded by the LoadRelations<Original Table> method it will return an empty structure with nil-values of it's fields
+func (l FullPayrollReportLookup) FirstMaybe() FullPayrollReport {
+	if len(l.Values) > 0 {
+		return *l.Values[0].Data
+	}
+
+	return FullPayrollReport{}
+}
+
+// MustFirst returns a FullPayrollReport struct containing data of the first referenced row.
+// It will panic if the lookup doesn't contain any references or if reference data was not preloaded by the LoadRelations<Original Table> method
+func (l FullPayrollReportLookup) MustFirst() FullPayrollReport {
+	if len(l.Values) > 0 && l.Values[0].Data != nil {
+		return *l.Values[0].Data
+	}
+
+	panic("required FullPayrollReport value is not present in data row of FullPayrollReportLookup, table [Full payroll report]")
+}
+
+// All returns all loaded data of the referenced rows if any
+func (l FullPayrollReportLookup) All() (data []FullPayrollReport) {
+	for _, i := range l.Values {
+		if i.Data != nil {
+			data = append(data, *i.Data)
+		}
+	}
+
+	return
+}
+
+// Hydrate fills this lookup values with the corresponding rows from the map[RowID]FullPayrollReport
+func (l *FullPayrollReportLookup) Hydrate(mapOf map[RowID]*FullPayrollReport) {
+	for vi, v := range l.Values {
+		if v.Data != nil {
+			continue
+		}
+		if data, ok := mapOf[RowID(v.RowID)]; ok {
+			l.Values[vi].Data = data
+		}
+	}
+}
+
+type FullPayrollReportRowRef struct {
+	Name  string
+	RowID string
+	Data  *FullPayrollReport
+}
+
+func ToFullPayrollReportLookup(colID string, row Valuer) (values FullPayrollReportLookup, err error) {
+	rawv, ok := row.GetValue(colID)
+	if !ok {
+		return FullPayrollReportLookup{}, fmt.Errorf("missing column %v in Full payroll report row", colID)
+	}
+
+	if strv, ok := rawv.(string); ok && strv == "" {
+		return FullPayrollReportLookup{}, nil
+	}
+
+	if slicev, ok := rawv.([]interface{}); ok {
+		for i, interv := range slicev {
+			sv, err := toStructuredValue(interv)
+			if err != nil {
+				return FullPayrollReportLookup{}, fmt.Errorf("slice value #%v: %w", i, err)
+			}
+			values.Values = append(values.Values, FullPayrollReportRowRef{
+				Name:  sv.Name,
+				RowID: sv.RowId,
+			})
+		}
+
+		return
+	}
+
+	sv, err := toStructuredValue(rawv)
+	if err != nil {
+		return FullPayrollReportLookup{}, err
+	}
+
+	values.Values = []FullPayrollReportRowRef{
+		{
+			Name:  sv.Name,
+			RowID: sv.RowId,
+		},
+	}
+
+	return
+}
+
+type TaxYearsLookup struct {
+	Values []TaxYearsRowRef
+}
+
+// FirstRef returns a first referenced row metadata
+func (l TaxYearsLookup) FirstRef() (first TaxYearsRowRef, found bool) {
+	if len(l.Values) > 0 {
+		return l.Values[0], true
+	}
+
+	return TaxYearsRowRef{}, false
+}
+
+// FirstRefName returns a first referenced row's Display Column value
+func (l TaxYearsLookup) FirstRefName() string {
+	if len(l.Values) > 0 {
+		return l.Values[0].Name
+	}
+
+	return ""
+}
+
+// RefNames returns a slice of referenced rows' Display Columns values
+func (l TaxYearsLookup) RefNames() (names []string) {
+	for _, v := range l.Values {
+		names = append(names, v.Name)
+	}
+
+	return
+}
+
+// String returns a comma-separated Display Columns of referenced rows.
+// This representation is similar to what is shown in the browser.
+func (l TaxYearsLookup) String() string {
+	return strings.Join(l.RefNames(), ", ")
+}
+
+// First returns a pointer to a TaxYears struct containing data of the first referenced row.
+// It will return nil unless the lookup contains references and container of this TaxYearsLookup was preloaded by the LoadRelations<Original Table> method
+func (l TaxYearsLookup) First() *TaxYears {
+	if len(l.Values) > 0 {
+		return l.Values[0].Data
+	}
+
+	return nil
+}
+
+// FirstMaybe returns a TaxYears struct containing data of the first referenced row.
+// If the lookup doesn't contain any references or if reference data was not preloaded by the LoadRelations<Original Table> method it will return an empty structure with nil-values of it's fields
+func (l TaxYearsLookup) FirstMaybe() TaxYears {
+	if len(l.Values) > 0 {
+		return *l.Values[0].Data
+	}
+
+	return TaxYears{}
+}
+
+// MustFirst returns a TaxYears struct containing data of the first referenced row.
+// It will panic if the lookup doesn't contain any references or if reference data was not preloaded by the LoadRelations<Original Table> method
+func (l TaxYearsLookup) MustFirst() TaxYears {
+	if len(l.Values) > 0 && l.Values[0].Data != nil {
+		return *l.Values[0].Data
+	}
+
+	panic("required TaxYears value is not present in data row of TaxYearsLookup, table [Tax years]")
+}
+
+// All returns all loaded data of the referenced rows if any
+func (l TaxYearsLookup) All() (data []TaxYears) {
+	for _, i := range l.Values {
+		if i.Data != nil {
+			data = append(data, *i.Data)
+		}
+	}
+
+	return
+}
+
+// Hydrate fills this lookup values with the corresponding rows from the map[RowID]TaxYears
+func (l *TaxYearsLookup) Hydrate(mapOf map[RowID]*TaxYears) {
+	for vi, v := range l.Values {
+		if v.Data != nil {
+			continue
+		}
+		if data, ok := mapOf[RowID(v.RowID)]; ok {
+			l.Values[vi].Data = data
+		}
+	}
+}
+
+type TaxYearsRowRef struct {
+	Name  string
+	RowID string
+	Data  *TaxYears
+}
+
+func ToTaxYearsLookup(colID string, row Valuer) (values TaxYearsLookup, err error) {
+	rawv, ok := row.GetValue(colID)
+	if !ok {
+		return TaxYearsLookup{}, fmt.Errorf("missing column %v in Tax years row", colID)
+	}
+
+	if strv, ok := rawv.(string); ok && strv == "" {
+		return TaxYearsLookup{}, nil
+	}
+
+	if slicev, ok := rawv.([]interface{}); ok {
+		for i, interv := range slicev {
+			sv, err := toStructuredValue(interv)
+			if err != nil {
+				return TaxYearsLookup{}, fmt.Errorf("slice value #%v: %w", i, err)
+			}
+			values.Values = append(values.Values, TaxYearsRowRef{
+				Name:  sv.Name,
+				RowID: sv.RowId,
+			})
+		}
+
+		return
+	}
+
+	sv, err := toStructuredValue(rawv)
+	if err != nil {
+		return TaxYearsLookup{}, err
+	}
+
+	values.Values = []TaxYearsRowRef{
+		{
+			Name:  sv.Name,
+			RowID: sv.RowId,
+		},
+	}
+
+	return
+}
+
+type BankTariffsLookup struct {
+	Values []BankTariffsRowRef
+}
+
+// FirstRef returns a first referenced row metadata
+func (l BankTariffsLookup) FirstRef() (first BankTariffsRowRef, found bool) {
+	if len(l.Values) > 0 {
+		return l.Values[0], true
+	}
+
+	return BankTariffsRowRef{}, false
+}
+
+// FirstRefName returns a first referenced row's Display Column value
+func (l BankTariffsLookup) FirstRefName() string {
+	if len(l.Values) > 0 {
+		return l.Values[0].Name
+	}
+
+	return ""
+}
+
+// RefNames returns a slice of referenced rows' Display Columns values
+func (l BankTariffsLookup) RefNames() (names []string) {
+	for _, v := range l.Values {
+		names = append(names, v.Name)
+	}
+
+	return
+}
+
+// String returns a comma-separated Display Columns of referenced rows.
+// This representation is similar to what is shown in the browser.
+func (l BankTariffsLookup) String() string {
+	return strings.Join(l.RefNames(), ", ")
+}
+
+// First returns a pointer to a BankTariffs struct containing data of the first referenced row.
+// It will return nil unless the lookup contains references and container of this BankTariffsLookup was preloaded by the LoadRelations<Original Table> method
+func (l BankTariffsLookup) First() *BankTariffs {
+	if len(l.Values) > 0 {
+		return l.Values[0].Data
+	}
+
+	return nil
+}
+
+// FirstMaybe returns a BankTariffs struct containing data of the first referenced row.
+// If the lookup doesn't contain any references or if reference data was not preloaded by the LoadRelations<Original Table> method it will return an empty structure with nil-values of it's fields
+func (l BankTariffsLookup) FirstMaybe() BankTariffs {
+	if len(l.Values) > 0 {
+		return *l.Values[0].Data
+	}
+
+	return BankTariffs{}
+}
+
+// MustFirst returns a BankTariffs struct containing data of the first referenced row.
+// It will panic if the lookup doesn't contain any references or if reference data was not preloaded by the LoadRelations<Original Table> method
+func (l BankTariffsLookup) MustFirst() BankTariffs {
+	if len(l.Values) > 0 && l.Values[0].Data != nil {
+		return *l.Values[0].Data
+	}
+
+	panic("required BankTariffs value is not present in data row of BankTariffsLookup, table [Bank tariffs]")
+}
+
+// All returns all loaded data of the referenced rows if any
+func (l BankTariffsLookup) All() (data []BankTariffs) {
+	for _, i := range l.Values {
+		if i.Data != nil {
+			data = append(data, *i.Data)
+		}
+	}
+
+	return
+}
+
+// Hydrate fills this lookup values with the corresponding rows from the map[RowID]BankTariffs
+func (l *BankTariffsLookup) Hydrate(mapOf map[RowID]*BankTariffs) {
+	for vi, v := range l.Values {
+		if v.Data != nil {
+			continue
+		}
+		if data, ok := mapOf[RowID(v.RowID)]; ok {
+			l.Values[vi].Data = data
+		}
+	}
+}
+
+type BankTariffsRowRef struct {
+	Name  string
+	RowID string
+	Data  *BankTariffs
+}
+
+func ToBankTariffsLookup(colID string, row Valuer) (values BankTariffsLookup, err error) {
+	rawv, ok := row.GetValue(colID)
+	if !ok {
+		return BankTariffsLookup{}, fmt.Errorf("missing column %v in Bank tariffs row", colID)
+	}
+
+	if strv, ok := rawv.(string); ok && strv == "" {
+		return BankTariffsLookup{}, nil
+	}
+
+	if slicev, ok := rawv.([]interface{}); ok {
+		for i, interv := range slicev {
+			sv, err := toStructuredValue(interv)
+			if err != nil {
+				return BankTariffsLookup{}, fmt.Errorf("slice value #%v: %w", i, err)
+			}
+			values.Values = append(values.Values, BankTariffsRowRef{
+				Name:  sv.Name,
+				RowID: sv.RowId,
+			})
+		}
+
+		return
+	}
+
+	sv, err := toStructuredValue(rawv)
+	if err != nil {
+		return BankTariffsLookup{}, err
+	}
+
+	values.Values = []BankTariffsRowRef{
+		{
+			Name:  sv.Name,
+			RowID: sv.RowId,
+		},
+	}
+
+	return
+}
+
+type InvoiceLookup struct {
+	Values []InvoiceRowRef
+}
+
+// FirstRef returns a first referenced row metadata
+func (l InvoiceLookup) FirstRef() (first InvoiceRowRef, found bool) {
+	if len(l.Values) > 0 {
+		return l.Values[0], true
+	}
+
+	return InvoiceRowRef{}, false
+}
+
+// FirstRefName returns a first referenced row's Display Column value
+func (l InvoiceLookup) FirstRefName() string {
+	if len(l.Values) > 0 {
+		return l.Values[0].Name
+	}
+
+	return ""
+}
+
+// RefNames returns a slice of referenced rows' Display Columns values
+func (l InvoiceLookup) RefNames() (names []string) {
+	for _, v := range l.Values {
+		names = append(names, v.Name)
+	}
+
+	return
+}
+
+// String returns a comma-separated Display Columns of referenced rows.
+// This representation is similar to what is shown in the browser.
+func (l InvoiceLookup) String() string {
+	return strings.Join(l.RefNames(), ", ")
+}
+
+// First returns a pointer to a Invoice struct containing data of the first referenced row.
+// It will return nil unless the lookup contains references and container of this InvoiceLookup was preloaded by the LoadRelations<Original Table> method
+func (l InvoiceLookup) First() *Invoice {
+	if len(l.Values) > 0 {
+		return l.Values[0].Data
+	}
+
+	return nil
+}
+
+// FirstMaybe returns a Invoice struct containing data of the first referenced row.
+// If the lookup doesn't contain any references or if reference data was not preloaded by the LoadRelations<Original Table> method it will return an empty structure with nil-values of it's fields
+func (l InvoiceLookup) FirstMaybe() Invoice {
+	if len(l.Values) > 0 {
+		return *l.Values[0].Data
+	}
+
+	return Invoice{}
+}
+
+// MustFirst returns a Invoice struct containing data of the first referenced row.
+// It will panic if the lookup doesn't contain any references or if reference data was not preloaded by the LoadRelations<Original Table> method
+func (l InvoiceLookup) MustFirst() Invoice {
+	if len(l.Values) > 0 && l.Values[0].Data != nil {
+		return *l.Values[0].Data
+	}
+
+	panic("required Invoice value is not present in data row of InvoiceLookup, table [Invoice]")
+}
+
+// All returns all loaded data of the referenced rows if any
+func (l InvoiceLookup) All() (data []Invoice) {
+	for _, i := range l.Values {
+		if i.Data != nil {
+			data = append(data, *i.Data)
+		}
+	}
+
+	return
+}
+
+// Hydrate fills this lookup values with the corresponding rows from the map[RowID]Invoice
+func (l *InvoiceLookup) Hydrate(mapOf map[RowID]*Invoice) {
+	for vi, v := range l.Values {
+		if v.Data != nil {
+			continue
+		}
+		if data, ok := mapOf[RowID(v.RowID)]; ok {
+			l.Values[vi].Data = data
+		}
+	}
+}
+
+type InvoiceRowRef struct {
+	Name  string
+	RowID string
+	Data  *Invoice
+}
+
+func ToInvoiceLookup(colID string, row Valuer) (values InvoiceLookup, err error) {
+	rawv, ok := row.GetValue(colID)
+	if !ok {
+		return InvoiceLookup{}, fmt.Errorf("missing column %v in Invoice row", colID)
+	}
+
+	if strv, ok := rawv.(string); ok && strv == "" {
+		return InvoiceLookup{}, nil
+	}
+
+	if slicev, ok := rawv.([]interface{}); ok {
+		for i, interv := range slicev {
+			sv, err := toStructuredValue(interv)
+			if err != nil {
+				return InvoiceLookup{}, fmt.Errorf("slice value #%v: %w", i, err)
+			}
+			values.Values = append(values.Values, InvoiceRowRef{
+				Name:  sv.Name,
+				RowID: sv.RowId,
+			})
+		}
+
+		return
+	}
+
+	sv, err := toStructuredValue(rawv)
+	if err != nil {
+		return InvoiceLookup{}, err
+	}
+
+	values.Values = []InvoiceRowRef{
+		{
+			Name:  sv.Name,
+			RowID: sv.RowId,
+		},
+	}
+
+	return
+}
+
+type EmployeePatentsLookup struct {
+	Values []EmployeePatentsRowRef
+}
+
+// FirstRef returns a first referenced row metadata
+func (l EmployeePatentsLookup) FirstRef() (first EmployeePatentsRowRef, found bool) {
+	if len(l.Values) > 0 {
+		return l.Values[0], true
+	}
+
+	return EmployeePatentsRowRef{}, false
+}
+
+// FirstRefName returns a first referenced row's Display Column value
+func (l EmployeePatentsLookup) FirstRefName() string {
+	if len(l.Values) > 0 {
+		return l.Values[0].Name
+	}
+
+	return ""
+}
+
+// RefNames returns a slice of referenced rows' Display Columns values
+func (l EmployeePatentsLookup) RefNames() (names []string) {
+	for _, v := range l.Values {
+		names = append(names, v.Name)
+	}
+
+	return
+}
+
+// String returns a comma-separated Display Columns of referenced rows.
+// This representation is similar to what is shown in the browser.
+func (l EmployeePatentsLookup) String() string {
+	return strings.Join(l.RefNames(), ", ")
+}
+
+// First returns a pointer to a EmployeePatents struct containing data of the first referenced row.
+// It will return nil unless the lookup contains references and container of this EmployeePatentsLookup was preloaded by the LoadRelations<Original Table> method
+func (l EmployeePatentsLookup) First() *EmployeePatents {
+	if len(l.Values) > 0 {
+		return l.Values[0].Data
+	}
+
+	return nil
+}
+
+// FirstMaybe returns a EmployeePatents struct containing data of the first referenced row.
+// If the lookup doesn't contain any references or if reference data was not preloaded by the LoadRelations<Original Table> method it will return an empty structure with nil-values of it's fields
+func (l EmployeePatentsLookup) FirstMaybe() EmployeePatents {
+	if len(l.Values) > 0 {
+		return *l.Values[0].Data
+	}
+
+	return EmployeePatents{}
+}
+
+// MustFirst returns a EmployeePatents struct containing data of the first referenced row.
+// It will panic if the lookup doesn't contain any references or if reference data was not preloaded by the LoadRelations<Original Table> method
+func (l EmployeePatentsLookup) MustFirst() EmployeePatents {
+	if len(l.Values) > 0 && l.Values[0].Data != nil {
+		return *l.Values[0].Data
+	}
+
+	panic("required EmployeePatents value is not present in data row of EmployeePatentsLookup, table [Employee Patents]")
+}
+
+// All returns all loaded data of the referenced rows if any
+func (l EmployeePatentsLookup) All() (data []EmployeePatents) {
+	for _, i := range l.Values {
+		if i.Data != nil {
+			data = append(data, *i.Data)
+		}
+	}
+
+	return
+}
+
+// Hydrate fills this lookup values with the corresponding rows from the map[RowID]EmployeePatents
+func (l *EmployeePatentsLookup) Hydrate(mapOf map[RowID]*EmployeePatents) {
+	for vi, v := range l.Values {
+		if v.Data != nil {
+			continue
+		}
+		if data, ok := mapOf[RowID(v.RowID)]; ok {
+			l.Values[vi].Data = data
+		}
+	}
+}
+
+type EmployeePatentsRowRef struct {
+	Name  string
+	RowID string
+	Data  *EmployeePatents
+}
+
+func ToEmployeePatentsLookup(colID string, row Valuer) (values EmployeePatentsLookup, err error) {
+	rawv, ok := row.GetValue(colID)
+	if !ok {
+		return EmployeePatentsLookup{}, fmt.Errorf("missing column %v in Employee Patents row", colID)
+	}
+
+	if strv, ok := rawv.(string); ok && strv == "" {
+		return EmployeePatentsLookup{}, nil
+	}
+
+	if slicev, ok := rawv.([]interface{}); ok {
+		for i, interv := range slicev {
+			sv, err := toStructuredValue(interv)
+			if err != nil {
+				return EmployeePatentsLookup{}, fmt.Errorf("slice value #%v: %w", i, err)
+			}
+			values.Values = append(values.Values, EmployeePatentsRowRef{
+				Name:  sv.Name,
+				RowID: sv.RowId,
+			})
+		}
+
+		return
+	}
+
+	sv, err := toStructuredValue(rawv)
+	if err != nil {
+		return EmployeePatentsLookup{}, err
+	}
+
+	values.Values = []EmployeePatentsRowRef{
+		{
+			Name:  sv.Name,
+			RowID: sv.RowId,
+		},
+	}
+
+	return
+}
+
+type PerDayPoliciesLookup struct {
+	Values []PerDayPoliciesRowRef
+}
+
+// FirstRef returns a first referenced row metadata
+func (l PerDayPoliciesLookup) FirstRef() (first PerDayPoliciesRowRef, found bool) {
+	if len(l.Values) > 0 {
+		return l.Values[0], true
+	}
+
+	return PerDayPoliciesRowRef{}, false
+}
+
+// FirstRefName returns a first referenced row's Display Column value
+func (l PerDayPoliciesLookup) FirstRefName() string {
+	if len(l.Values) > 0 {
+		return l.Values[0].Name
+	}
+
+	return ""
+}
+
+// RefNames returns a slice of referenced rows' Display Columns values
+func (l PerDayPoliciesLookup) RefNames() (names []string) {
+	for _, v := range l.Values {
+		names = append(names, v.Name)
+	}
+
+	return
+}
+
+// String returns a comma-separated Display Columns of referenced rows.
+// This representation is similar to what is shown in the browser.
+func (l PerDayPoliciesLookup) String() string {
+	return strings.Join(l.RefNames(), ", ")
+}
+
+// First returns a pointer to a PerDayPolicies struct containing data of the first referenced row.
+// It will return nil unless the lookup contains references and container of this PerDayPoliciesLookup was preloaded by the LoadRelations<Original Table> method
+func (l PerDayPoliciesLookup) First() *PerDayPolicies {
+	if len(l.Values) > 0 {
+		return l.Values[0].Data
+	}
+
+	return nil
+}
+
+// FirstMaybe returns a PerDayPolicies struct containing data of the first referenced row.
+// If the lookup doesn't contain any references or if reference data was not preloaded by the LoadRelations<Original Table> method it will return an empty structure with nil-values of it's fields
+func (l PerDayPoliciesLookup) FirstMaybe() PerDayPolicies {
+	if len(l.Values) > 0 {
+		return *l.Values[0].Data
+	}
+
+	return PerDayPolicies{}
+}
+
+// MustFirst returns a PerDayPolicies struct containing data of the first referenced row.
+// It will panic if the lookup doesn't contain any references or if reference data was not preloaded by the LoadRelations<Original Table> method
+func (l PerDayPoliciesLookup) MustFirst() PerDayPolicies {
+	if len(l.Values) > 0 && l.Values[0].Data != nil {
+		return *l.Values[0].Data
+	}
+
+	panic("required PerDayPolicies value is not present in data row of PerDayPoliciesLookup, table [Per Day Policies]")
+}
+
+// All returns all loaded data of the referenced rows if any
+func (l PerDayPoliciesLookup) All() (data []PerDayPolicies) {
+	for _, i := range l.Values {
+		if i.Data != nil {
+			data = append(data, *i.Data)
+		}
+	}
+
+	return
+}
+
+// Hydrate fills this lookup values with the corresponding rows from the map[RowID]PerDayPolicies
+func (l *PerDayPoliciesLookup) Hydrate(mapOf map[RowID]*PerDayPolicies) {
+	for vi, v := range l.Values {
+		if v.Data != nil {
+			continue
+		}
+		if data, ok := mapOf[RowID(v.RowID)]; ok {
+			l.Values[vi].Data = data
+		}
+	}
+}
+
+type PerDayPoliciesRowRef struct {
+	Name  string
+	RowID string
+	Data  *PerDayPolicies
+}
+
+func ToPerDayPoliciesLookup(colID string, row Valuer) (values PerDayPoliciesLookup, err error) {
+	rawv, ok := row.GetValue(colID)
+	if !ok {
+		return PerDayPoliciesLookup{}, fmt.Errorf("missing column %v in Per Day Policies row", colID)
+	}
+
+	if strv, ok := rawv.(string); ok && strv == "" {
+		return PerDayPoliciesLookup{}, nil
+	}
+
+	if slicev, ok := rawv.([]interface{}); ok {
+		for i, interv := range slicev {
+			sv, err := toStructuredValue(interv)
+			if err != nil {
+				return PerDayPoliciesLookup{}, fmt.Errorf("slice value #%v: %w", i, err)
+			}
+			values.Values = append(values.Values, PerDayPoliciesRowRef{
+				Name:  sv.Name,
+				RowID: sv.RowId,
+			})
+		}
+
+		return
+	}
+
+	sv, err := toStructuredValue(rawv)
+	if err != nil {
+		return PerDayPoliciesLookup{}, err
+	}
+
+	values.Values = []PerDayPoliciesRowRef{
 		{
 			Name:  sv.Name,
 			RowID: sv.RowId,
@@ -10202,49 +10202,11 @@ func (doc *CodaDocument) LoadRelationsAllEmployees(ctx context.Context, shallow 
 		doc.relationsCache.Store("AllEmployees", shallow)
 	}
 
+	var _bankDetailsMap map[RowID]*BankDetails
 	var _legalEntityMap map[RowID]*LegalEntity
 	var _locationMap map[RowID]*Location
 	var _bankTariffsMap map[RowID]*BankTariffs
-	var _bankDetailsMap map[RowID]*BankDetails
 
-	func() {
-		if !rels.Location {
-			return
-		}
-
-		if _locationInter, ok := doc.relationsCache.Load("Location"); ok {
-			if _locationMap, ok = _locationInter.(map[RowID]*Location); ok {
-				return
-			}
-		}
-
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-
-			_locationMap, _, err = doc.MapOfLocation(ctx)
-			doc.relationsCache.Store("Location", _locationMap)
-		}()
-	}()
-	func() {
-		if !rels.BankTariffs {
-			return
-		}
-
-		if _bankTariffsInter, ok := doc.relationsCache.Load("BankTariffs"); ok {
-			if _bankTariffsMap, ok = _bankTariffsInter.(map[RowID]*BankTariffs); ok {
-				return
-			}
-		}
-
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-
-			_bankTariffsMap, _, err = doc.MapOfBankTariffs(ctx)
-			doc.relationsCache.Store("BankTariffs", _bankTariffsMap)
-		}()
-	}()
 	func() {
 		if !rels.BankDetails {
 			return
@@ -10284,6 +10246,44 @@ func (doc *CodaDocument) LoadRelationsAllEmployees(ctx context.Context, shallow 
 
 			_legalEntityMap, _, err = doc.MapOfLegalEntity(ctx)
 			doc.relationsCache.Store("LegalEntity", _legalEntityMap)
+		}()
+	}()
+	func() {
+		if !rels.Location {
+			return
+		}
+
+		if _locationInter, ok := doc.relationsCache.Load("Location"); ok {
+			if _locationMap, ok = _locationInter.(map[RowID]*Location); ok {
+				return
+			}
+		}
+
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+
+			_locationMap, _, err = doc.MapOfLocation(ctx)
+			doc.relationsCache.Store("Location", _locationMap)
+		}()
+	}()
+	func() {
+		if !rels.BankTariffs {
+			return
+		}
+
+		if _bankTariffsInter, ok := doc.relationsCache.Load("BankTariffs"); ok {
+			if _bankTariffsMap, ok = _bankTariffsInter.(map[RowID]*BankTariffs); ok {
+				return
+			}
+		}
+
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+
+			_bankTariffsMap, _, err = doc.MapOfBankTariffs(ctx)
+			doc.relationsCache.Store("BankTariffs", _bankTariffsMap)
 		}()
 	}()
 
@@ -10488,15 +10488,6 @@ func (doc *CodaDocument) LoadRelationsInvoice(ctx context.Context, shallow map[R
 	}
 
 	for ii, _ := range shallow {
-		if rels.TemplateEntries {
-			shallow[ii].TemplatesRefs.Hydrate(_templateEntriesMap)
-		}
-		if rels.BankDetails {
-			shallow[ii].RecipientDetails.Hydrate(_bankDetailsMap)
-		}
-		if rels.LegalEntity {
-			shallow[ii].SenderDetails.Hydrate(_legalEntityMap)
-		}
 		if rels.Months {
 			shallow[ii].Month.Hydrate(_monthsMap)
 		}
@@ -10508,6 +10499,15 @@ func (doc *CodaDocument) LoadRelationsInvoice(ctx context.Context, shallow map[R
 		}
 		if rels.Entries {
 			shallow[ii].InvoiceEntries.Hydrate(_entriesMap)
+		}
+		if rels.TemplateEntries {
+			shallow[ii].TemplatesRefs.Hydrate(_templateEntriesMap)
+		}
+		if rels.BankDetails {
+			shallow[ii].RecipientDetails.Hydrate(_bankDetailsMap)
+		}
+		if rels.LegalEntity {
+			shallow[ii].SenderDetails.Hydrate(_legalEntityMap)
 		}
 	}
 
@@ -10677,28 +10677,6 @@ func (doc *CodaDocument) LoadRelationsPatentCompensation(ctx context.Context, sh
 	var _employeePatentsMap map[RowID]*EmployeePatents
 
 	func() {
-		if !rels.Invoice {
-			return
-		}
-
-		if _invoiceInter, ok := doc.relationsCache.Load("Invoice"); ok {
-			if _invoiceMap, ok = _invoiceInter.(map[RowID]*Invoice); ok {
-				return
-			}
-		}
-
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-
-			_invoiceMap, _, err = doc.MapOfInvoice(ctx)
-			doc.relationsCache.Store("Invoice", _invoiceMap)
-			if rels.LoadRelationsRecursive {
-				doc.LoadRelationsInvoice(ctx, _invoiceMap, rels)
-			}
-		}()
-	}()
-	func() {
 		if !rels.EmployeePatents {
 			return
 		}
@@ -10717,6 +10695,28 @@ func (doc *CodaDocument) LoadRelationsPatentCompensation(ctx context.Context, sh
 			doc.relationsCache.Store("EmployeePatents", _employeePatentsMap)
 			if rels.LoadRelationsRecursive {
 				doc.LoadRelationsEmployeePatents(ctx, _employeePatentsMap, rels)
+			}
+		}()
+	}()
+	func() {
+		if !rels.Invoice {
+			return
+		}
+
+		if _invoiceInter, ok := doc.relationsCache.Load("Invoice"); ok {
+			if _invoiceMap, ok = _invoiceInter.(map[RowID]*Invoice); ok {
+				return
+			}
+		}
+
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+
+			_invoiceMap, _, err = doc.MapOfInvoice(ctx)
+			doc.relationsCache.Store("Invoice", _invoiceMap)
+			if rels.LoadRelationsRecursive {
+				doc.LoadRelationsInvoice(ctx, _invoiceMap, rels)
 			}
 		}()
 	}()
@@ -11325,28 +11325,6 @@ func (doc *CodaDocument) LoadRelationsBankDetails(ctx context.Context, shallow m
 	var _monthsMap map[RowID]*Months
 
 	func() {
-		if !rels.Months {
-			return
-		}
-
-		if _monthsInter, ok := doc.relationsCache.Load("Months"); ok {
-			if _monthsMap, ok = _monthsInter.(map[RowID]*Months); ok {
-				return
-			}
-		}
-
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-
-			_monthsMap, _, err = doc.MapOfMonths(ctx)
-			doc.relationsCache.Store("Months", _monthsMap)
-			if rels.LoadRelationsRecursive {
-				doc.LoadRelationsMonths(ctx, _monthsMap, rels)
-			}
-		}()
-	}()
-	func() {
 		if !rels.AllEmployees {
 			return
 		}
@@ -11385,6 +11363,28 @@ func (doc *CodaDocument) LoadRelationsBankDetails(ctx context.Context, shallow m
 
 			_beneficiaryBankMap, _, err = doc.MapOfBeneficiaryBank(ctx)
 			doc.relationsCache.Store("BeneficiaryBank", _beneficiaryBankMap)
+		}()
+	}()
+	func() {
+		if !rels.Months {
+			return
+		}
+
+		if _monthsInter, ok := doc.relationsCache.Load("Months"); ok {
+			if _monthsMap, ok = _monthsInter.(map[RowID]*Months); ok {
+				return
+			}
+		}
+
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+
+			_monthsMap, _, err = doc.MapOfMonths(ctx)
+			doc.relationsCache.Store("Months", _monthsMap)
+			if rels.LoadRelationsRecursive {
+				doc.LoadRelationsMonths(ctx, _monthsMap, rels)
+			}
 		}()
 	}()
 
@@ -11616,8 +11616,8 @@ func (doc *CodaDocument) LoadRelationsPensionFundPercent(ctx context.Context, sh
 		doc.relationsCache.Store("PensionFundPercent", shallow)
 	}
 
-	var _invoiceMap map[RowID]*Invoice
 	var _taxYearsMap map[RowID]*TaxYears
+	var _invoiceMap map[RowID]*Invoice
 
 	func() {
 		if !rels.Invoice {
@@ -11668,11 +11668,11 @@ func (doc *CodaDocument) LoadRelationsPensionFundPercent(ctx context.Context, sh
 	}
 
 	for ii, _ := range shallow {
-		if rels.Invoice {
-			shallow[ii].Invoice.Hydrate(_invoiceMap)
-		}
 		if rels.TaxYears {
 			shallow[ii].Year.Hydrate(_taxYearsMap)
+		}
+		if rels.Invoice {
+			shallow[ii].Invoice.Hydrate(_invoiceMap)
 		}
 	}
 
@@ -11694,28 +11694,6 @@ func (doc *CodaDocument) LoadRelationsPerDayCalculations(ctx context.Context, sh
 	var _monthsMap map[RowID]*Months
 	var _entriesMap map[RowID]*Entries
 
-	func() {
-		if !rels.Months {
-			return
-		}
-
-		if _monthsInter, ok := doc.relationsCache.Load("Months"); ok {
-			if _monthsMap, ok = _monthsInter.(map[RowID]*Months); ok {
-				return
-			}
-		}
-
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-
-			_monthsMap, _, err = doc.MapOfMonths(ctx)
-			doc.relationsCache.Store("Months", _monthsMap)
-			if rels.LoadRelationsRecursive {
-				doc.LoadRelationsMonths(ctx, _monthsMap, rels)
-			}
-		}()
-	}()
 	func() {
 		if !rels.Entries {
 			return
@@ -11779,6 +11757,28 @@ func (doc *CodaDocument) LoadRelationsPerDayCalculations(ctx context.Context, sh
 			doc.relationsCache.Store("Invoice", _invoiceMap)
 			if rels.LoadRelationsRecursive {
 				doc.LoadRelationsInvoice(ctx, _invoiceMap, rels)
+			}
+		}()
+	}()
+	func() {
+		if !rels.Months {
+			return
+		}
+
+		if _monthsInter, ok := doc.relationsCache.Load("Months"); ok {
+			if _monthsMap, ok = _monthsInter.(map[RowID]*Months); ok {
+				return
+			}
+		}
+
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+
+			_monthsMap, _, err = doc.MapOfMonths(ctx)
+			doc.relationsCache.Store("Months", _monthsMap)
+			if rels.LoadRelationsRecursive {
+				doc.LoadRelationsMonths(ctx, _monthsMap, rels)
 			}
 		}()
 	}()
@@ -11871,28 +11871,6 @@ func (doc *CodaDocument) LoadRelationsPayableEmployees(ctx context.Context, shal
 	var _entriesMap map[RowID]*Entries
 
 	func() {
-		if !rels.Entries {
-			return
-		}
-
-		if _entriesInter, ok := doc.relationsCache.Load("Entries"); ok {
-			if _entriesMap, ok = _entriesInter.(map[RowID]*Entries); ok {
-				return
-			}
-		}
-
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-
-			_entriesMap, _, err = doc.MapOfEntries(ctx)
-			doc.relationsCache.Store("Entries", _entriesMap)
-			if rels.LoadRelationsRecursive {
-				doc.LoadRelationsEntries(ctx, _entriesMap, rels)
-			}
-		}()
-	}()
-	func() {
 		if !rels.AllEmployees {
 			return
 		}
@@ -11933,6 +11911,28 @@ func (doc *CodaDocument) LoadRelationsPayableEmployees(ctx context.Context, shal
 			doc.relationsCache.Store("Invoice", _invoiceMap)
 			if rels.LoadRelationsRecursive {
 				doc.LoadRelationsInvoice(ctx, _invoiceMap, rels)
+			}
+		}()
+	}()
+	func() {
+		if !rels.Entries {
+			return
+		}
+
+		if _entriesInter, ok := doc.relationsCache.Load("Entries"); ok {
+			if _entriesMap, ok = _entriesInter.(map[RowID]*Entries); ok {
+				return
+			}
+		}
+
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+
+			_entriesMap, _, err = doc.MapOfEntries(ctx)
+			doc.relationsCache.Store("Entries", _entriesMap)
+			if rels.LoadRelationsRecursive {
+				doc.LoadRelationsEntries(ctx, _entriesMap, rels)
 			}
 		}()
 	}()

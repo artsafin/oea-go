@@ -1432,7 +1432,7 @@ func ToString(colID string, row Valuer) (string, error) {
 	// If whole cell looks like an URL Coda may parse it so and return column value as a WebPage structure
 	webpage, err := ToWebPage(colID, row)
 	if err == nil {
-		return fmt.Sprintf("[%v](%v)", webpage.Url, webpage.Url), nil
+		return webpage.Url, nil
 	}
 
 	// If whole cell looks like a money amount Coda may parse it so and return column value as a MonetaryAmount structure
@@ -2789,278 +2789,6 @@ func NewExpensesByCategory(row Valuer) (dto ExpensesByCategory, errs error) {
 	return
 }
 
-type AccountsLookup struct {
-	Values []AccountsRowRef
-}
-
-// FirstRef returns a first referenced row metadata
-func (l AccountsLookup) FirstRef() (first AccountsRowRef, found bool) {
-	if len(l.Values) > 0 {
-		return l.Values[0], true
-	}
-
-	return AccountsRowRef{}, false
-}
-
-// FirstRefName returns a first referenced row's Display Column value
-func (l AccountsLookup) FirstRefName() string {
-	if len(l.Values) > 0 {
-		return l.Values[0].Name
-	}
-
-	return ""
-}
-
-// RefNames returns a slice of referenced rows' Display Columns values
-func (l AccountsLookup) RefNames() (names []string) {
-	for _, v := range l.Values {
-		names = append(names, v.Name)
-	}
-
-	return
-}
-
-// String returns a comma-separated Display Columns of referenced rows.
-// This representation is similar to what is shown in the browser.
-func (l AccountsLookup) String() string {
-	return strings.Join(l.RefNames(), ", ")
-}
-
-// First returns a pointer to a Accounts struct containing data of the first referenced row.
-// It will return nil unless the lookup contains references and container of this AccountsLookup was preloaded by the LoadRelations<Original Table> method
-func (l AccountsLookup) First() *Accounts {
-	if len(l.Values) > 0 {
-		return l.Values[0].Data
-	}
-
-	return nil
-}
-
-// FirstMaybe returns a Accounts struct containing data of the first referenced row.
-// If the lookup doesn't contain any references or if reference data was not preloaded by the LoadRelations<Original Table> method it will return an empty structure with nil-values of it's fields
-func (l AccountsLookup) FirstMaybe() Accounts {
-	if len(l.Values) > 0 {
-		return *l.Values[0].Data
-	}
-
-	return Accounts{}
-}
-
-// MustFirst returns a Accounts struct containing data of the first referenced row.
-// It will panic if the lookup doesn't contain any references or if reference data was not preloaded by the LoadRelations<Original Table> method
-func (l AccountsLookup) MustFirst() Accounts {
-	if len(l.Values) > 0 && l.Values[0].Data != nil {
-		return *l.Values[0].Data
-	}
-
-	panic("required Accounts value is not present in data row of AccountsLookup, table [Accounts]")
-}
-
-// All returns all loaded data of the referenced rows if any
-func (l AccountsLookup) All() (data []Accounts) {
-	for _, i := range l.Values {
-		if i.Data != nil {
-			data = append(data, *i.Data)
-		}
-	}
-
-	return
-}
-
-// Hydrate fills this lookup values with the corresponding rows from the map[RowID]Accounts
-func (l *AccountsLookup) Hydrate(mapOf map[RowID]*Accounts) {
-	for vi, v := range l.Values {
-		if v.Data != nil {
-			continue
-		}
-		if data, ok := mapOf[RowID(v.RowID)]; ok {
-			l.Values[vi].Data = data
-		}
-	}
-}
-
-type AccountsRowRef struct {
-	Name  string
-	RowID string
-	Data  *Accounts
-}
-
-func ToAccountsLookup(colID string, row Valuer) (values AccountsLookup, err error) {
-	rawv, ok := row.GetValue(colID)
-	if !ok {
-		return AccountsLookup{}, fmt.Errorf("missing column %v in Accounts row", colID)
-	}
-
-	if strv, ok := rawv.(string); ok && strv == "" {
-		return AccountsLookup{}, nil
-	}
-
-	if slicev, ok := rawv.([]interface{}); ok {
-		for i, interv := range slicev {
-			sv, err := toStructuredValue(interv)
-			if err != nil {
-				return AccountsLookup{}, fmt.Errorf("slice value #%v: %w", i, err)
-			}
-			values.Values = append(values.Values, AccountsRowRef{
-				Name:  sv.Name,
-				RowID: sv.RowId,
-			})
-		}
-
-		return
-	}
-
-	sv, err := toStructuredValue(rawv)
-	if err != nil {
-		return AccountsLookup{}, err
-	}
-
-	values.Values = []AccountsRowRef{
-		{
-			Name:  sv.Name,
-			RowID: sv.RowId,
-		},
-	}
-
-	return
-}
-
-type ExpensesLookup struct {
-	Values []ExpensesRowRef
-}
-
-// FirstRef returns a first referenced row metadata
-func (l ExpensesLookup) FirstRef() (first ExpensesRowRef, found bool) {
-	if len(l.Values) > 0 {
-		return l.Values[0], true
-	}
-
-	return ExpensesRowRef{}, false
-}
-
-// FirstRefName returns a first referenced row's Display Column value
-func (l ExpensesLookup) FirstRefName() string {
-	if len(l.Values) > 0 {
-		return l.Values[0].Name
-	}
-
-	return ""
-}
-
-// RefNames returns a slice of referenced rows' Display Columns values
-func (l ExpensesLookup) RefNames() (names []string) {
-	for _, v := range l.Values {
-		names = append(names, v.Name)
-	}
-
-	return
-}
-
-// String returns a comma-separated Display Columns of referenced rows.
-// This representation is similar to what is shown in the browser.
-func (l ExpensesLookup) String() string {
-	return strings.Join(l.RefNames(), ", ")
-}
-
-// First returns a pointer to a Expenses struct containing data of the first referenced row.
-// It will return nil unless the lookup contains references and container of this ExpensesLookup was preloaded by the LoadRelations<Original Table> method
-func (l ExpensesLookup) First() *Expenses {
-	if len(l.Values) > 0 {
-		return l.Values[0].Data
-	}
-
-	return nil
-}
-
-// FirstMaybe returns a Expenses struct containing data of the first referenced row.
-// If the lookup doesn't contain any references or if reference data was not preloaded by the LoadRelations<Original Table> method it will return an empty structure with nil-values of it's fields
-func (l ExpensesLookup) FirstMaybe() Expenses {
-	if len(l.Values) > 0 {
-		return *l.Values[0].Data
-	}
-
-	return Expenses{}
-}
-
-// MustFirst returns a Expenses struct containing data of the first referenced row.
-// It will panic if the lookup doesn't contain any references or if reference data was not preloaded by the LoadRelations<Original Table> method
-func (l ExpensesLookup) MustFirst() Expenses {
-	if len(l.Values) > 0 && l.Values[0].Data != nil {
-		return *l.Values[0].Data
-	}
-
-	panic("required Expenses value is not present in data row of ExpensesLookup, table [Expenses]")
-}
-
-// All returns all loaded data of the referenced rows if any
-func (l ExpensesLookup) All() (data []Expenses) {
-	for _, i := range l.Values {
-		if i.Data != nil {
-			data = append(data, *i.Data)
-		}
-	}
-
-	return
-}
-
-// Hydrate fills this lookup values with the corresponding rows from the map[RowID]Expenses
-func (l *ExpensesLookup) Hydrate(mapOf map[RowID]*Expenses) {
-	for vi, v := range l.Values {
-		if v.Data != nil {
-			continue
-		}
-		if data, ok := mapOf[RowID(v.RowID)]; ok {
-			l.Values[vi].Data = data
-		}
-	}
-}
-
-type ExpensesRowRef struct {
-	Name  string
-	RowID string
-	Data  *Expenses
-}
-
-func ToExpensesLookup(colID string, row Valuer) (values ExpensesLookup, err error) {
-	rawv, ok := row.GetValue(colID)
-	if !ok {
-		return ExpensesLookup{}, fmt.Errorf("missing column %v in Expenses row", colID)
-	}
-
-	if strv, ok := rawv.(string); ok && strv == "" {
-		return ExpensesLookup{}, nil
-	}
-
-	if slicev, ok := rawv.([]interface{}); ok {
-		for i, interv := range slicev {
-			sv, err := toStructuredValue(interv)
-			if err != nil {
-				return ExpensesLookup{}, fmt.Errorf("slice value #%v: %w", i, err)
-			}
-			values.Values = append(values.Values, ExpensesRowRef{
-				Name:  sv.Name,
-				RowID: sv.RowId,
-			})
-		}
-
-		return
-	}
-
-	sv, err := toStructuredValue(rawv)
-	if err != nil {
-		return ExpensesLookup{}, err
-	}
-
-	values.Values = []ExpensesRowRef{
-		{
-			Name:  sv.Name,
-			RowID: sv.RowId,
-		},
-	}
-
-	return
-}
-
 type InvoicePaymentLookup struct {
 	Values []InvoicePaymentRowRef
 }
@@ -3732,6 +3460,278 @@ func ToAuditCategoryLookup(colID string, row Valuer) (values AuditCategoryLookup
 	}
 
 	values.Values = []AuditCategoryRowRef{
+		{
+			Name:  sv.Name,
+			RowID: sv.RowId,
+		},
+	}
+
+	return
+}
+
+type AccountsLookup struct {
+	Values []AccountsRowRef
+}
+
+// FirstRef returns a first referenced row metadata
+func (l AccountsLookup) FirstRef() (first AccountsRowRef, found bool) {
+	if len(l.Values) > 0 {
+		return l.Values[0], true
+	}
+
+	return AccountsRowRef{}, false
+}
+
+// FirstRefName returns a first referenced row's Display Column value
+func (l AccountsLookup) FirstRefName() string {
+	if len(l.Values) > 0 {
+		return l.Values[0].Name
+	}
+
+	return ""
+}
+
+// RefNames returns a slice of referenced rows' Display Columns values
+func (l AccountsLookup) RefNames() (names []string) {
+	for _, v := range l.Values {
+		names = append(names, v.Name)
+	}
+
+	return
+}
+
+// String returns a comma-separated Display Columns of referenced rows.
+// This representation is similar to what is shown in the browser.
+func (l AccountsLookup) String() string {
+	return strings.Join(l.RefNames(), ", ")
+}
+
+// First returns a pointer to a Accounts struct containing data of the first referenced row.
+// It will return nil unless the lookup contains references and container of this AccountsLookup was preloaded by the LoadRelations<Original Table> method
+func (l AccountsLookup) First() *Accounts {
+	if len(l.Values) > 0 {
+		return l.Values[0].Data
+	}
+
+	return nil
+}
+
+// FirstMaybe returns a Accounts struct containing data of the first referenced row.
+// If the lookup doesn't contain any references or if reference data was not preloaded by the LoadRelations<Original Table> method it will return an empty structure with nil-values of it's fields
+func (l AccountsLookup) FirstMaybe() Accounts {
+	if len(l.Values) > 0 {
+		return *l.Values[0].Data
+	}
+
+	return Accounts{}
+}
+
+// MustFirst returns a Accounts struct containing data of the first referenced row.
+// It will panic if the lookup doesn't contain any references or if reference data was not preloaded by the LoadRelations<Original Table> method
+func (l AccountsLookup) MustFirst() Accounts {
+	if len(l.Values) > 0 && l.Values[0].Data != nil {
+		return *l.Values[0].Data
+	}
+
+	panic("required Accounts value is not present in data row of AccountsLookup, table [Accounts]")
+}
+
+// All returns all loaded data of the referenced rows if any
+func (l AccountsLookup) All() (data []Accounts) {
+	for _, i := range l.Values {
+		if i.Data != nil {
+			data = append(data, *i.Data)
+		}
+	}
+
+	return
+}
+
+// Hydrate fills this lookup values with the corresponding rows from the map[RowID]Accounts
+func (l *AccountsLookup) Hydrate(mapOf map[RowID]*Accounts) {
+	for vi, v := range l.Values {
+		if v.Data != nil {
+			continue
+		}
+		if data, ok := mapOf[RowID(v.RowID)]; ok {
+			l.Values[vi].Data = data
+		}
+	}
+}
+
+type AccountsRowRef struct {
+	Name  string
+	RowID string
+	Data  *Accounts
+}
+
+func ToAccountsLookup(colID string, row Valuer) (values AccountsLookup, err error) {
+	rawv, ok := row.GetValue(colID)
+	if !ok {
+		return AccountsLookup{}, fmt.Errorf("missing column %v in Accounts row", colID)
+	}
+
+	if strv, ok := rawv.(string); ok && strv == "" {
+		return AccountsLookup{}, nil
+	}
+
+	if slicev, ok := rawv.([]interface{}); ok {
+		for i, interv := range slicev {
+			sv, err := toStructuredValue(interv)
+			if err != nil {
+				return AccountsLookup{}, fmt.Errorf("slice value #%v: %w", i, err)
+			}
+			values.Values = append(values.Values, AccountsRowRef{
+				Name:  sv.Name,
+				RowID: sv.RowId,
+			})
+		}
+
+		return
+	}
+
+	sv, err := toStructuredValue(rawv)
+	if err != nil {
+		return AccountsLookup{}, err
+	}
+
+	values.Values = []AccountsRowRef{
+		{
+			Name:  sv.Name,
+			RowID: sv.RowId,
+		},
+	}
+
+	return
+}
+
+type ExpensesLookup struct {
+	Values []ExpensesRowRef
+}
+
+// FirstRef returns a first referenced row metadata
+func (l ExpensesLookup) FirstRef() (first ExpensesRowRef, found bool) {
+	if len(l.Values) > 0 {
+		return l.Values[0], true
+	}
+
+	return ExpensesRowRef{}, false
+}
+
+// FirstRefName returns a first referenced row's Display Column value
+func (l ExpensesLookup) FirstRefName() string {
+	if len(l.Values) > 0 {
+		return l.Values[0].Name
+	}
+
+	return ""
+}
+
+// RefNames returns a slice of referenced rows' Display Columns values
+func (l ExpensesLookup) RefNames() (names []string) {
+	for _, v := range l.Values {
+		names = append(names, v.Name)
+	}
+
+	return
+}
+
+// String returns a comma-separated Display Columns of referenced rows.
+// This representation is similar to what is shown in the browser.
+func (l ExpensesLookup) String() string {
+	return strings.Join(l.RefNames(), ", ")
+}
+
+// First returns a pointer to a Expenses struct containing data of the first referenced row.
+// It will return nil unless the lookup contains references and container of this ExpensesLookup was preloaded by the LoadRelations<Original Table> method
+func (l ExpensesLookup) First() *Expenses {
+	if len(l.Values) > 0 {
+		return l.Values[0].Data
+	}
+
+	return nil
+}
+
+// FirstMaybe returns a Expenses struct containing data of the first referenced row.
+// If the lookup doesn't contain any references or if reference data was not preloaded by the LoadRelations<Original Table> method it will return an empty structure with nil-values of it's fields
+func (l ExpensesLookup) FirstMaybe() Expenses {
+	if len(l.Values) > 0 {
+		return *l.Values[0].Data
+	}
+
+	return Expenses{}
+}
+
+// MustFirst returns a Expenses struct containing data of the first referenced row.
+// It will panic if the lookup doesn't contain any references or if reference data was not preloaded by the LoadRelations<Original Table> method
+func (l ExpensesLookup) MustFirst() Expenses {
+	if len(l.Values) > 0 && l.Values[0].Data != nil {
+		return *l.Values[0].Data
+	}
+
+	panic("required Expenses value is not present in data row of ExpensesLookup, table [Expenses]")
+}
+
+// All returns all loaded data of the referenced rows if any
+func (l ExpensesLookup) All() (data []Expenses) {
+	for _, i := range l.Values {
+		if i.Data != nil {
+			data = append(data, *i.Data)
+		}
+	}
+
+	return
+}
+
+// Hydrate fills this lookup values with the corresponding rows from the map[RowID]Expenses
+func (l *ExpensesLookup) Hydrate(mapOf map[RowID]*Expenses) {
+	for vi, v := range l.Values {
+		if v.Data != nil {
+			continue
+		}
+		if data, ok := mapOf[RowID(v.RowID)]; ok {
+			l.Values[vi].Data = data
+		}
+	}
+}
+
+type ExpensesRowRef struct {
+	Name  string
+	RowID string
+	Data  *Expenses
+}
+
+func ToExpensesLookup(colID string, row Valuer) (values ExpensesLookup, err error) {
+	rawv, ok := row.GetValue(colID)
+	if !ok {
+		return ExpensesLookup{}, fmt.Errorf("missing column %v in Expenses row", colID)
+	}
+
+	if strv, ok := rawv.(string); ok && strv == "" {
+		return ExpensesLookup{}, nil
+	}
+
+	if slicev, ok := rawv.([]interface{}); ok {
+		for i, interv := range slicev {
+			sv, err := toStructuredValue(interv)
+			if err != nil {
+				return ExpensesLookup{}, fmt.Errorf("slice value #%v: %w", i, err)
+			}
+			values.Values = append(values.Values, ExpensesRowRef{
+				Name:  sv.Name,
+				RowID: sv.RowId,
+			})
+		}
+
+		return
+	}
+
+	sv, err := toStructuredValue(rawv)
+	if err != nil {
+		return ExpensesLookup{}, err
+	}
+
+	values.Values = []ExpensesRowRef{
 		{
 			Name:  sv.Name,
 			RowID: sv.RowId,
@@ -4570,15 +4570,15 @@ func (doc *CodaDocument) LoadRelationsCashFlow(ctx context.Context, shallow map[
 	}
 
 	for ii, _ := range shallow {
+		if rels.InvoicePayment {
+			shallow[ii].CashIn.Hydrate(_invoicePaymentMap)
+		}
 		if rels.Accounts {
 			shallow[ii].Account.Hydrate(_accountsMap)
 		}
 		if rels.Expenses {
 			shallow[ii].CashOutPurpose.Hydrate(_expensesMap)
 			shallow[ii].PersonalPaidIn.Hydrate(_expensesMap)
-		}
-		if rels.InvoicePayment {
-			shallow[ii].CashIn.Hydrate(_invoicePaymentMap)
 		}
 	}
 
@@ -4740,17 +4740,17 @@ func (doc *CodaDocument) LoadRelationsExpenses(ctx context.Context, shallow map[
 	}
 
 	for ii, _ := range shallow {
-		if rels.CashFlow {
-			shallow[ii].CashOutRefs.Hydrate(_cashFlowMap)
-		}
-		if rels.InventoryTypes {
-			shallow[ii].InventoryRef.Hydrate(_inventoryTypesMap)
-		}
 		if rels.AuditCategory {
 			shallow[ii].AuditCategory.Hydrate(_auditCategoryMap)
 		}
 		if rels.Invoices {
 			shallow[ii].Invoice.Hydrate(_invoicesMap)
+		}
+		if rels.CashFlow {
+			shallow[ii].CashOutRefs.Hydrate(_cashFlowMap)
+		}
+		if rels.InventoryTypes {
+			shallow[ii].InventoryRef.Hydrate(_inventoryTypesMap)
 		}
 	}
 
@@ -4767,9 +4767,9 @@ func (doc *CodaDocument) LoadRelationsInvoices(ctx context.Context, shallow map[
 		doc.relationsCache.Store("Invoices", shallow)
 	}
 
-	var _expensesMap map[RowID]*Expenses
 	var _invoicePaymentMap map[RowID]*InvoicePayment
 	var _invoicesMap map[RowID]*Invoices
+	var _expensesMap map[RowID]*Expenses
 
 	func() {
 		if !rels.Expenses {
