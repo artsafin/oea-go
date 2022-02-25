@@ -31,6 +31,22 @@ func replaceAllStringSubmatchFunc(re *regexp.Regexp, str string, repl func([]str
 
 func MarkdownToHTML(md string) string {
 	return replaceAllStringSubmatchFunc(markdownLinkRe, md, func(g []string) string {
+		if len(g) < 2 {
+			return md
+		}
 		return fmt.Sprintf(`<a href="%s">%s</a>`, g[1], g[2])
+	})
+}
+
+func MarkdownLinkToURL(md string) string {
+	if !markdownLinkRe.MatchString(md) {
+		return md
+	}
+
+	return replaceAllStringSubmatchFunc(markdownLinkRe, md, func(g []string) string {
+		if len(g) < 2 {
+			return md
+		}
+		return g[2]
 	})
 }
